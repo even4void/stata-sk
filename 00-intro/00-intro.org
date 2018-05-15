@@ -1,4 +1,4 @@
-#+TITLE: Stata : un rapide tour
+#+TITLE: Stata : un rapide tour d'horizon
 #+LANGUAGE: fr
 #+LATEX_CLASS: article
 #+OPTIONS: H:3 num:nil toc:t \n:nil @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil tags:not-in-toc
@@ -7,3 +7,26 @@
 * Stata en quelques mots
 
 Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques, puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes, l'économétrie et l'épidémiologie.
+
+* Prise en main de Stata
+
+Une fois Stata lancé, voici trois commandes à saisir dans le panneau de commande. Ces trois commandes cont successivement charger un jeu de données fourni lors de l'installation de Stata, produire un résumé numérique de deux variables (=price= et =mpg=) et estimer les paramètres d'un modèle de régression linéaire simple.
+#+BEGIN_SRC stata :session :results output :exports both
+ sysuse auto
+ summarize price mpg
+ regress price mpg
+#+END_SRC
+
+Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Résultats", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhiate réaliser (=use= pour utiliser et =sysuse= pour utiliser depuis le système, =summarize= pour résumer, et =regress= pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
+
+Le jeu de données utilisé concerne un ensemble de voitures dont l'une des caractéristiques est l'origine de la marque : la variable =foreign= indique si la voiture est de marque étrangère (=foreign = 1=) ou non (=foreign = 0=). Supposons que l'on souhaite réaliser le même modèle de régression que le précédent mais en restreignant l'analyse aux seuls véhicules de marque étrangère. Pour cela, il suffit d'appliquer un filtre pour sélectionner les observations vérifiant la condition =foreign==1= ("la variable =foreign= prend la valeur 1").
+#+BEGIN_SRC stata :session :results output :exports results
+regress price mpg if foreign == 1
+#+END_SRC
+
+Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant :
+#+BEGIN_SRC stata :session :results output :exports results
+ bootstrap: regress price mpg 
+#+END_SRC
+
+Un autre préfixe possible est =bayes:= (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=.
