@@ -1,0 +1,9 @@
+#+TITLE: Stata : un rapide tour
+#+LANGUAGE: fr
+#+LATEX_CLASS: article
+#+OPTIONS: H:3 num:nil toc:t \n:nil @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil tags:not-in-toc
+
+
+* Stata en quelques mots
+
+Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques, puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes, l'économétrie et l'épidémiologie.
