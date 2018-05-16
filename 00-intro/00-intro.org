@@ -6,7 +6,18 @@
 
 * Stata en quelques mots
 
-Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques, puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes, l'économétrie et l'épidémiologie.
+Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques [[cite:cox-2005-stata]], puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes, l'économétrie et l'épidémiologie.
+
+Une fois installé, Stata est entièrement fonctionnel et dispose de toutes les procédures statistiques et graphiques que l'on attend d'un logiciel statistique. Il est toutefois possible d'installer des modules additionnels depuis internet.
+
+En mode interactif, il y a deux manières de travailler avec Stata : en saisissant des instructions dans le panneau de commande (surligné en jaune dans la figure suivante) ou en utilisant les menus et boîtes de dialogue de l'interface graphique. On privilégira la première option par souci de simplicité pour l'exposé et à plus long terme de reproducibilité des analyses statistiques puisque l'on verra comment enregistrer toutes les commandes dans des fichiers =do=.
+
+#+CAPTION:   Le logiciel Stata
+#+NAME:      fig:stata-ui
+#+LABEL:     fig:stata-ui
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./2018-05-16-07-19-28.png]]
 
 * Prise en main de Stata
 
@@ -17,16 +28,51 @@ Une fois Stata lancé, voici trois commandes à saisir dans le panneau de comman
  regress price mpg
 #+END_SRC
 
-Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Résultats", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhiate réaliser (=use= pour utiliser et =sysuse= pour utiliser depuis le système, =summarize= pour résumer, et =regress= pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
+Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Résultats", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhaite réaliser (=use= pour utiliser et =sysuse= pour utiliser depuis le système, =summarize= pour résumer, et =regress= pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
 
 Le jeu de données utilisé concerne un ensemble de voitures dont l'une des caractéristiques est l'origine de la marque : la variable =foreign= indique si la voiture est de marque étrangère (=foreign = 1=) ou non (=foreign = 0=). Supposons que l'on souhaite réaliser le même modèle de régression que le précédent mais en restreignant l'analyse aux seuls véhicules de marque étrangère. Pour cela, il suffit d'appliquer un filtre pour sélectionner les observations vérifiant la condition =foreign==1= ("la variable =foreign= prend la valeur 1").
 #+BEGIN_SRC stata :session :results output :exports results
-regress price mpg if foreign == 1
+ regress price mpg if foreign == 1
 #+END_SRC
 
-Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant :
+Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant : la commande s'écrit alors =bootstrap: regress price mpg=. Un autre préfixe possible est =bayes:= (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=.
+
+Les instructions suivantes permettent de cosntruire un diagramme de dispersion représentant la covariation des deux variables =price= et =mpg= ainsi que la droite de régression. Le mot clé =twoway= peut être omis et le symbole =||= permet de superposer sur le même graphique plusieurs éléments.
+#+BEGIN_SRC stata :session :results output
+ set scheme plotplain
+ twoway scatter price mpg || lfit price mpg 
+ graph export "fig-scatter-price-mpg.pdf", replace
+#+END_SRC
+
+#+CAPTION:   Prix et vitesse des automobiles (ajustement linéaire)
+#+NAME:      fig:scatter-price-mpg
+#+LABEL:     fig:scatter-price-mpg
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-scatter-price-mpg.png]]
+
+Le graphique précédent suggère qu'une relation simplement linéaire entre les deux variables n'est pas vraiment satisfaisante. On peut imaginer utiliser une approche par polynômes ou par splines, mais dans l'immédiat ajoutons simplement un terme quadratique :
+#+BEGIN_SRC stata :session :results output :exports both
+ generate mpg2 = mpg * mpg
+ regress price mpg mpg2 
+#+END_SRC
+
+#+BEGIN_SRC stata :session :results output
+ twoway scatter price mpg || qfit price mpg
+ graph export "fig-scatter-price-mpg2.pdf", replace
+#+END_SRC
+
+#+CAPTION:   Prix et vitesse des automobiles (ajustement quadratique)
+#+NAME:      fig:scatter-price-mpg2
+#+LABEL:     fig:scatter-price-mpg2
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-scatter-price-mpg2.png]]
+
+Les résultats calculés par Stata sont stockés en mémoire et sont disponibles immédiatement après une telle commande d'estimation. Par exemple, ci-après on affiche la valeur de retour =r2_a=, qui représente le coefficeint de détermination du modèle précédent. 
 #+BEGIN_SRC stata :session :results output :exports results
- bootstrap: regress price mpg 
+ display %4.3f e(r2_a)
 #+END_SRC
+Un affichage plus complexe pourrait être par exemple =display "R2 = " %5.2f e(r2_a)*100 "%"=.
 
-Un autre préfixe possible est =bayes:= (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=.
+#+BIBLIOGRAPHY: references plain limit:t option:-nobibsource
