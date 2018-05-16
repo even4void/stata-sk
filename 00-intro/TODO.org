@@ -1,0 +1,7 @@
+* TODO list 
+- [ ] Fix LaTeX memoir layout
+- [ ] Fix BibTeX export for LaTeX
+- [ ] Add editors, do-file, graphics export
+  
+
+
