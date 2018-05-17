@@ -1,0 +1,23 @@
+* Structure
+
+- [[file:./00-intro]]: kickstarter
+- [[file:./01-base]]: main tools for statistical modeling
+- data management, programming, automation
+- Ado and Mata programming  
+- survey processing
+- time series
+- econometrics
+- biostatistics          
+
+* TODO all
+- [ ] Clean up logo
+- [ ] Create project hyperlinks
+- [ ] Add subdir to [[file:~/Sites/aliquote/content/]] 
+  
+* TODO 00-intro 
+- [ ] Fix LaTeX memoir layout
+- [ ] Fix BibTeX export for LaTeX
+- [ ] Add editors, do-file, graphics export
+- [X] Add custom CSS
+
+
