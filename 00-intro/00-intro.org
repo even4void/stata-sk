@@ -21,8 +21,7 @@ En mode interactif, il y a deux manières de travailler avec Stata : en saisissa
 ** Un modèle de régression linéaire en quelques commandes
 Une fois Stata lancé, voici trois commandes à saisir dans le panneau de commande. Ces trois commandes cont successivement charger un jeu de données fourni lors de l'installation de Stata, produire un résumé numérique de deux variables (=price= et =mpg=) et estimer les paramètres d'un modèle de régression linéaire simple.
 #+BEGIN_SRC stata :session :results output :exports both
-clear all
-sysuse auto
+sysuse auto, clear
 summarize price mpg
 regress price mpg
 #+END_SRC
@@ -52,15 +51,15 @@ Les instructions suivantes permettent de cosntruire un diagramme de dispersion r
 #+BEGIN_SRC stata :session :results output
 set scheme plotplain           /* ssc install blindschemes */         
 graph twoway scatter price mpg || lfit price mpg 
-graph export "fig-scatter-price-mpg.pdf", fontface(DroidSans) replace
+graph export "fig-00-scatter-price-mpg.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (ajustement linéaire)
-#+NAME:      fig:scatter-price-mpg
-#+LABEL:     fig:scatter-price-mpg
+#+NAME:      fig:00-scatter-price-mpg
+#+LABEL:     fig:00-scatter-price-mpg
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-scatter-price-mpg.png]]
+[[./fig-00-scatter-price-mpg.png]]
 
 Le graphique précédent suggère qu'une relation simplement linéaire entre les deux variables n'est pas vraiment satisfaisante. On peut imaginer utiliser une approche par polynômes ou par splines, mais dans l'immédiat ajoutons simplement un terme quadratique :
 #+BEGIN_SRC stata :session :results output :exports both
@@ -70,15 +69,15 @@ regress price mpg mpg2
 
 #+BEGIN_SRC stata :session :results output
 graph twoway scatter price mpg || qfit price mpg
-graph export "fig-scatter-price-mpg2.pdf", fontface(DroidSans) replace
+graph export "fig-00-scatter-price-mpg2.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (ajustement quadratique)
-#+NAME:      fig:scatter-price-mpg2
-#+LABEL:     fig:scatter-price-mpg2
+#+NAME:      fig:00-scatter-price-mpg2
+#+LABEL:     fig:00-scatter-price-mpg2
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-scatter-price-mpg2.png]]
+[[./fig-00-scatter-price-mpg2.png]]
 
 Les résultats calculés par Stata sont stockés en mémoire et sont disponibles immédiatement après une telle commande d'estimation. Par exemple, ci-après on affiche la valeur de retour =r2_a=, qui représente le coefficeint de détermination du modèle précédent. 
 #+BEGIN_SRC stata :session :results output :exports both
@@ -94,15 +93,15 @@ predict double ei, rstandard
 
 #+BEGIN_SRC stata :session :results output
 graph twoway scatter ei yhat, yline(0)
-graph export "fig-rvfplot-price-mpg2.pdf", fontface(DroidSans) replace
+graph export "fig-00-rvfplot-price-mpg2.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (valeurs ajustées et résidus)
-#+NAME:      fig:rvfplot-price-mpg2
-#+LABEL:     fig:rvfplot-price-mpg2
+#+NAME:      fig:00-rvfplot-price-mpg2
+#+LABEL:     fig:00-rvfplot-price-mpg2
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-rvfplot-price-mpg2.png]]
+[[./fig-00-rvfplot-price-mpg2.png]]
 
 Pour rendre ce dernier graphique un peu plus informatif, on peut imaginer rajouter une courbe loess et annoter les observations ayant des résidus standardisés supérieurs à 2 (en valeur absolue).
 #+BEGIN_SRC stata :session :results output :hlines yes
@@ -110,20 +109,22 @@ generate infl = _n if abs(ei) > 2
 tostring infl, replace
 replace infl = " " if infl == "."
 scatter ei yhat, yline(0) || scatter ei yhat, ms(none) mlab(infl) mlabpos(12) || lowess ei yhat, legend(off)
-graph export "fig-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
+graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (valeurs ajustées et résidus)
-#+NAME:      fig:rvfplot-price-mpg2-b
-#+LABEL:     fig:rvfplot-price-mpg2-b
+#+NAME:      fig:00-rvfplot-price-mpg2-b
+#+LABEL:     fig:00-rvfplot-price-mpg2-b
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-rvfplot-price-mpg2-b.png]]
+[[./fig-00-rvfplot-price-mpg2-b.png]]
 
 
 ** Synthétiser
 
-Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran.
+Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée.
+
+estout, tabout
 
 * Pour aller plus loin
 
