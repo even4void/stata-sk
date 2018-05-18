@@ -181,7 +181,8 @@ content: "*** "
     }
 
     code {
-	font-size: 100%;
+    font-family: Droid Sans Mono, Monaco, Consolas, "Lucida Console", monospace;
+	font-size: 0.9em;
     padding: 3px 5px;
     border-radius: 4px;
     color: #c7254e;
