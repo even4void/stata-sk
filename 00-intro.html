@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
+<head>
+<!-- 2018-05-18 Ven 14:56 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stata : un rapide tour d&rsquo;horizon</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Christophe Lalanne" />
+<link rel="stylesheet" type="text/css" href="worg.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Stata : un rapide tour d&rsquo;horizon</h1>
+<div id="table-of-contents">
+<h2>Table des matières</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orga3e4e8d">Stata en quelques mots</a></li>
+<li><a href="#org9e9afe0">Prise en main de Stata</a>
+<ul>
+<li><a href="#org2e86ef2">Un modèle de régression linéaire en quelques commandes</a></li>
+<li><a href="#orgcd753fd">Visualiser et interpréter</a></li>
+<li><a href="#org39dd75c">Synthétiser</a></li>
+</ul>
+</li>
+<li><a href="#org84e96de">Pour aller plus loin</a></li>
+</ul>
+</div>
+</div>
+<p>
+Ce document présente selon un angle très pragmatique une session de travail typique avec le logiciel Stata. Il ne s&rsquo;agit pas de couvrir toutes les fonctionnalités de Stata, ni de présenter en détails les principales commandes Stata, voire même la représentation interne des données sus Stata. Au contraire, l&rsquo;idée est d&rsquo;offrir un panorama de certaines fonctionnalités de Stata et comment organiser une session de tarvail simple avec comme objectif la réalisation d&rsquo;un modèle de régression linéaire.
+</p>
+
+<div id="outline-container-orga3e4e8d" class="outline-2">
+<h2 id="orga3e4e8d">Stata en quelques mots</h2>
+<div class="outline-text-2" id="text-orga3e4e8d">
+<p>
+Stata est un logiciel d&rsquo;analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l&rsquo;origine, il s&rsquo;agissait esentiellement d&rsquo;un logiciel orienté vers le traitement des enquêtes et des séries chronologiques [<a href="#cox-2005-stata">2</a>], puis ses fonctionnalités se sont largement développées pour en faire à l&rsquo;heure actuelle un logiciel très performant dans de nombreux domaines d&rsquo;application, principalement le traitement des enquêtes [<a href="#kohler-2012-data-analy">4</a>], l&rsquo;économétrie [<a href="#baum-2006-introd-moder">1</a>] ou l&rsquo;épidémiologie [<a href="#juul-2014-introd-stata">3</a>]. Les ouvrages publiés par Stata Press incluent en général un ou deux chapitres de présentation des principales commandes Stata.
+</p>
+
+<p>
+Une fois installé, Stata est entièrement fonctionnel et dispose de toutes les procédures statistiques et graphiques que l&rsquo;on attend d&rsquo;un logiciel statistique. Il est toutefois possible d&rsquo;installer des modules additionnels depuis internet (<a href="http://www.stata.com">www.stata.com</a>, SSC, Github, sites personnels). Mais en règle générale, les commandes de base disponibles dans Stata suffisent largement à couvrir l&rsquo;essentiel des besoins en termes de gestion de données et d&rsquo;analyses statistiques. 
+</p>
+
+<p>
+Une autre caractéristique remarquable de Stata est la qualité de sa documentation. Pour la version 15, on dénombre pas moins 30 manuels en version PDF pour un total de 14791 pages.Ces documents PDF sont accessibles depuis le menu d&rsquo;aide interne de Stata et se consulte généralement à l&rsquo;aide d&rsquo;Acrobat Reader, mais il est toujours possible de consulter le fichier d&rsquo;index, <code>i.pdf</code>, et de naviguer dans la documentation à partir de celui-ci. Pour bien débuter avec Stata, il est conseillé de lire le manuel [D] (Data management).
+</p>
+
+<p>
+En mode interactif, il y a deux manières de travailler avec Stata : en saisissant des instructions dans le panneau de commande ou en utilisant les menus et boîtes de dialogue de l&rsquo;interface graphique. On privilégira la première option par souci de simplicité pour l&rsquo;exposé et à plus long terme de reproducibilité des analyses statistiques puisque l&rsquo;on verra comment enregistrer toutes les commandes dans des fichiers <code>do</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9e9afe0" class="outline-2">
+<h2 id="org9e9afe0">Prise en main de Stata</h2>
+<div class="outline-text-2" id="text-org9e9afe0">
+</div>
+<div id="outline-container-org2e86ef2" class="outline-3">
+<h3 id="org2e86ef2">Un modèle de régression linéaire en quelques commandes</h3>
+<div class="outline-text-3" id="text-org2e86ef2">
+<p>
+Une fois Stata lancé, voici trois commandes à saisir dans le panneau de commande. Ces trois commandes cont successivement charger un jeu de données fourni lors de l&rsquo;installation de Stata, produire un résumé numérique de deux variables (<code>price</code> et <code>mpg</code>) et estimer les paramètres d&rsquo;un modèle de régression linéaire simple.
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">sysuse auto, clear
+summarize price mpg
+regress price mpg
+</pre>
+</div>
+
+<pre class="example">
+sysuse auto, clear
+(1978 Automobile Data)
+summarize price mpg
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       price |         74    6165.257    2949.496       3291      15906
+         mpg |         74     21.2973    5.785503         12         41
+regress price mpg
+
+      Source |       SS           df       MS      Number of obs   =        74
+-------------+----------------------------------   F(1, 72)        =     20.26
+       Model |   139449474         1   139449474   Prob &gt; F        =    0.0000
+    Residual |   495615923        72  6883554.48   R-squared       =    0.2196
+-------------+----------------------------------   Adj R-squared   =    0.2087
+       Total |   635065396        73  8699525.97   Root MSE        =    2623.7
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -238.8943   53.07669    -4.50   0.000    -344.7008   -133.0879
+       _cons |   11253.06   1170.813     9.61   0.000     8919.088    13587.03
+------------------------------------------------------------------------------
+</pre>
+
+<p>
+Dans l&rsquo;exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre &laquo;&nbsp;Résultats&nbsp;&raquo;, à l&rsquo;exception de l&rsquo;invite de commande Stata symbolisée par un point (&laquo;&nbsp;.&nbsp;&raquo;). Pour en revenir à l&rsquo;exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l&rsquo;idée anglo-saxonne que l&rsquo;on peut se faire des actions que l&rsquo;on souhaite réaliser (<code>use</code> pour utiliser et <code>sysuse</code> pour utiliser depuis le système, <code>summarize</code> pour résumer, et <code>regress</code> pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu&rsquo;il s&rsquo;agisse de l&rsquo;affichage d&rsquo;un message ou d&rsquo;un résultat numérique mis en forme automatiquement par Stata.
+</p>
+
+<p>
+Le jeu de données utilisé concerne un ensemble de voitures dont l&rsquo;une des caractéristiques est l&rsquo;origine de la marque : la variable <code>foreign</code> indique si la voiture est de marque étrangère (<code>foreign = 1</code>) ou non (<code>foreign = 0</code>). Pour avoir une idée plus précise de l&rsquo;ensemble des variables disponibles dans ce tableau de données, on peut utiliser la commande <code>codebook</code> ou <code>describe</code> :
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">describe
+</pre>
+</div>
+
+<pre class="example">
+describe
+
+Contains data from /Applications/Stata/ado/base/a/auto.dta
+  obs:            74                          1978 Automobile Data
+ vars:            12                          13 Apr 2016 17:45
+ size:         3,182                          (_dta has notes)
+-------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+-------------------------------------------------------------------------------
+make            str18   %-18s                 Make and Model
+price           int     %8.0gc                Price
+mpg             int     %8.0g                 Mileage (mpg)
+rep78           int     %8.0g                 Repair Record 1978
+headroom        float   %6.1f                 Headroom (in.)
+trunk           int     %8.0g                 Trunk space (cu. ft.)
+weight          int     %8.0gc                Weight (lbs.)
+length          int     %8.0g                 Length (in.)
+turn            int     %8.0g                 Turn Circle (ft.)
+displacement    int     %8.0g                 Displacement (cu. in.)
+gear_ratio      float   %6.2f                 Gear Ratio
+foreign         byte    %8.0g      origin     Car type
+-------------------------------------------------------------------------------
+Sorted by: foreign
+</pre>
+
+<p>
+Notons qu&rsquo;aucun nom de variable est fourni après la commande <code>describe</code>, ce qui revient à considérer l&rsquo;ensemble des variables. La notion de variable et de liste de variables est centrale dans l&rsquo;utilisation de Stata qui est un langage essentiellement orienté variables (c&rsquo;est-à-dire les colonnes du tableau de données).
+</p>
+
+<p>
+Supposons que l&rsquo;on souhaite réaliser le même modèle de régression que le précédent mais en restreignant l&rsquo;analyse aux seuls véhicules de marque étrangère. Pour cela, il suffit d&rsquo;appliquer un filtre pour sélectionner les observations vérifiant la condition <code>foreign==1</code> (&laquo;&nbsp;la variable <code>foreign</code> prend la valeur 1&nbsp;&raquo;) :
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">regress price mpg if foreign == 1
+</pre>
+</div>
+
+<pre class="example">
+regress price mpg if foreign == 1
+
+      Source |       SS           df       MS      Number of obs   =        22
+-------------+----------------------------------   F(1, 20)        =     13.25
+       Model |  57534941.7         1  57534941.7   Prob &gt; F        =    0.0016
+    Residual |  86828271.1        20  4341413.55   R-squared       =    0.3985
+-------------+----------------------------------   Adj R-squared   =    0.3685
+       Total |   144363213        21   6874438.7   Root MSE        =    2083.6
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -250.3668   68.77435    -3.64   0.002    -393.8276    -106.906
+       _cons |   12586.95   1760.689     7.15   0.000     8914.217    16259.68
+------------------------------------------------------------------------------
+</pre>
+
+<p>
+La notion de filtres appliqués à l&rsquo;aide des qualificateurs <code>by</code>, <code>if</code> et <code>in</code> est également centrale dans Stata puisque ceux-ci permettent de sélectionner des sous-ensemble d&rsquo;observations (les lignes du tableau de données) selon des conditions logiques. À ce titre, le symbole représetant l&rsquo;égalité logique est un double signe égal (<code>==</code>) alors que le signe égal simple est réservé à l&rsquo;opération d&rsquo;affectation. Il serait possible de réutiliser la même instruction pour estimer le modèle de régression pour les observations vérifiant la condition &laquo;&nbsp;foreign vaut 0&nbsp;&raquo;, mais plutôt que de copier/coller ou rappeller la même commande à l&rsquo;aide des flèches haut/bas du clavier dans la fenêtre de commande, il est préférable d&rsquo;utilsier le préfixe <code>by</code> :
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">by foreign, sort: regress price mpg
+</pre>
+</div>
+
+<pre class="example">
+by foreign, sort: regress price mpg
+
+-------------------------------------------------------------------------------
+-&gt; foreign = Domestic
+
+      Source |       SS           df       MS      Number of obs   =        52
+-------------+----------------------------------   F(1, 50)        =     17.05
+       Model |   124392956         1   124392956   Prob &gt; F        =    0.0001
+    Residual |   364801844        50  7296036.89   R-squared       =    0.2543
+-------------+----------------------------------   Adj R-squared   =    0.2394
+       Total |   489194801        51  9592054.92   Root MSE        =    2701.1
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -329.2551   79.74034    -4.13   0.000    -489.4183   -169.0919
+       _cons |   12600.54   1624.773     7.76   0.000     9337.085    15863.99
+------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-&gt; foreign = Foreign
+
+      Source |       SS           df       MS      Number of obs   =        22
+-------------+----------------------------------   F(1, 20)        =     13.25
+       Model |  57534941.7         1  57534941.7   Prob &gt; F        =    0.0016
+    Residual |  86828271.1        20  4341413.55   R-squared       =    0.3985
+-------------+----------------------------------   Adj R-squared   =    0.3685
+       Total |   144363213        21   6874438.7   Root MSE        =    2083.6
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -250.3668   68.77435    -3.64   0.002    -393.8276    -106.906
+       _cons |   12586.95   1760.689     7.15   0.000     8914.217    16259.68
+------------------------------------------------------------------------------
+</pre>
+
+<p>
+Si l&rsquo;on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l&rsquo;aide d&rsquo;une technique de rééchantillonnage comme le bootstrap, il suffit de l&rsquo;indiquer à Stata à l&rsquo;aide du préfixe correspondant : la commande s&rsquo;écrit alors <code>bootstrap: regress price mpg</code>. Un autre préfixe possible est <code>bayes:</code> (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par <code>bayes: regress price mpg</code>. Attention, il ne s&rsquo;agit pas d&rsquo;un préfixe comme le préfixe <code>by</code> vu plus haut, mais d&rsquo;un préfixe pour les commandes d&rsquo;estimation.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgcd753fd" class="outline-3">
+<h3 id="orgcd753fd">Visualiser et interpréter</h3>
+<div class="outline-text-3" id="text-orgcd753fd">
+<p>
+Les instructions suivantes permettent de cosntruire un diagramme de dispersion représentant la covariation des deux variables <code>price</code> et <code>mpg</code> ainsi que la droite de régression. Le mot clé <code>twoway</code> peut être omis et le symbole <code>||</code> permet de superposer sur le même graphique plusieurs éléments.
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">set scheme plotplain           /* ssc install blindschemes */         
+graph twoway scatter price mpg || lfit price mpg 
+graph export "fig-00-scatter-price-mpg.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org3c7a02c" class="figure">
+<p><img src="./fig-00-scatter-price-mpg.png" alt="fig-00-scatter-price-mpg.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;1&nbsp;: </span>Prix et vitesse des automobiles (ajustement linéaire)</p>
+</div>
+
+<p>
+Le graphique précédent suggère qu&rsquo;une relation simplement linéaire entre les deux variables n&rsquo;est pas vraiment satisfaisante. On peut imaginer utiliser une approche par polynômes ou par splines, mais dans l&rsquo;immédiat ajoutons simplement un terme quadratique :
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">generate mpg2 = mpg * mpg
+regress price mpg mpg2 
+</pre>
+</div>
+
+<pre class="example">
+generate mpg2 = mpg * mpg
+regress price mpg mpg2
+
+      Source |       SS           df       MS      Number of obs   =        74
+-------------+----------------------------------   F(2, 71)        =     18.28
+       Model |   215835615         2   107917807   Prob &gt; F        =    0.0000
+    Residual |   419229781        71  5904644.81   R-squared       =    0.3399
+-------------+----------------------------------   Adj R-squared   =    0.3213
+       Total |   635065396        73  8699525.97   Root MSE        =    2429.9
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -1265.194   289.5443    -4.37   0.000    -1842.529   -687.8593
+        mpg2 |   21.36069   5.938885     3.60   0.001     9.518891    33.20249
+       _cons |   22716.48   3366.577     6.75   0.000     16003.71    29429.24
+------------------------------------------------------------------------------
+</pre>
+
+<div class="org-src-container">
+<pre class="src src-stata">graph twoway scatter price mpg || qfit price mpg
+graph export "fig-00-scatter-price-mpg2.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org2c969da" class="figure">
+<p><img src="./fig-00-scatter-price-mpg2.png" alt="fig-00-scatter-price-mpg2.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;2&nbsp;: </span>Prix et vitesse des automobiles (ajustement quadratique)</p>
+</div>
+
+<p>
+Les résultats calculés par Stata sont stockés en mémoire et sont disponibles immédiatement après une telle commande d&rsquo;estimation. Par exemple, ci-après on affiche la valeur de retour <code>r2_a</code>, qui représente le coefficeint de détermination du modèle précédent. 
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">display %4.3f e(r2_a)
+</pre>
+</div>
+
+<pre class="example">
+display %4.3f e(r2_a)
+0.321
+
+</pre>
+
+<p>
+Un affichage plus complexe pourrait être par exemple <code>display "R2 = " %5.2f e(r2_a)*100 "%"</code>.
+</p>
+
+<p>
+L&rsquo;analyse des résidus d&rsquo;un modèle de régression est souvent négligée, pourtant elle permet de diagnostiquer assez rapidement la qualité d&rsquo;ajustement du modèle de manière graphique et de vérifier si les conditions de validité d&rsquo;interprétation du modèle (linéarité de la relation, constance de la variance) sont vérifiées ou non. Pour cela, on a essentiellement besoin des valeurs ajustées (c&rsquo;est-à-dire les valeurs prédites par le modèle liénaire pour les données observées) et des valeurs résiduelles, qui représentent l&rsquo;écart entre les valeurs observées et les valeurs ajustées. Une seule et même commande Stata, <code>predict</code>, permet de calculer ces deux séries de valeurs :
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">predict double yhat
+predict double ei, rstandard
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-stata">graph twoway scatter ei yhat, yline(0)
+graph export "fig-00-rvfplot-price-mpg2.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org27deb9b" class="figure">
+<p><img src="./fig-00-rvfplot-price-mpg2.png" alt="fig-00-rvfplot-price-mpg2.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;3&nbsp;: </span>Prix et vitesse des automobiles (valeurs ajustées et résidus)</p>
+</div>
+
+<p>
+Pour rendre ce dernier graphique un peu plus informatif, on peut imaginer rajouter une courbe loess et annoter les observations ayant des résidus standardisés supérieurs à 2 (en valeur absolue).
+</p>
+<div class="org-src-container">
+<pre class="src src-stata">generate infl = _n if abs(ei) &gt; 2
+tostring infl, replace
+replace infl = " " if infl == "."
+scatter ei yhat, yline(0) || scatter ei yhat, ms(none) mlab(infl) mlabpos(12) || lowess ei yhat, legend(off)
+graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org1c27f3e" class="figure">
+<p><img src="./fig-00-rvfplot-price-mpg2-b.png" alt="fig-00-rvfplot-price-mpg2-b.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;4&nbsp;: </span>Prix et vitesse des automobiles (valeurs ajustées et résidus)</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org39dd75c" class="outline-3">
+<h3 id="org39dd75c">Synthétiser</h3>
+<div class="outline-text-3" id="text-org39dd75c">
+<p>
+Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l&rsquo;écran. En revanche, dans le cas de la génération d&rsquo;un rapport structuré d&rsquo;analyses, cette solution est limitée.
+</p>
+
+<p>
+estout, tabout
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org84e96de" class="outline-2">
+<h2 id="org84e96de">Pour aller plus loin</h2>
+<div class="outline-text-2" id="text-org84e96de">
+<p>
+On trouve de nombreux tutoriels sur internet (la plupart du temps en anglais). En voici quelques-un :
+</p>
+
+<ul class="org-ul">
+<li>les ressources Stata ainsi que le blog Stata</li>
+<li>le site pédagogique de l&rsquo;UCLA</li>
+</ul>
+
+<div id="bibliography">
+<h2>Références</h2>
+
+<table>
+
+<tr valign="top">
+<td align="right" class="bibtexnumber">
+[<a name="baum-2006-introd-moder">1</a>]
+</td>
+<td class="bibtexitem">
+Christopher&nbsp;F. Baum.
+ <em>An Introduction to Modern Econometrics Using Stata</em>.
+ Stata Press, 2006.
+
+</td>
+</tr>
+
+
+<tr valign="top">
+<td align="right" class="bibtexnumber">
+[<a name="cox-2005-stata">2</a>]
+</td>
+<td class="bibtexitem">
+Nick Cox.
+ A brief history of Stata on its 20th anniversary.
+ 5(1):2--18, 2005.
+
+</td>
+</tr>
+
+
+<tr valign="top">
+<td align="right" class="bibtexnumber">
+[<a name="juul-2014-introd-stata">3</a>]
+</td>
+<td class="bibtexitem">
+Svend Juul and Morten Frydenberg.
+ <em>An Introduction to Stata for Health Researchers</em>.
+ Stata Press, 4 edition, 2014.
+
+</td>
+</tr>
+
+
+<tr valign="top">
+<td align="right" class="bibtexnumber">
+[<a name="kohler-2012-data-analy">4</a>]
+</td>
+<td class="bibtexitem">
+Ulrich Kohler and Frauke Kreuter.
+ <em>Data Analysis Using Stata</em>.
+ Stata Press, 3 edition, 2012.
+
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Auteur: Christophe Lalanne</p>
+<p class="date">Created: 2018-05-18 Ven 14:56</p>
+<p class="validation"></p>
+</div>
+</body>
+</html>

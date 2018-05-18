@@ -119,6 +119,7 @@ graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-00-rvfplot-price-mpg2-b.png]]
 
+Cette dernière série d'instructions peut sembler un peu complexe lorsqu'on n'est pas familier avec la syntaxe Stata mais, en réalité, l'idée est assez simple. On souhaite afficher l'ensemble des observations à l'aide de marqueurs comme dans la figure [[fig:00-rvfplot-price-mpg2]] mais on souhaite annoter certains de ces points en indiquant le numéro d'observation associé lorsque les résidus $e_i = y_i - \hat y_i$ (=ei=) sont supérieurs à 2 en valeur absolue. Pour identifier ces observations avec des résidus élevés, on génère une nouvelle variable, =infl=, qui prendra la valeur =_n=, c'est-à-dire le numéro de ligne, lorsque la condition est vérifiée. Cette variable est enseuite convertie au format chaîne de caractères et on remplace les valeurs manquantes (celles qui vérifient la condition $\(\lvert e_i \rvert\le 2\)$) par un espace afin d'éviter l'affichage d'un point "." dans le graphique.
 
 ** Synthétiser
 
