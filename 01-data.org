@@ -1,0 +1,8 @@
+#+TITLE: Stata : gestion des données
+#+LANGUAGE: fr
+#+LATEX_CLASS: article
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
+#+HTML_MATHJAX: scale: 90
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:nil *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
+
+Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. 
