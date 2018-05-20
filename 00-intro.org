@@ -1,6 +1,6 @@
 #+TITLE: Stata : un rapide tour d'horizon
 #+LANGUAGE: fr
-#+LATEX_CLASS: article
+#+LATEX_CLASS: my-article
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:nil *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
@@ -179,7 +179,7 @@ Cette dernière série d'instructions peut sembler un peu complexe lorsqu'on n'e
 
 ** Synthétiser
 
-Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée. Heureusement, il existe plusieurs possibilités pour exporter des tableaux générés par Stata au format texte, HTML ou PDF. Dans le dernier cas, cela nécessite de disposer d'un compilateur $\LaTeX$.
+Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée. Heureusement, il existe plusieurs possibilités pour exporter des tableaux générés par Stata au format texte, HTML ou PDF. Dans le dernier cas, cela nécessite de disposer d'un compilateur LATEX.
 
 Dans un premier temps, on va simplement reprendre les deux modèles précédents et sauvegarder les résultats d'estimations. On pourrait très bien utiliser des macros locales pour stocker chacune des valeurs de retour mais cela risque de s'avérer rapidement fastidieux. On utilisera donc la famille de commande =estimates= :
 #+BEGIN_SRC stata :session :results output :exports code
