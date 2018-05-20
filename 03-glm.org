@@ -1,8 +1,20 @@
 #+TITLE: Stata : modélisation statistique
 #+LANGUAGE: fr
-#+LATEX_CLASS: article
+#+LATEX_CLASS: handout-fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:nil *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
 
 Dans cet exposé, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs.
+
+Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]], de Hardin & Hilbe.
+
+La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. 
+
+* Le modèle de régression linéaire simple
+
+Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement.
+#+BEGIN_SRC stata :session :results output :exports both
+webuse lbw
+describe, simple
+#+END_SRC
