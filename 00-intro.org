@@ -3,7 +3,7 @@
 #+LATEX_CLASS: handout-fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:nil *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
 Ce document présente selon un angle très pragmatique une session de travail typique avec le logiciel Stata. Il ne s'agit pas de couvrir toutes les fonctionnalités de Stata, ni de présenter en détails les principales commandes Stata, voire même la représentation interne des données sus Stata. Au contraire, l'idée est d'offrir un panorama de certaines fonctionnalités de Stata et comment organiser une session de travail simple avec comme objectif la réalisation d'un modèle de régression linéaire.
 
@@ -11,29 +11,15 @@ Ce document présente selon un angle très pragmatique une session de travail ty
 
 Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques [[cite:cox-2005-stata]], puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes [[cite:kohler-2012-data-analy]], l'économétrie [[cite:baum-2006-introd-moder]] ou l'épidémiologie [[cite:juul-2014-introd-stata]]. Les ouvrages publiés par Stata Press incluent en général un ou deux chapitres de présentation des principales commandes Stata.
 
-Une fois installé, le logiciel Stata est entièrement fonctionnel et dispose de toutes les procédures statistiques et graphiques que l'on attend d'un logiciel statistique. Il est toutefois possible d'installer des modules additionnels depuis internet ([[http://www.stata.com][www.stata.com]], SSC, Github, sites personnels). Mais en règle générale, les commandes de base disponibles dans Stata suffisent largement à couvrir l'essentiel des besoins en termes de gestion de données et d'analyses statistiques. 
+Une fois installé, le logiciel Stata est entièrement fonctionnel et dispose de toutes les procédures statistiques et graphiques que l'on attend d'un logiciel statistique. Il est toutefois possible d'installer des modules additionnels depuis internet ([[http://www.stata.com][www.stata.com]], [[http://repec.org][SSC]], [[https://github.com][Github]], sites personnels). Mais en règle générale, les commandes de base disponibles dans Stata suffisent largement à couvrir l'essentiel des besoins en termes de gestion de données et d'analyses statistiques. 
 
-Une autre caractéristique remarquable de Stata est la qualité de sa documentation. Pour la version 15, on dénombre pas moins 30 manuels en version PDF pour un total de 14791 pages.[fn:1] Ces documents PDF sont accessibles depuis le menu d'aide interne de Stata et se consulte généralement à l'aide d'Acrobat Reader, mais il est toujours possible de consulter le fichier d'index, =i.pdf=, et de naviguer dans la documentation à partir de celui-ci. Pour bien débuter avec Stata, il est conseillé de lire le manuel [D] (Data management).
+Une autre caractéristique remarquable de Stata est la qualité de sa documentation. Pour la version 15, on dénombre pas moins 30 manuels en version PDF pour un total de 14791 pages.[fn:1] Ces documents PDF sont accessibles depuis le menu d'aide interne de Stata et se consulte généralement à l'aide d'Acrobat Reader, mais il est toujours possible de consulter le fichier d'index "i.pdf" et de naviguer dans la documentation à partir de celui-ci. Pour bien débuter avec Stata, il est conseillé de lire le manuel [D] (Data management).
 
-En mode interactif, il y a deux manières de travailler avec Stata : en saisissant des instructions dans le panneau de commande ou en utilisant les menus et boîtes de dialogue de l'interface graphique. On privilégira la première option par souci de simplicité pour l'exposé et à plus long terme de reproducibilité des analyses statistiques puisque l'on verra comment enregistrer toutes les commandes dans des fichiers =do=.
-
-Dans ce tutoriel, on s'intéressera à un cheminement relativement simple selon lequel on importe des données, produit quelques statistiques descriptives (DSC) en vue de modéliser (MOD) la relation entre plusieurs variables pré spécifiées tout en gardant en tête l'idée que l'exploration graphique des données (EDA) s'applique dans les deux cas. Schématiquement, cela revient un peu à l'approche suivante :
-#+BEGIN_SRC ditaa :file fig-00-stages.png 
-+--------+   +-----+      +--------+
-|        +-->+ EDA |  +-->+ Clarify+--+
-|  Data  |   +-----+  |   +--------+  |
-| Source |   | DSC +--+-->+ Report |  |
-|        |   | MOD |      |    {d} |  |
-+--------+   +-----+      +--------+  |
-                ^                     |
-                |                     |
-                +---------------------+
-#+END_SRC
-
+En mode interactif, il y a deux manières de travailler avec Stata : en saisissant des instructions dans le panneau de commande ou en utilisant les menus et boîtes de dialogue de l'interface graphique. On privilégira la première option par souci de simplicité pour l'exposé et à plus long terme de reproducibilité des analyses statistiques puisque l'on verra comment enregistrer toutes les commandes dans un fichier appelé fichier "do" ou /do-file/.
 
 * Prise en main de Stata
 
-** Un modèle de régression linéaire en quelques commandes
+** Un modèle de régression linéaire
 Une fois Stata lancé, voici quelques commandes à saisir dans le panneau de commande. Il s'agit du panneau central dans l'interface Stata, de hauteur réduite et intitulé "Command". Il est généralement situé en dessous du panneau de résultats ("Results"). Ce sont les seuls éléments de l'interface graphique de Stata qui nous intéresseront dans ce tutoriel.  Ces trois commandes vont successivement charger un jeu de données fourni lors de l'installation de Stata, produire un résumé numérique de deux variables, appelées =price= et =mpg=, et estimer les paramètres d'un modèle de régression linéaire simple.
 #+BEGIN_SRC stata :session :results output :exports both
 sysuse auto, clear
@@ -41,62 +27,35 @@ summarize price mpg
 regress price mpg
 #+END_SRC
 
-#+RESULTS:
-#+begin_example
-set more off
-sysuse auto, clear
-(1978 Automobile Data)
-summarize price mpg
+Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Results", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhaite réaliser ([[stata:use][use]] pour utiliser et [[stata:sysuse][sysuse]] pour utiliser depuis le système, [[stata:summarize][summarize]] pour résumer, et [[stata:regress][regress]] pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
 
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-       price |         74    6165.257    2949.496       3291      15906
-         mpg |         74     21.2973    5.785503         12         41
-regress price mpg
-
-      Source |       SS           df       MS      Number of obs   =        74
--------------+----------------------------------   F(1, 72)        =     20.26
-       Model |   139449474         1   139449474   Prob > F        =    0.0000
-    Residual |   495615923        72  6883554.48   R-squared       =    0.2196
--------------+----------------------------------   Adj R-squared   =    0.2087
-       Total |   635065396        73  8699525.97   Root MSE        =    2623.7
-
-------------------------------------------------------------------------------
-       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
--------------+----------------------------------------------------------------
-         mpg |  -238.8943   53.07669    -4.50   0.000    -344.7008   -133.0879
-       _cons |   11253.06   1170.813     9.61   0.000     8919.088    13587.03
-------------------------------------------------------------------------------
-#+end_example
-
-Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Results", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhaite réaliser (=use= pour utiliser et =sysuse= pour utiliser depuis le système, =summarize= pour résumer, et =regress= pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
-
-Le jeu de données utilisé concerne un ensemble de voitures dont l'une des caractéristiques est l'origine de la marque : la variable =foreign= indique si la voiture est de marque étrangère (=foreign = 1=) ou non (=foreign = 0=). Pour avoir une idée plus précise de l'ensemble des variables disponibles dans ce tableau de données, on peut utiliser la commande =codebook= ou =describe= :
+Le jeu de données utilisé concerne un ensemble de voitures dont l'une des caractéristiques est l'origine de la marque : la variable =foreign= indique si la voiture est de marque étrangère (=foreign = 1=) ou non (=foreign = 0=). Pour avoir une idée plus précise de l'ensemble des variables disponibles dans ce tableau de données, on peut utiliser la commande [[stata:codebook][codebook]] ou [[stata:describe][describe]] :
 #+BEGIN_SRC stata :session :results output :exports both 
 describe
 #+END_SRC
-Notons qu'aucun nom de variable n'est fourni après la commande =describe=, ce qui revient à considérer l'ensemble des variables. Il serait équivalent de spécifier explicitement les variables à l'aide de =describe make-foreign= ou =describe *=. La notion de variable et de liste de variables est centrale dans l'utilisation de Stata qui est un langage essentiellement orienté variables (c'est-à-dire les colonnes du tableau de données). Les commandes Stata possèdent généralement des options qui modifient leur comportement ou les résultats renvoyés dans la fenêtre de résultats. Dans le cas de =describe=, par exemple, l'option =simple= permet de lister uniquement le nom des variables. Les options se placent après les paramètres principaux de la commande et d'une virgule ",". On écrirait donc =describe, simple=. Enfin, les commandes peuvent être abrégées à l'aide du plus petit préfixe non ambigü, et le nom de commande abrégé apparaît souligné dans l'aide en ligne de Stata (=help describe=). 
+
+Notons qu'aucun nom de variable n'est fourni après la commande [[stata:describe][describe]], ce qui revient à considérer l'ensemble des variables. Il serait équivalent de spécifier explicitement les variables à l'aide de =describe make-foreign= ou =describe *=. La notion de variable et de liste de variables est centrale dans l'utilisation de Stata qui est un langage essentiellement orienté variables (c'est-à-dire les colonnes du tableau de données). Les commandes Stata possèdent généralement des options qui modifient leur comportement ou les résultats renvoyés dans la fenêtre de résultats. Dans le cas de [[stata:describe][describe]], par exemple, l'option =simple= permet de lister uniquement le nom des variables. Les options se placent après les paramètres principaux de la commande et d'une virgule ",". On écrirait donc =describe, simple=. Enfin, les commandes peuvent être abrégées à l'aide du plus petit préfixe non ambigü, et le nom de commande abrégé apparaît souligné dans l'aide en ligne de Stata (=help describe=). 
  
 Supposons que l'on souhaite réaliser le même modèle de régression que le précédent mais en restreignant l'analyse aux seuls véhicules de marque étrangère. Pour cela, il suffit d'appliquer un filtre pour sélectionner les observations vérifiant la condition =foreign==1= ("la variable =foreign= prend la valeur 1") :
 #+BEGIN_SRC stata :session :results output :exports both
 regress price mpg if foreign == 1
 #+END_SRC
 
-La notion de filtres appliqués à l'aide des qualificateurs =by=, =if= et =in= est également centrale dans Stata puisque ceux-ci permettent de sélectionner un sous-ensemble d'observations (les lignes du tableau de données) selon des conditions logiques. À ce titre, le symbole représetant l'égalité logique est un double signe égal (====) alors que le signe égal simple est réservé à l'opération d'affectation. Il serait possible de réutiliser la même instruction pour estimer le modèle de régression pour les observations vérifiant la condition "foreign vaut 0", mais plutôt que de copier/coller ou rappeller la même commande à l'aide des flèches haut/bas du clavier dans la fenêtre de commande, il est préférable d'utilsier le préfixe =by= :
+La notion de filtres appliqués à l'aide des qualificateurs [[stata:by][by]], [[stata:if][if]] et [[stata:in][in]] est également centrale dans Stata puisque ceux-ci permettent de sélectionner un sous-ensemble d'observations (les lignes du tableau de données) selon des conditions logiques. À ce titre, le symbole représetant l'égalité logique est un double signe égal (====) alors que le signe égal simple est réservé à l'opération d'affectation. Il serait possible de réutiliser la même instruction pour estimer le modèle de régression pour les observations vérifiant la condition "foreign vaut 0", mais plutôt que de copier/coller ou rappeller la même commande à l'aide des flèches haut/bas du clavier dans la fenêtre de commande, il est préférable d'utiliser le préfixe [[stata:by][by]] :
 #+BEGIN_SRC stata :session :results output :exports both
 by foreign, sort: regress price mpg
 #+END_SRC
 
-Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant : la commande s'écrit alors =bootstrap: regress price mpg=. Un autre préfixe possible est =bayes:= (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=. Attention, il ne s'agit pas d'un préfixe comme le préfixe =by= vu plus haut, mais d'un préfixe pour les commandes d'estimation.
+Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant ([[stata:bootstrap:][bootstrap:]]) : la commande s'écrit alors =bootstrap: regress price mpg=. Un autre préfixe possible est [[stata:bayes:][bayes:]] (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=. Attention, il ne s'agit pas d'un préfixe comme le préfixe [[stata:by][by]] vu plus haut, mais d'un préfixe pour les commandes d'estimation.
 
 Voici, en quelques mots, le mode de fonctionnement de base de Stata pour réaliser un modèle statistique : choisir la commande appropriée, indiquer les variables entrant dans le modèle sachant que la première variable joue toujours le rôle de variable réponse ou de variable à prédire, et éventuellement filtrer les observartions à utiliser dans le modèle. La syntaxe plus générale d'une commande prend la forme suivante :
 #+BEGIN_EXAMPLE 
 [by varlist:] command [varlist] [=exp] [if exp] [in range] [weight] [using filename] [,options]
 #+END_EXAMPLE
-On reconnaît le préfixe =by= et les qualificateurs =in= et =if=, permettant de sélectionner les observations et de répéter une même opération pour chaque groupe d'observations défini par les valeurs prises par la ou les variables désignées après le =by= (la plupart des commandes Stata sont "byable"). La commande est suivi d'une ou plusieurs variables (une liste, appelée =varlist=) et éventuellement d'une expression (==exp=) dans le cas où on construit explicitement la variable (cas de =generate=). Des poids de pondération (=weight=) peuvent être appliquées aux principales commandes Stata et il est possible d'interagir avec des fichiers externes à l'aide de =using=. Enfin, comme dit plus haut, les options des commandes sont indiquées après une virgule.
+On reconnaît le préfixe [[stata:by][by]] et les qualificateurs [[stata:in][in]] et [[stata:if][if]], permettant de sélectionner les observations et de répéter une même opération pour chaque groupe d'observations défini par les valeurs prises par la ou les variables désignées après le préfixe [[stata:by][by]] (la plupart des commandes Stata sont "byable"). La commande est suivi d'une ou plusieurs variables (une liste, appelée [[stata:varlist][varlist]]) et éventuellement d'une expression (==exp=) dans le cas où on construit explicitement la variable (cas de [[stata:generate][generate]]). Des poids de pondération ([[stata:weight][weight]]) peuvent être appliquées aux principales commandes Stata et il est possible d'interagir avec des fichiers externes à l'aide de [[stata:using][using]]. Enfin, comme dit plus haut, les options des commandes sont indiquées après une virgule.
 
 ** Visualiser et interpréter
-Les instructions suivantes vont permettre de construire un diagramme de dispersion représentant la covariation des deux variables =price= et =mpg= et d'y superposer la droite de régression. Les mots clé =graph= et =twoway= peuvent être omis et le symbole =||= permet de superposer sur le même graphique plusieurs éléments. L'ancienne syntaxe consistant à isoler les instructions graphiques entre parenthèses est également valide.
+Les instructions suivantes vont permettre de construire un diagramme de dispersion représentant la covariation des deux variables =price= et =mpg= et d'y superposer la droite de régression. Les mots clé [[stata:graph][graph]] et [[stata:twoway][twoway]] peuvent être omis et le symbole =||= permet de superposer sur le même graphique plusieurs éléments. L'ancienne syntaxe consistant à isoler les instructions graphiques entre parenthèses est également valide.
 
 *Remarque :*  Les graphiques présentés dans ce document utilisent un schéma graphique spécifique, =plotplain=, qui peut être installé depuis le serveur SSC en tapant simplement la commande =ssc install blindschemes=. Pour rester cohérent avec la police utilisée dans ce document et parce qu'il n'est pas possible de définir la police des graphiques lorsque Stata est lancé en mode console, on utilisera systématiquement l'option =fontface()=, mais celle-ci peut être omise sans problème.
 
@@ -121,7 +80,7 @@ regress price mpg mpg2
 #+END_SRC
 Comme on le voit, la génération d'une nouvelle variable ne pose pas de difficulté majeure et il n'est même pas besoin de définir son type : Stata est capable d'inférer que la variable =mpg2= est un nombre réel puisqu'elle est construite à partir du produit d'un nombre réel par lui même. La mise à jour du modèle linéaire est relativement simple puisqu'il suffit d'ajouter le nouveau prédicteur à la suite du prédicteur initial, =mpg=.
 
-Pour construire un graphique incluant la courbe d'ajustement quadratique, on remplace simplement =lfit= par =qfit= comme illustré ci-après :
+Pour construire un graphique incluant la courbe d'ajustement quadratique, on remplace simplement [[stata:lfit][lfit]] par [[stata:qfit][qfit]] comme illustré ci-après :
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter price mpg || qfit price mpg
 graph export "fig-00-scatter-price-mpg2.pdf", fontface(DroidSans) replace
@@ -140,7 +99,7 @@ display %4.3f e(r2_a)
 #+END_SRC
 Un affichage plus complexe pourrait inclure un mélange de texte et de résultat numérique, comme par exemple =display "R2 = " %5.2f e(r2_a)*100 "%"=, et une utilisation plus avancée consisterait à définir une macro locale pour stocker le résultat d'un tel calcul, de manière statique ou dynamique.
 
-L'analyse des résidus d'un modèle de régression est souvent négligée, pourtant elle permet de diagnostiquer assez rapidement la qualité d'ajustement du modèle de manière graphique et de vérifier si les conditions de validité d'interprétation du modèle (linéarité de la relation, constance de la variance) sont vérifiées ou non. Pour cela, on a essentiellement besoin des valeurs ajustées (c'est-à-dire les valeurs prédites par le modèle linéaire pour les données observées) et des valeurs résiduelles, qui représentent l'écart entre les valeurs observées et les valeurs ajustées. Une seule et même commande Stata, =predict=, permet de calculer ces deux séries de valeurs :
+L'analyse des résidus d'un modèle de régression est souvent négligée, pourtant elle permet de diagnostiquer assez rapidement la qualité d'ajustement du modèle de manière graphique et de vérifier si les conditions de validité d'interprétation du modèle (linéarité de la relation, constance de la variance) sont vérifiées ou non. Pour cela, on a essentiellement besoin des valeurs ajustées (c'est-à-dire les valeurs prédites par le modèle linéaire pour les données observées) et des valeurs résiduelles, qui représentent l'écart entre les valeurs observées et les valeurs ajustées. Une seule et même commande Stata, [[stata:predict][predict]], permet de calculer ces deux séries de valeurs :
 #+BEGIN_SRC stata :session :results output :exports code
 predict double yhat
 predict double ei, rstandard
@@ -181,7 +140,7 @@ Cette dernière série d'instructions peut sembler un peu complexe lorsqu'on n'e
 
 Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée. Heureusement, il existe plusieurs possibilités pour exporter des tableaux générés par Stata au format texte, HTML ou PDF. Dans le dernier cas, cela nécessite de disposer d'un compilateur LATEX.
 
-Dans un premier temps, on va simplement reprendre les deux modèles précédents et sauvegarder les résultats d'estimations. On pourrait très bien utiliser des macros locales pour stocker chacune des valeurs de retour mais cela risque de s'avérer rapidement fastidieux. On utilisera donc la famille de commande =estimates= :
+Dans un premier temps, on va simplement reprendre les deux modèles précédents et sauvegarder les résultats d'estimations. On pourrait très bien utiliser des macros locales pour stocker chacune des valeurs de retour mais cela risque de s'avérer rapidement fastidieux. On utilisera donc la famille de commande [[stata:estimates][estimates]] :
 #+BEGIN_SRC stata :session :results output :exports code
 quietly regress price mpg
 estimates store m0
@@ -191,7 +150,7 @@ estimates store m1
 estimates title: Enhanced model
 #+END_SRC
 
-Dans les instructions ci-dessus, le préfixe =quietly= permet de réaliser l'estimation sans afficher les résultats dans la fenêtre de résultats de Stata. Les noms =m0= et =m1= ne correspondent pas à des noms de variable mais nous permettront d'identifier chacun des modèles par la suite. La commande =estimates= s'utilise immédiatement après la commande d'estimation et permet de stocker les valeurs retournées par cette dernière : on parle de commande de "post-estimation". 
+Dans les instructions ci-dessus, le préfixe [[stata:quietly][quietly]] permet de réaliser l'estimation sans afficher les résultats dans la fenêtre de résultats de Stata. Les noms =m0= et =m1= ne correspondent pas à des noms de variable mais nous permettront d'identifier chacun des modèles par la suite. La commande [[stata:estimates][estimates]] s'utilise immédiatement après la commande d'estimation et permet de stocker les valeurs retournées par cette dernière : on parle de commande de "post-estimation". 
 
 Une fois stockés en mémoire, ces résultats d'estimation peuvent être affichés à l'aide de la commande =estimates table= :
 #+BEGIN_SRC stata :session :results output :exports both
@@ -228,11 +187,11 @@ R-squared           0.209                     0.321
 ----------------------------------------------------------------
 #+END_EXAMPLE
 
-Pour sauvegarder ce tableau au format texte, il suffira de rajouter =using estout.txt= avant la virgule qui précède la liste d'options. Notons qu'il est possible de remplacer les étapes impliquant =quietly: regress= et =estimates store= à l'aide de =eststo:= qui fournit le même résultat. Il existe bien d'autres options qui peuvent être consultées sur le [[http://repec.sowi.unibe.ch/stata/estout/][site dédié à estout]]. La commande =tabout= permet quant à elle de générer et d'exporter des tableaux complexes dans de nombreux formats. On pourra consulter l'ancien tutoriel de l'auteur Ian Watson, [[http://ianwatson.com.au/stata/tabout_tutorial.pdf][Publication quality tables in Stata: a tutorial for the tabout program]] (PDF), et visiter le site de la [[http://tabout.net.au/docs/home.php][version 3 de tabout]].
+Pour sauvegarder ce tableau au format texte, il suffira de rajouter =using estout.txt= avant la virgule qui précède la liste d'options. Notons qu'il est possible de remplacer les étapes impliquant =quietly regress= et =estimates store= à l'aide de =eststo:= qui fournit le même résultat. Il existe bien d'autres options qui peuvent être consultées sur le [[http://repec.sowi.unibe.ch/stata/estout/][site dédié à estout]]. La commande =tabout= permet quant à elle de générer et d'exporter des tableaux complexes dans de nombreux formats. On pourra consulter l'ancien tutoriel de l'auteur Ian Watson, [[http://ianwatson.com.au/stata/tabout_tutorial.pdf][Publication quality tables in Stata: a tutorial for the tabout program]] (PDF), et visiter le site de la [[http://tabout.net.au/docs/home.php][version 3 de tabout]].
 
 * Enregistrer son travail
 
-Pour sauvegarder tout ce travail, il suffit de créer un script de commandes Stata, appelé "do file", qui est un simple fichier texte avec ".do" comme extension. Voici un exemple de fichier, =session.do=, qui regroupe les principales commandes exploitées dans ce tutoriel :
+Pour sauvegarder tout ce travail, il suffit de créer un script de commandes Stata, appelé "do file", qui est un simple fichier texte avec l'extension ".do". Voici un exemple de fichier, =session.do=, qui regroupe les principales commandes exploitées dans ce tutoriel :
 #+BEGIN_EXAMPLE
 version 15
 set more off
