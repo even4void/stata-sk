@@ -1,6 +1,5 @@
 #+TITLE: Stata : un rapide tour d'horizon
 #+LANGUAGE: fr
-#+LATEX_CLASS: handout-fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
@@ -27,12 +26,68 @@ summarize price mpg
 regress price mpg
 #+END_SRC
 
+#+RESULTS:
+#+begin_example
+set more off
+sysuse auto, clear
+(1978 Automobile Data)
+summarize price mpg
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       price |         74    6165.257    2949.496       3291      15906
+         mpg |         74     21.2973    5.785503         12         41
+regress price mpg
+
+      Source |       SS           df       MS      Number of obs   =        74
+-------------+----------------------------------   F(1, 72)        =     20.26
+       Model |   139449474         1   139449474   Prob > F        =    0.0000
+    Residual |   495615923        72  6883554.48   R-squared       =    0.2196
+-------------+----------------------------------   Adj R-squared   =    0.2087
+       Total |   635065396        73  8699525.97   Root MSE        =    2623.7
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -238.8943   53.07669    -4.50   0.000    -344.7008   -133.0879
+       _cons |   11253.06   1170.813     9.61   0.000     8919.088    13587.03
+------------------------------------------------------------------------------
+#+end_example
+
 Dans l'exemple ci-dessus comme dans les suivants, on présentera systématiquement une commande ou une série de commandes suivi des résultats produits par Stata. Le deuxième encart reflète donc la sortie produite par Stata dans sa fenêtre "Results", à l'exception de l'invite de commande Stata symbolisée par un point ("."). Pour en revenir à l'exemple précédent, deux choses sont remarquables : (1) les commandes Stata suivent l'idée anglo-saxonne que l'on peut se faire des actions que l'on souhaite réaliser ([[stata:use][use]] pour utiliser et [[stata:sysuse][sysuse]] pour utiliser depuis le système, [[stata:summarize][summarize]] pour résumer, et [[stata:regress][regress]] pour régresser une variable sur une autre) ; (2) dans la majorité des cas, une commande produit un résultat, qu'il s'agisse de l'affichage d'un message ou d'un résultat numérique mis en forme automatiquement par Stata.
 
 Le jeu de données utilisé concerne un ensemble de voitures dont l'une des caractéristiques est l'origine de la marque : la variable =foreign= indique si la voiture est de marque étrangère (=foreign = 1=) ou non (=foreign = 0=). Pour avoir une idée plus précise de l'ensemble des variables disponibles dans ce tableau de données, on peut utiliser la commande [[stata:codebook][codebook]] ou [[stata:describe][describe]] :
 #+BEGIN_SRC stata :session :results output :exports both 
 describe
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+describe
+
+Contains data from /Applications/Stata/ado/base/a/auto.dta
+  obs:            74                          1978 Automobile Data
+ vars:            12                          13 Apr 2016 17:45
+ size:         3,182                          (_dta has notes)
+-------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+-------------------------------------------------------------------------------
+make            str18   %-18s                 Make and Model
+price           int     %8.0gc                Price
+mpg             int     %8.0g                 Mileage (mpg)
+rep78           int     %8.0g                 Repair Record 1978
+headroom        float   %6.1f                 Headroom (in.)
+trunk           int     %8.0g                 Trunk space (cu. ft.)
+weight          int     %8.0gc                Weight (lbs.)
+length          int     %8.0g                 Length (in.)
+turn            int     %8.0g                 Turn Circle (ft.)
+displacement    int     %8.0g                 Displacement (cu. in.)
+gear_ratio      float   %6.2f                 Gear Ratio
+foreign         byte    %8.0g      origin     Car type
+-------------------------------------------------------------------------------
+Sorted by: foreign
+#+end_example
 
 Notons qu'aucun nom de variable n'est fourni après la commande [[stata:describe][describe]], ce qui revient à considérer l'ensemble des variables. Il serait équivalent de spécifier explicitement les variables à l'aide de =describe make-foreign= ou =describe *=. La notion de variable et de liste de variables est centrale dans l'utilisation de Stata qui est un langage essentiellement orienté variables (c'est-à-dire les colonnes du tableau de données). Les commandes Stata possèdent généralement des options qui modifient leur comportement ou les résultats renvoyés dans la fenêtre de résultats. Dans le cas de [[stata:describe][describe]], par exemple, l'option =simple= permet de lister uniquement le nom des variables. Les options se placent après les paramètres principaux de la commande et d'une virgule ",". On écrirait donc =describe, simple=. Enfin, les commandes peuvent être abrégées à l'aide du plus petit préfixe non ambigü, et le nom de commande abrégé apparaît souligné dans l'aide en ligne de Stata (=help describe=). 
  
@@ -41,10 +96,68 @@ Supposons que l'on souhaite réaliser le même modèle de régression que le pr�
 regress price mpg if foreign == 1
 #+END_SRC
 
+#+RESULTS:
+#+begin_example
+regress price mpg if foreign == 1
+
+      Source |       SS           df       MS      Number of obs   =        22
+-------------+----------------------------------   F(1, 20)        =     13.25
+       Model |  57534941.7         1  57534941.7   Prob > F        =    0.0016
+    Residual |  86828271.1        20  4341413.55   R-squared       =    0.3985
+-------------+----------------------------------   Adj R-squared   =    0.3685
+       Total |   144363213        21   6874438.7   Root MSE        =    2083.6
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -250.3668   68.77435    -3.64   0.002    -393.8276    -106.906
+       _cons |   12586.95   1760.689     7.15   0.000     8914.217    16259.68
+------------------------------------------------------------------------------
+#+end_example
+
 La notion de filtres appliqués à l'aide des qualificateurs [[stata:by][by]], [[stata:if][if]] et [[stata:in][in]] est également centrale dans Stata puisque ceux-ci permettent de sélectionner un sous-ensemble d'observations (les lignes du tableau de données) selon des conditions logiques. À ce titre, le symbole représetant l'égalité logique est un double signe égal (====) alors que le signe égal simple est réservé à l'opération d'affectation. Il serait possible de réutiliser la même instruction pour estimer le modèle de régression pour les observations vérifiant la condition "foreign vaut 0", mais plutôt que de copier/coller ou rappeller la même commande à l'aide des flèches haut/bas du clavier dans la fenêtre de commande, il est préférable d'utiliser le préfixe [[stata:by][by]] :
 #+BEGIN_SRC stata :session :results output :exports both
 by foreign, sort: regress price mpg
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+by foreign, sort: regress price mpg
+
+-------------------------------------------------------------------------------
+-> foreign = Domestic
+
+      Source |       SS           df       MS      Number of obs   =        52
+-------------+----------------------------------   F(1, 50)        =     17.05
+       Model |   124392956         1   124392956   Prob > F        =    0.0001
+    Residual |   364801844        50  7296036.89   R-squared       =    0.2543
+-------------+----------------------------------   Adj R-squared   =    0.2394
+       Total |   489194801        51  9592054.92   Root MSE        =    2701.1
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -329.2551   79.74034    -4.13   0.000    -489.4183   -169.0919
+       _cons |   12600.54   1624.773     7.76   0.000     9337.085    15863.99
+------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-> foreign = Foreign
+
+      Source |       SS           df       MS      Number of obs   =        22
+-------------+----------------------------------   F(1, 20)        =     13.25
+       Model |  57534941.7         1  57534941.7   Prob > F        =    0.0016
+    Residual |  86828271.1        20  4341413.55   R-squared       =    0.3985
+-------------+----------------------------------   Adj R-squared   =    0.3685
+       Total |   144363213        21   6874438.7   Root MSE        =    2083.6
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -250.3668   68.77435    -3.64   0.002    -393.8276    -106.906
+       _cons |   12586.95   1760.689     7.15   0.000     8914.217    16259.68
+------------------------------------------------------------------------------
+#+end_example
 
 Si l'on souhaite obtenir les intervalles de confiance estimés pour nos paramètres à l'aide d'une technique de rééchantillonnage comme le bootstrap, il suffit de l'indiquer à Stata à l'aide du préfixe correspondant ([[stata:bootstrap:][bootstrap:]]) : la commande s'écrit alors =bootstrap: regress price mpg=. Un autre préfixe possible est [[stata:bayes:][bayes:]] (à partir de Stata 15) et, dans ce cas, ce sont des intervalles de crédibilité qui seront calculés automatiquement par Stata. On remplacera la commande précédente par =bayes: regress price mpg=. Attention, il ne s'agit pas d'un préfixe comme le préfixe [[stata:by][by]] vu plus haut, mais d'un préfixe pour les commandes d'estimation.
 
@@ -78,6 +191,28 @@ Le graphique précédent suggère qu'une relation simplement linéaire entre les
 generate mpg2 = mpg * mpg
 regress price mpg mpg2 
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+generate mpg2 = mpg * mpg
+regress price mpg mpg2
+
+      Source |       SS           df       MS      Number of obs   =        74
+-------------+----------------------------------   F(2, 71)        =     18.28
+       Model |   215835615         2   107917807   Prob > F        =    0.0000
+    Residual |   419229781        71  5904644.81   R-squared       =    0.3399
+-------------+----------------------------------   Adj R-squared   =    0.3213
+       Total |   635065396        73  8699525.97   Root MSE        =    2429.9
+
+------------------------------------------------------------------------------
+       price |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         mpg |  -1265.194   289.5443    -4.37   0.000    -1842.529   -687.8593
+        mpg2 |   21.36069   5.938885     3.60   0.001     9.518891    33.20249
+       _cons |   22716.48   3366.577     6.75   0.000     16003.71    29429.24
+------------------------------------------------------------------------------
+#+end_example
+
 Comme on le voit, la génération d'une nouvelle variable ne pose pas de difficulté majeure et il n'est même pas besoin de définir son type : Stata est capable d'inférer que la variable =mpg2= est un nombre réel puisqu'elle est construite à partir du produit d'un nombre réel par lui même. La mise à jour du modèle linéaire est relativement simple puisqu'il suffit d'ajouter le nouveau prédicteur à la suite du prédicteur initial, =mpg=.
 
 Pour construire un graphique incluant la courbe d'ajustement quadratique, on remplace simplement [[stata:lfit][lfit]] par [[stata:qfit][qfit]] comme illustré ci-après :
@@ -97,6 +232,11 @@ Les résultats calculés par Stata sont stockés en mémoire et sont disponibles
 #+BEGIN_SRC stata :session :results output :exports both
 display %4.3f e(r2_a)
 #+END_SRC
+
+#+RESULTS:
+: display %4.3f e(r2_a)
+: 0.321
+
 Un affichage plus complexe pourrait inclure un mélange de texte et de résultat numérique, comme par exemple =display "R2 = " %5.2f e(r2_a)*100 "%"=, et une utilisation plus avancée consisterait à définir une macro locale pour stocker le résultat d'un tel calcul, de manière statique ou dynamique.
 
 L'analyse des résidus d'un modèle de régression est souvent négligée, pourtant elle permet de diagnostiquer assez rapidement la qualité d'ajustement du modèle de manière graphique et de vérifier si les conditions de validité d'interprétation du modèle (linéarité de la relation, constance de la variance) sont vérifiées ou non. Pour cela, on a essentiellement besoin des valeurs ajustées (c'est-à-dire les valeurs prédites par le modèle linéaire pour les données observées) et des valeurs résiduelles, qui représentent l'écart entre les valeurs observées et les valeurs ajustées. Une seule et même commande Stata, [[stata:predict][predict]], permet de calculer ces deux séries de valeurs :
@@ -104,6 +244,11 @@ L'analyse des résidus d'un modèle de régression est souvent négligée, pourt
 predict double yhat
 predict double ei, rstandard
 #+END_SRC
+
+#+RESULTS:
+: predict double yhat
+: (option xb assumed; fitted values)
+: predict double ei, rstandard
 
 Un simple diagramme de dispersion permettra ensuite d'évaluer graphiquement la stabilité de la variance et l'absence de pattern spécifique d'évolution des résidus selon les valeurs ajustées. Comme les résidus calculés sont des résidus standardisés, on s'attend à ce que 95 % des observations soit situées dans l'intervalle $[-2,2]$. 
 #+BEGIN_SRC stata :session :results output :exports code
@@ -126,6 +271,17 @@ replace infl = " " if infl == "."
 scatter ei yhat, yline(0) || scatter ei yhat, ms(none) mlab(infl) mlabpos(12) || lowess ei yhat, legend(off)
 graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
 #+END_SRC
+
+#+RESULTS:
+: generate infl = _n if abs(ei) > 2
+: (71 missing values generated)
+: tostring infl, replace
+: infl was float now str2
+: replace infl = " " if infl == "."
+: (71 real changes made)
+:  || lowess ei yhat, legend(off)
+: graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
+: (file fig-00-rvfplot-price-mpg2-b.pdf written in PDF format)
 
 #+CAPTION:   Prix et vitesse des automobiles (valeurs ajustées et résidus)
 #+NAME:      fig:00-rvfplot-price-mpg2-b
@@ -150,6 +306,14 @@ estimates store m1
 estimates title: Enhanced model
 #+END_SRC
 
+#+RESULTS:
+: quietly regress price mpg
+: estimates store m0
+: estimates title: Base model
+: quietly regress price mpg mpg2
+: estimates store m1
+: estimates title: Enhanced model
+
 Dans les instructions ci-dessus, le préfixe [[stata:quietly][quietly]] permet de réaliser l'estimation sans afficher les résultats dans la fenêtre de résultats de Stata. Les noms =m0= et =m1= ne correspondent pas à des noms de variable mais nous permettront d'identifier chacun des modèles par la suite. La commande [[stata:estimates][estimates]] s'utilise immédiatement après la commande d'estimation et permet de stocker les valeurs retournées par cette dernière : on parle de commande de "post-estimation". 
 
 Une fois stockés en mémoire, ces résultats d'estimation peuvent être affichés à l'aide de la commande =estimates table= :
@@ -157,10 +321,50 @@ Une fois stockés en mémoire, ces résultats d'estimation peuvent être affich�
 estimates table m*, b(%7.2f) se(%7.2f) stats(N r2_a)
 #+END_SRC
 
+#+RESULTS:
+#+begin_example
+estimates table m*, b(%7.2f) se(%7.2f) stats(N r2_a)
+
+----------------------------------
+    Variable |   m0        m1     
+-------------+--------------------
+         mpg | -238.89   -1265.19  
+             |   53.08    289.54  
+        mpg2 |             21.36  
+             |              5.94  
+       _cons | 11253.06   22716.48  
+             | 1170.81   3366.58  
+-------------+--------------------
+           N |      74        74  
+        r2_a |    0.21      0.32  
+----------------------------------
+                      legend: b/se
+#+end_example
+
 Les options ajoutées dans l'instruction précédente permettent d'ajouter les erreurs standard aux coefficients de régression, qui sont affichés par défaut avec =estimates table=, avec un formatage précis (7 positions réservées pour les chiffres dont deux décimales), ainsi que la taille de l'échantillon et le coefficient $R^2$ ajusté. Il ne reste plus qu'à exporter ce tableau à l'aide de =estout=. Voici une première ébauche :
 #+BEGIN_SRC stata :session :results output :exports both
 estout m0 m1, cells(b se) stats(N r2_a)
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+estout m0 m1, cells(b se) stats(N r2_a)
+
+--------------------------------------
+                       m0           m1
+                     b/se         b/se
+--------------------------------------
+mpg             -238.8943    -1265.194
+                 53.07669     289.5443
+mpg2                          21.36069
+                              5.938885
+_cons            11253.06     22716.48
+                 1170.813     3366.577
+--------------------------------------
+N                      74           74
+r2_a             .2087437     .3212682
+--------------------------------------
+#+end_example
 
 Comme on peut le constater, moyennant le formatage des nombres, il s'agit à peu près du même résultat que celui produit par =estimates table=. 
 Voici notre commande finale, avec quelques améliorations de mise en page et de formatage des nombres :
@@ -226,8 +430,8 @@ On trouve de nombreux tutoriels sur internet (la plupart du temps en anglais). E
 
 - les ressources Stata ainsi que le blog Stata
 - le site pédagogique de l'UCLA
- 
-#+BIBLIOGRAPHY: references plain limit:t option:-nobibsource
+
+#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
 * Footnotes
 
