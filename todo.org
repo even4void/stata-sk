@@ -1,23 +1,30 @@
 * Structure
 
-- [[file:./00-intro]]: kickstarter
-- [[file:./01-base]]: main tools for statistical modeling
-- data management, programming, automation
-- Ado and Mata programming  
-- survey processing
+- [[file:./00-intro.org]]: kickstarter
+- [[file:./01-data.org]]: data management, programming, automation
+- file:./02-graphics.org: basic and advanced graphics
+- file:./03-glm.org: regression modeling
+- file:./04-programming.org: Ado and Mata programming
+- multivariate  
 - time series
+- survey processing
 - econometrics
-- biostatistics          
+- biostatistics
+- bayesian models 
 
-* TODO all
-- [ ] Clean up logo
+* TODO project
+- [X] Clean up logo
 - [ ] Create project hyperlinks
 - [ ] Add subdir to [[file:~/Sites/aliquote/content/]] 
+- [X] Add custom CSS
   
 * TODO 00-intro 
-- [ ] Fix LaTeX memoir layout
-- [ ] Fix BibTeX export for LaTeX
+- [-] Fix LaTeX memoir layout
+- [-] Fix BibTeX export for LaTeX
 - [ ] Add editors, do-file, graphics export
-- [X] Add custom CSS
 
+* TODO 01-data
+- [ ] Find relevant datasets
+- [ ] Summarize difference between Stata 11 and 13-15
+- [ ] ODBC connector, JSON, XML
 
