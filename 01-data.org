@@ -2,13 +2,15 @@
 #+LANGUAGE: fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:nil *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
 Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. 
 
 * Gestion d'un tableau de données
 
+** Le format DTA
 
+On a déjà vu un exemple de format natif Stata avec les données [[stata:auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, la librairie =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser la librairie [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande.
 
 * Manipulation de variables
 
@@ -16,7 +18,16 @@ Stata est reconnu pour faciliter la gestion et le recodage des données ainsi qu
 
 Quant au format, il s'agit essentiellement de la précision afffichée des résultats numériques.
 
+
+* Tableaux de description avancés
+
+
+
 * Pour aller plus loin
+
+cite:mitchell-2010-data-manag
+
+cite:kohler-2012-data-analy
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
