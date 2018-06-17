@@ -17,6 +17,7 @@
 - [ ] Create project hyperlinks
 - [ ] Add subdir to [[file:~/Sites/aliquote/content/]] 
 - [X] Add custom CSS
+- [ ] Add Makefile + manage GitHub links
   
 * TODO 00-intro 
 - [-] Fix LaTeX memoir layout
