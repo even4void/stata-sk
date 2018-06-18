@@ -10,13 +10,146 @@ Stata est reconnu pour faciliter la gestion et le recodage des données ainsi qu
 
 ** Le format DTA
 
-On a déjà vu un exemple de format natif Stata avec les données [[stata:auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, la librairie =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser la librairie [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande.
+On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, la librairie =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser la librairie [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande.
+
+** Type de variables
+
+On distinguera essentiellement les nombres et les caractères, et par extension les chaînes de caractères. Les variables catégorielles sont représentées sont valeurs discrètes auxquelles on associe le plus souvent des étiquettes textuelles, encore appelée "label".
+
+Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100 tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
+
+Dans le visualisateur/éditeur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge.
+
+** Propriétés d'un tableau Stata
+
+Les données d'illustration sont tirées de cite:kohler-2012-data-analy et sont disponibles sur le [[https://www.stata-press.com/books/data-analysis-using-stata/][site de Stata Press]]. Il est possible de télécharger les données directement depuis le site de Stata à l'aide d'une commande telle que =net from http://www.stata-press.com/data/kk3/=, suivie de =net install data=, ou alors d'utiliser le fichier =gsoep09.dta= disponible dans le répertoire =data/= de ce projet. Le fichier DTA situé dans le répertoire =data/= correspond au fichier =data1.dta= dans l'archive ZIP ou sur le site Stata.
+
+Voici les instructions permettant de charger les données en mémoire, en supposant que le répertoire de travail contienne bien un répertoire =data/= dans lequel se trouve le fichier =gsoep09.dta= :
+
+#+BEGIN_SRC stata :session :results output :exports both
+use data/gsoep09
+describe, short
+#+END_SRC
+
+#+RESULTS:
+: use data/gsoep09
+: (SOEP 2009 (Kohler/Kreuter))
+: describe, short
+: 
+: Contains data from data/gsoep09.dta
+:   obs:         5,411                          SOEP 2009 (Kohler/Kreuter)
+:  vars:            65                          13 Feb 2012 17:08
+:  size:       568,155                          
+: Sorted by: persnr
+
+La commande [[stata:describe][describe]] permet de décrire le tableau de données. Parmi ses différentes options, =short= permet de limiter la description à l'en-tête du tableau, c'est-à-dire les informations relatives au nombre d'observations et de variables et aux éventuelles annotations du tableau, tandis que =simple= permet de n'affichier que la liste des variables.
+
+#+BEGIN_SRC stata :session :results output :exports both
+describe, simple
+#+END_SRC
+
+#+RESULTS:
+: describe, simple
+: persnr       income       rooms        eqplif       pic          wor10
+: hhnr2009     hhinc        renttype     eqpnrj       lsat         wor11
+: state        hhsize       rent         hhtyp        wor01        wor12
+: ybirth       hhsize0to14  reval        area1        wor02        sample
+: sex          rel2head     eqphea       area2        wor03        intnr
+: mar          ymove        eqpter       dvisits      wor04        hhnr
+: edu          ybuild       eqpbas       heval        wor05        strata
+: yedu         condit       eqpgar       hsat         wor06        psu
+: voc          dsat         eqpalm       polint       wor07        dweight
+: emp          size         eqpsol       pia          wor08        xweights
+: egp          seval        eqpair       pib          wor09
+
+
+Pour obtenir un aperçu des premières lignes du tableau, et en restreignant la liste des variables affichées, voici comment l'on procéderait avec [[stata:list][list]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list persnr-sex in 1/5
+#+END_SRC
+
+#+RESULTS:
+: list persnr-sex in 1/5
+: 
+:      +-------------------------------------------------------+
+:      | persnr   hhnr2009             state   ybirth      sex |
+:      |-------------------------------------------------------|
+:   1. |   8501         85   N-Rhein-Westfa.     1932     Male |
+:   2. |   8502         85   N-Rhein-Westfa.     1939   Female |
+:   3. |  15001        150   N-Rhein-Westfa.     1946     Male |
+:   4. |  15002        150   N-Rhein-Westfa.     1953   Female |
+:   5. |  18201     111373    Mecklenburg-V.     1969     Male |
+:      +-------------------------------------------------------+
+
+On reviendra en détail sur les listes de variables et le qualifieur [[stata:if][if]] dans les sections suivantes. En attendant, il suffit de savoir que l'on peut indiquer une étendue de variables en indiquant le nom de la première variable séparé du nom de la dernière variable par un tiret et que l'instruction =in 1/5= permet de ne lister que les observations allant de la ligne 1 à 5.
 
 * Manipulation de variables
 
-** Mode de stockage et format
+** Syntaxe élémentaire des commandes Stata
+
+De manière générale, les commandes Stata sont structurées de la manière suivante :
+
+#+BEGIN_EXAMPLE
+[by varlist:] command [varlist] [=exp] [if exp] [in range] [weight] [using filename] [,options]
+#+END_EXAMPLE
+
+** Changement de mode de stockage et format
 
 Quant au format, il s'agit essentiellement de la précision afffichée des résultats numériques.
+
+#+BEGIN_SRC stata :session :results output :exports both
+generate age = 2009 - ybirth
+summarize age
+#+END_SRC
+
+#+RESULTS:
+: generate age = 2009 - ybirth
+: summarize age
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:          age |      5,411    49.50712    18.12642         17        100
+
+Les formats d'affichage peuvent s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
+
+#+BEGIN_SRC stata :session :results output :exports both
+format age %5.2f
+summarize age, format
+#+END_SRC
+
+#+RESULTS:
+: format age %5.2f
+: summarize age, format
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:          age |      5,411       49.51       18.13      17.00     100.00
+
+
+
+** Recodage de variables 
+
+Par recodage, on entend la discrétisation d'une variable numérique en variable catégorielle à plusieurs classes ou niveaux, ainsi que la transformation d'une variable catégorielle (création ou agrégation de niveaux).
+
+#+BEGIN_SRC stata :session :results output :exports both
+xtile age4 = age, nq(4)
+tabulate age4
+#+END_SRC
+
+#+RESULTS:
+: xtile age4 = age, nq(4)
+: tabulate age4
+: 
+: 4 quantiles |
+:      of age |      Freq.     Percent        Cum.
+: ------------+-----------------------------------
+:           1 |      1,410       26.06       26.06
+:           2 |      1,395       25.78       51.84
+:           3 |      1,255       23.19       75.03
+:           4 |      1,351       24.97      100.00
+: ------------+-----------------------------------
+:       Total |      5,411      100.00
 
 
 * Tableaux de description avancés
@@ -27,7 +160,6 @@ Quant au format, il s'agit essentiellement de la précision afffichée des résu
 
 cite:mitchell-2010-data-manag
 
-cite:kohler-2012-data-analy
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
