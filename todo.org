@@ -29,4 +29,5 @@
 - [ ] Find relevant datasets
 - [ ] Summarize difference between Stata 11 and 13-15
 - [ ] ODBC connector, JSON, XML
+- [ ] check differences between Stata 12, 13 et 14 re DTA specs
 

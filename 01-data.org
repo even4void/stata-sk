@@ -10,13 +10,19 @@ Stata est reconnu pour faciliter la gestion et le recodage des données ainsi qu
 
 ** Le format DTA
 
-On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, la librairie =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser la librairie [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande.
+On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, le package =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser le package [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande. Une autre solution consiste à utiliser le package [[https://cran.r-project.org/web/packages/readstata13/][readstata13]]. Pour les utilisateurs de Python, le package [[https://pandas.pydata.org][Pandas]] inclut un utilitaire pour la lecture de fichiers Stata (=from pandas.io.stata import StataReader=).
+
+Les changements notables entre les formats DTA 12 (juillet 2011), 13 (juin 2013, =help dta_117=) et 14 (avril 2015, =help dta= ou =help dta_119= car il s'agit de la même version que pour Stata 15) portent sur l'utilisation de chaînes de caratères longues, la gestion des facteurs et l'encodage UTF-8 des chaînes de caractères (incluant les noms de variable). Les versions DTA pour Stata 14 et 15 sont identiques, sauf dans le cas de Stata 15/MP qui autorise plus de 32767 variables et possède une structure légèrement différente.
+
+Les différentes méthodes permettant de lire des fichiers antérieurs ou postérieurs à la version utilisée de Stata sont décrit dans l'article [[https://www.stata.com/support/faqs/data-management/save-for-previous-version/][Reading a Stata dataset with an older version of Stata]].[fn:1] Si l'on souhaite connaître la version dans laquelle a été sauvé un fichier DTA sans avoir à lire l'en-tête du fichier binaire lui-même, il suffit d'utiliser la commande [[stata:dtaversion][dtaversion]] (à partir de Stata 13). Quant à la commande [[stata:saveold][saveold]], elle permet de sauvegarder un tableau de données au format Stata 13 ou au format Stata 12 (avec l'option =version(12)=).
+
+Les nouvelles versions majeures de Stata sont publiées à peu près [[https://www.stata.com/support/faqs/resources/history-of-stata/][tous les deux ans]]. Pour un historique du développement de Stata, voir l'article de Nick Cox paru dans le Stata Journal cite:cox-2005-stata.
 
 ** Type de variables
 
 On distinguera essentiellement les nombres et les caractères, et par extension les chaînes de caractères. Les variables catégorielles sont représentées sont valeurs discrètes auxquelles on associe le plus souvent des étiquettes textuelles, encore appelée "label".
 
-Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100 tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
+Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Les deux derniers types représentent des nombres réels (4 et 8-bytes IEEE float). Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100[fn:2] tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
 
 Dans le visualisateur/éditeur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge.
 
@@ -27,11 +33,13 @@ Les données d'illustration sont tirées de cite:kohler-2012-data-analy et sont 
 Voici les instructions permettant de charger les données en mémoire, en supposant que le répertoire de travail contienne bien un répertoire =data/= dans lequel se trouve le fichier =gsoep09.dta= :
 
 #+BEGIN_SRC stata :session :results output :exports both
+clear all
 use data/gsoep09
 describe, short
 #+END_SRC
 
 #+RESULTS:
+: clear all
 : use data/gsoep09
 : (SOEP 2009 (Kohler/Kreuter))
 : describe, short
@@ -152,6 +160,58 @@ tabulate age4
 :       Total |      5,411      100.00
 
 
+La variable =egp= représente la classe socio-économique (selon la nomenclature allemande) des répondants et elle est composée de 9 classes, en omettant les valeurs traitées comme manquantes (étiquettées "Refusal" et "Does not apply"). On peut construire très facilement le tableau d'effectifs associés à l'aide de [[stata:tabulate][tabulate]], l'option =missing= permettant de dénombrer les valeurs manquantes :
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate egp, missing
+#+END_SRC
+
+#+RESULTS:
+: tabulate egp, missing
+: 
+:                 Social Class (EGP) |      Freq.     Percent        Cum.
+: -----------------------------------+-----------------------------------
+:                    Service class 1 |        354        6.54        6.54
+:                    Service class 2 |        739       13.66       20.20
+:         Higher routine non-manuals |        296        5.47       25.67
+:          Lower routine non-manuals |        373        6.89       32.56
+:                      Self-Employed |        213        3.94       36.50
+:             Skilled manual workers |        486        8.98       45.48
+: Semi- and unskilled manual workers |        627       11.59       57.07
+:                         unemployed |        312        5.77       62.83
+:                            Retired |      1,389       25.67       88.50
+:                            Refusal |         24        0.44       88.95
+:                     Does not apply |        598       11.05      100.00
+: -----------------------------------+-----------------------------------
+:                              Total |      5,411      100.00
+
+
+ Supposons que l'on souhaite recoder cette variable en 3 classes, en ignorant les classes "unemployed" et "Retired", ainsi que les valeurs manquantes. Pour cela, on utilisera la commande [[stata:recode][recode]] en indiquant le schéma d'aggrégation des classes dans une liste de clauses et le nom de la nouvelle variable à générer puisque le cas échéant [[stata:recode][recode]] agit comme une commande [[stata:replace][replace]]. Voici un exemple d'utilisation :
+
+#+BEGIN_SRC stata :session :results output :exports both
+recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
+label define egp3 1 "Service class 1/2" 2 "Non-manuals" 3 "Manuals"
+label values egp3 egp3
+tabulate egp3
+#+END_SRC
+
+#+RESULTS:
+: recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
+: (4435 differences between egp and egp3)
+: label define egp3 1 "Service class 1/2" 2 "Non-manuals" 3 "Manuals"
+: label values egp3 egp3
+: tabulate egp3
+: 
+:     RECODE of egp |
+:     (Social Class |
+:            (EGP)) |      Freq.     Percent        Cum.
+: ------------------+-----------------------------------
+: Service class 1/2 |      1,093       35.40       35.40
+:       Non-manuals |        882       28.56       63.96
+:           Manuals |      1,113       36.04      100.00
+: ------------------+-----------------------------------
+:             Total |      3,088      100.00
+
 * Tableaux de description avancés
 
 
@@ -162,4 +222,10 @@ cite:mitchell-2010-data-manag
 
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
+
+* Footnotes
+
+[fn:2] Le fait que le type =byte= ne sétende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
+
+[fn:1] Il existe également d'anciens utilitaires, comme [[http://radyakin.org/transfer/use13/use13.htm][use13]], permettant de lire des fichiers vrsion 13 sous Stata 10. 
 
