@@ -15,8 +15,9 @@
 * TODO project
 - [X] Clean up logo
 - [ ] Create project hyperlinks
-- [ ] Add subdir to [[file:~/Sites/aliquote/content/]] 
+- [X] Add subdir to [[file:~/Sites/aliquote/content/]] 
 - [X] Add custom CSS
+- [ ] Fix auto-resize for logo + TOC CSS for mobile display
 - [ ] Add Makefile + manage GitHub links
   
 * TODO 00-intro 
