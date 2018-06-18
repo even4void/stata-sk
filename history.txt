@@ -1,8 +1,0 @@
-* be798c4 (Fri, 18 May 2018 18:27:51 +0200, Christophe Lalanne) That what we get when we forget about "git mv"!
-* e67fe03 (Fri, 18 May 2018 17:36:26 +0200, Christophe Lalanne) Update figure numbering scheme + quick fix of the CSS
-* f00af24 (Fri, 18 May 2018 07:45:14 +0200, Christophe Lalanne) Minor edits + update export options
-* acbedb0 (Thu, 17 May 2018 12:32:13 +0200, Christophe Lalanne) Add subsections and more stuff + update TODO
-* 950a2d4 (Wed, 16 May 2018 12:01:25 +0200, Christophe Lalanne) Add TODO and custom CSS
-* 6b96fad (Wed, 16 May 2018 08:23:08 +0200, Christophe Lalanne) Add more content + images and BibTeX
-* 5a70d77 (Tue, 15 May 2018 21:58:35 +0200, Christophe Lalanne) Update the intro file
-* 2a64406 (Tue, 15 May 2018 20:51:44 +0200, Christophe Lalanne) Init first repo and start tracking the intro file

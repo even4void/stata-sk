@@ -28,7 +28,6 @@ regress price mpg
 
 #+RESULTS:
 #+begin_example
-set more off
 sysuse auto, clear
 (1978 Automobile Data)
 summarize price mpg
