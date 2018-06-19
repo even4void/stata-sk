@@ -18,13 +18,6 @@ Les différentes méthodes permettant de lire des fichiers antérieurs ou posté
 
 Les nouvelles versions majeures de Stata sont publiées à peu près [[https://www.stata.com/support/faqs/resources/history-of-stata/][tous les deux ans]]. Pour un historique du développement de Stata, voir l'article de Nick Cox paru dans le Stata Journal cite:cox-2005-stata.
 
-** Type de variables
-
-On distinguera essentiellement les nombres et les caractères, et par extension les chaînes de caractères. Les variables catégorielles sont représentées sont valeurs discrètes auxquelles on associe le plus souvent des étiquettes textuelles, encore appelée "label".
-
-Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Les deux derniers types représentent des nombres réels (4 et 8-bytes IEEE float). Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100[fn:2] tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
-
-Dans le visualisateur/éditeur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge.
 
 ** Propriétés d'un tableau Stata
 
@@ -90,7 +83,114 @@ list persnr-sex in 1/5
 :   5. |  18201     111373    Mecklenburg-V.     1969     Male |
 :      +-------------------------------------------------------+
 
-On reviendra en détail sur les listes de variables et le qualifieur [[stata:if][if]] dans les sections suivantes. En attendant, il suffit de savoir que l'on peut indiquer une étendue de variables en indiquant le nom de la première variable séparé du nom de la dernière variable par un tiret et que l'instruction =in 1/5= permet de ne lister que les observations allant de la ligne 1 à 5.
+On reviendra en détail sur les listes de variables et le qualifieur [[stata:if][if]] dans les sections suivantes. En attendant, il suffit de savoir que l'on peut indiquer une étendue de variables en indiquant le nom de la première variable séparé du nom de la dernière variable par un tiret et que l'instruction =in 1/5= permet de ne lister que les observations allant de la ligne 1 à 5. Les lignes correspondent à des unités statistiques mais une des particularités de Stata est l'usage extensif de procédures de tri du tableau de données, par exemple pour calculer des statistiques agrégées par groupes d'unités statistiques, de sorte qu'il n'est pas recommendé de raisonner selon l'hypothèse qu'un numéro de ligne désigne une seule et même unité statistique (immutabilité).
+
+
+** Type de variables
+
+On distinguera essentiellement les nombres et les caractères, et par extension les chaînes de caractères. Les variables catégorielles sont représentées sont valeurs discrètes auxquelles on associe le plus souvent des étiquettes textuelles, encore appelée "label".
+
+Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Les deux derniers types représentent des nombres réels (4 et 8-bytes IEEE float). Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100[fn:2] tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
+
+Dans le visualisateur/éditeur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge.
+
+Voici deux exemples de variables : le revenu (=income=), variable numérique stockée sous forme d'entiers, et le sexe (=sex=) des répondants, variable catégorielle à deux classes ou niveaux :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list income in 1/5
+list sex in 1/5
+#+END_SRC
+
+#+RESULTS:
+: list income in 1/5
+: 
+:      +--------+
+:      | income |
+:      |--------|
+:   1. |      . |
+:   2. |      . |
+:   3. |      0 |
+:   4. |  19955 |
+:   5. |  35498 |
+:      +--------+
+: list sex in 1/5
+: 
+:      +--------+
+:      |    sex |
+:      |--------|
+:   1. |   Male |
+:   2. | Female |
+:   3. |   Male |
+:   4. | Female |
+:   5. |   Male |
+:      +--------+
+
+Les commandes [[stata:summarize][summarize]] et [[stata:tabulate][tabulate]] permettent respectivement de construire des résumés numériques appropriés pour ces deux types de variable :
+
+#+BEGIN_SRC stata :session :results output :exports both
+summarize income
+#+END_SRC
+
+#+RESULTS:
+: summarize income
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:       income |      4,779     20540.6    37422.49          0     897756
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate sex
+#+END_SRC
+
+#+RESULTS:
+: tabulate sex
+: 
+:               Gender |      Freq.     Percent        Cum.
+: ---------------------+-----------------------------------
+:                 Male |      2,585       47.77       47.77
+:               Female |      2,826       52.23      100.00
+: ---------------------+-----------------------------------
+:                Total |      5,411      100.00
+
+L'option =nolabel= de [[stata:tabulate][tabulate]] permet d'afficher les codes numériques au lieu des étiquettes associées à chacun des niveaux de la variable catégorielle.
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate sex, nolabel
+#+END_SRC
+
+#+RESULTS:
+: tabulate sex, nolabel
+: 
+:      Gender |      Freq.     Percent        Cum.
+: ------------+-----------------------------------
+:           1 |      2,585       47.77       47.77
+:           2 |      2,826       52.23      100.00
+: ------------+-----------------------------------
+:       Total |      5,411      100.00
+
+Il est possible d'obtenir la même information en utilisant [[stata:codebook][codebook]], l'avantage de cette dernière commande étant qu'elle fonctionne avec une variable ou une liste de variables (voire le tableau en entier si l'on ne spécifie aucune variable) et qu'elle affiche beaucoup plus d'informations sur le mode de représentation et le contenu de la variable :
+
+#+BEGIN_SRC stata :session :results output :exports both
+codebook sex
+#+END_SRC
+
+#+RESULTS:
+: codebook sex
+: 
+: -------------------------------------------------------------------------------
+: sex                                                                      Gender
+: -------------------------------------------------------------------------------
+: 
+:                   type:  numeric (byte)
+:                  label:  sex
+: 
+:                  range:  [1,2]                        units:  1
+:          unique values:  2                        missing .:  0/5,411
+: 
+:             tabulation:  Freq.   Numeric  Label
+:                          2,585         1  Male
+:                          2,826         2  Female
+
 
 * Manipulation de variables
 
@@ -102,9 +202,47 @@ De manière générale, les commandes Stata sont structurées de la manière sui
 [by varlist:] command [varlist] [=exp] [if exp] [in range] [weight] [using filename] [,options]
 #+END_EXAMPLE
 
-** Changement de mode de stockage et format
+Tous les éléments entre crochets sont optionnels. On distingue les options principales, situées avec la virgule, et les options secondaires situées après celle-ci. Les éléments clés sont le nom de la commande (=command=), les qualifieurs =if= et =in= permettant de sélectionner des unités statistiques (lignes du tableau) et le préfixe =by= qui autorise la répétition d'une même instruction pour chaque valeur prise par une variable ou par le croisement des valeurs d'une liste de variables ([[stata:varlist][varlist]]). L'argument ==exp= est réservé au cas particulier où l'on construit une variable à partir d'une expression. L'option [[stata:weight][weight]] est utilisée pour appliquer des poids d'analyse aux observations ; il peut s'agir de poids de fréquence ("fweight"), de poids de probabilité ("pweight") et de poids analytiques ("aweight"). L'argument =using filename= permet de spécifier un fichier d'entrée ou de sortie pour certaines commandes.
 
-Quant au format, il s'agit essentiellement de la précision afffichée des résultats numériques.
+Voici quelques illustrations de ces différentes options. Considérons le revenu annuel (en euros) et son résumé numérique produit avec [[stata:summarize][summarize]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+summarize income
+#+END_SRC
+
+#+RESULTS:
+: summarize income
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:       income |      4,779     20540.6    37422.49          0     897756
+
+Le nombre total d'observations affiché par [[stata:summarize][summarize]] diffère du nombre total de lignes présentes dans la tableau, comme on peut le vérifier avec [[stata:describe][describe]] ou avec la commande [[stata:count][count]]. Il est possible de dénombrer les valeurs manquantes avec la même commande et la fonction [[stata:missing][missing]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+count
+count if missing(income)
+#+END_SRC
+
+#+RESULTS:
+: count
+:   5,411
+: count if missing(income)
+:   632
+
+La sélection des observations manquantes est réalisée avec le qualifieur [[stata:if][if]]. Il est possible de raffiner le filtre de sélection en utilisant les opérateurs logiques habituels : le symbole =&= désigne la conjonction ("et" logique), =|= la disjonction ("ou"), =!= la négation. On dispose également des opérateurs de comparaison unaire =>=, =>==, =<= et =<==. Il est également possible d'utiliser les fonctions [[stata:inlist][inlist]] et [[stata:inrange][inrange]] que l'on détaillera plus loin. Seules les observations vérifiant la condition logique spécifiée après le [[stata:if][if]] seront sélectionnées. Voici un exemple où l'on dénombre les revenus non manquants parmi les femmes :
+
+#+BEGIN_SRC stata :session :results output :exports both
+count if missing(income) & sex == 2
+#+END_SRC
+
+#+RESULTS:
+: count if missing(income) & sex == 2
+:   367
+
+Il est important de bien spécifier le code numérique et non l'étiquette associée à un niveau dans le cas d'une variable catégorielle.
+
+Considérons à présent l'âge des répondants, que l'on peut reconstruire à partir de l'année de réalisation de l'enquête (2009) et de l'année de naissance des individus :
 
 #+BEGIN_SRC stata :session :results output :exports both
 generate age = 2009 - ybirth
@@ -119,7 +257,91 @@ summarize age
 : -------------+---------------------------------------------------------
 :          age |      5,411    49.50712    18.12642         17        100
 
-Les formats d'affichage peuvent s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
+Voici comment résumer numériquement cette variable pour les seuls individus pour lesquels l'information concernant le revenu est connue :
+
+#+BEGIN_SRC stata :session :results output :exports both
+summarize age if !missing(income)
+#+END_SRC
+
+#+RESULTS:
+: summarize age if !missing(income)
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:          age |      4,779    48.15694    17.32985         17        100
+
+Enfin, il est éaglement possible de stratifier l'analyse selon le sexe à l'aide du préfixe [[stata:by][by]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+by sex, sort : summarize age if !missing(income)
+#+END_SRC
+
+#+RESULTS:
+: by sex, sort : summarize age if !missing(income)
+: 
+: -------------------------------------------------------------------------------
+: -> sex = Male
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:          age |      2,320     47.9431    17.17362         17        100
+: 
+: -------------------------------------------------------------------------------
+: -> sex = Female
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:          age |      2,459    48.35868    17.47705         17         97
+
+
+** Création et mise à jour de variables
+
+On a déjà vu un exemple de création de variable dans les illustrations précédentes avec la commande [[stata:generate][generate]]. Voici une utilisation plus avancée où l'on construit une nouvelle variable à partir d'une expression mathématique, le logarithme du revenu :
+
+#+BEGIN_SRC stata :session :results output :exports both
+generate lincome = log(income)
+#+END_SRC
+
+#+RESULTS:
+: generate lincome = log(income)
+: (2,001 missing values generated)
+
+L'expression ci-dessus correspond bien à la syntaxe discutée dans la [[*Syntaxe élémentaire des commandes Stata][section précédente]], =command [varlist] [=exp]=. Le résultat de cette instruction a généré de nombreuses valeurs manquantes, ce qui s'explique par la présence de revenus annuels valant 0, valeur pour laquelle le logarithme n'est pas défini, en plus des valeurs manquantes d'origine pour lesquelles le logarithme n'est pas non plus défini. Il y a au moins deux manières de pallier à ce problème : on peut remplacer l'expression =log(income)= par =log(income+1)= (l'ajout d'une unité ne devrait pas modifier foncièrement les analyses de cette variable étant donnée l'étendue des valeurs observées et la valeur de tendance centrale) ou alors on peut traiter les valeurs nulles de =income= comme des valeurs manquantes. Dans le second cas de figure, pour être à même de distinguer les valeurs manquantes d'origine des valeurs imputées, il convient d'utiliser un code de valeur manquante différent. Voici comment procéder :
+
+#+BEGIN_SRC stata :session :results output :exports both
+drop lincome
+mvdecode income, mv(0=.a)
+generate lincome = log(income)
+#+END_SRC
+
+#+RESULTS:
+: drop lincome
+: mvdecode income, mv(0=.a)
+:       income: 1369 missing values generated
+: generate lincome = log(income)
+: (2,001 missing values generated)
+
+Voici un résumé des valeurs manquantes présentes dans ces deux variables :
+
+#+BEGIN_SRC stata :session :results output :exports both
+misstable summarize *income
+#+END_SRC
+
+#+RESULTS:
+: misstable summarize *income
+:                                                                Obs<.
+:                                                 +------------------------------
+:                |                                | Unique
+:       Variable |     Obs=.     Obs>.     Obs<.  | values        Min         Max
+:   -------------+--------------------------------+------------------------------
+:         income |       632     1,369     3,410  |   >500         46      897756
+:        lincome |     2,001               3,410  |   >500   3.828641    13.70765
+:   -----------------------------------------------------------------------------
+
+
+** Changement de mode de stockage et format
+
+Si la précision automatiquement choisie par Stata n'est pas indispensable à l'interprétation des résultats ou si l'on souhaite simplement appliquer automatiquement un arrondi des valeurs, la commande [[stata:format][format]] permet de modifier le format d'affichage global d'une ou plusieurs variables. Notons que les formats d'affichage peuvent également s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
 
 #+BEGIN_SRC stata :session :results output :exports both
 format age %5.2f
@@ -211,6 +433,7 @@ tabulate egp3
 :           Manuals |      1,113       36.04      100.00
 : ------------------+-----------------------------------
 :             Total |      3,088      100.00
+
 
 * Tableaux de description avancés
 
