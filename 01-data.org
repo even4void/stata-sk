@@ -304,6 +304,8 @@ by sex, sort : summarize age if !missing(income)
 : -------------+---------------------------------------------------------
 :          age |      2,459    48.35868    17.47705         17         97
 
+Comme on peut le constater, il est impératif de trier les données selon la variable de classification avant de calculer les statistiques de groupe. Le tri peut être réalisé à l'aide de [[stata:sort][sort]] avant d'appeler la commande [[stata:summarize][summarize]], ou directement via le préfixe [[stata:by][by]] ; il s'agit alors d'une option à placer après la virgule. Il est également possible d'utiliser [[stata:bysort][bysort]], qui est strictement équivalent à [[stata:by][by]] avec l'option =sort=.
+
 
 ** Création et mise à jour de variables
 
@@ -354,15 +356,14 @@ On pourra vérifier que la transformation logarithmique a contribué à stabilis
 #+BEGIN_SRC stata :session :results output :exports code
 set scheme plotplain
 label variable lincome "Annual income in euros (log)"
-histogram lincome, fraction bfcolor(dknavy) blcolor(none)
+graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
 graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 : set scheme plotplain
 : label variable lincome "Annual income in euros (log)"
-: histogram lincome, fraction bfcolor(dknavy) blcolor(none)
-: (bin=35, start=3.8286414, width=.2822575)
+: graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
 : graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
 : (file fig-01-histogram-lincome.pdf written in PDF format)
 
@@ -443,7 +444,7 @@ tabulate egp, missing
 :                              Total |      5,411      100.00
 
 
- Supposons que l'on souhaite recoder cette variable en 3 classes, en ignorant les classes "unemployed" et "Retired", ainsi que les valeurs manquantes. Pour cela, on utilisera la commande [[stata:recode][recode]] en indiquant le schéma d'aggrégation des classes dans une liste de clauses et le nom de la nouvelle variable à générer puisque le cas échéant [[stata:recode][recode]] agit comme une commande [[stata:replace][replace]]. Voici un exemple d'utilisation :
+Supposons que l'on souhaite recoder cette variable en 3 classes, en ignorant les classes "unemployed" et "Retired", ainsi que les valeurs manquantes. Pour cela, on utilisera la commande [[stata:recode][recode]] en indiquant le schéma d'aggrégation des classes dans une liste de clauses et le nom de la nouvelle variable à générer puisque le cas échéant [[stata:recode][recode]] agit comme une commande [[stata:replace][replace]]. Voici un exemple d'utilisation :
 
 #+BEGIN_SRC stata :session :results output :exports both
 recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
@@ -500,20 +501,41 @@ bysort sex: summarize income
 Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
 
 #+BEGIN_SRC stata :session :results output :exports both
-tabulate sex, summarize(income)
+tabulate egp3, summarize(income)
 #+END_SRC
 
 #+RESULTS:
-: tabulate sex, summarize(income)
+: tabulate egp3, summarize(income)
 : 
-:             |     Summary of Individual Labor
-:             |              Earnings
-:      Gender |        Mean   Std. Dev.       Freq.
+:   RECODE of |
+: egp (Social |     Summary of Individual Labor
+:       Class |              Earnings
+:      (EGP)) |        Mean   Std. Dev.       Freq.
 : ------------+------------------------------------
-:        Male |   28190.753   47868.242       2,320
-:      Female |   13322.888   21286.438       2,459
+:   Service c |   43173.777   59488.269       1,085
+:   Non-manua |   26257.868   29320.051         868
+:     Manuals |   21393.534   14701.953       1,102
 : ------------+------------------------------------
-:       Total |     20540.6   37422.487       4,779
+:       Total |   30510.983   40867.757       3,055
+
+Un diagramme en points cite:cleveland-1985-elemen-graph-data, qui reste préférable à un diagramme en barres, pour le même indicateur de tendance centrale que ci-dessus peut être construit à l'aide de ces instructions :[fn:3]
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
+graph export "fig-02-bar-lincome-sex.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+RESULTS:
+:  e("Log income")
+: graph export "fig-02-bar-lincome-sex.pdf", fontface(DroidSans) replace
+: (file fig-02-bar-lincome-sex.pdf written in PDF format)
+
+#+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
+#+NAME:      fig:02-bar-lincome-sex
+#+LABEL:     fig:02-bar-lincome-sex
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-bar-lincome-sex.png]]
 
 
 ** La commande tabstat
@@ -521,32 +543,72 @@ tabulate sex, summarize(income)
 La commande [[stata:tabstat][tabstat]] permet au contraire de spécifier la liste des statistiques d'intérêt via l'option =stats=. La variable de stratification est indiquée dans l'option =by= (il ne peut y en avoir qu'une seule). Pour reproduire le résumé en 5 points de Tukey disponible sous R, on peut formuler la commande de la manière suivante :
 
 #+BEGIN_SRC stata :session :results output :exports both
-tabstat income, by(sex) stats(min q max)
+tabstat lincome, by(sex) stats(min q max)
 #+END_SRC
 
 #+RESULTS:
-: tabstat income, by(sex) stats(min q max)
+: tabstat lincome, by(sex) stats(min q max)
 : 
-: Summary for variables: income
+: Summary for variables: lincome
 :      by categories of: sex (Gender)
 : 
 :              sex |       min       p25       p50       p75       max
 : -----------------+--------------------------------------------------
-:             Male |         0     270.5   22142.5     39884    897756
-:           Female |         0         0      6761     21787    612757
+:             Male |  3.828641  9.719625  10.34229  10.73068  13.70765
+:           Female |   5.09375  8.738494  9.701647  10.22274  13.32572
 : -----------------+--------------------------------------------------
-:            Total |         0         0     12424     30998    897756
+:            Total |  3.828641  9.214333  10.03631  10.51678  13.70765
 : --------------------------------------------------------------------
 
 Le symbole =q= est équivalent à utiliser =p25 p50 p75= pour reporter les trois quartiles.
 
+En guise de représentation graphique, il existe les diagrammes en forme de boîtes à moustaches que l'on peut conditionner sur une variable de classification comme dans l'exemple suivant :
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph box lincome, over(sex)
+graph export "fig-03-box-lincome-sex.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+RESULTS:
+: graph box lincome, over(sex)
+: graph export "fig-03-box-lincome-sex.pdf", fontface(DroidSans) replace
+: (file fig-03-box-lincome-sex.pdf written in PDF format)
+
+#+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe
+#+NAME:      fig:03-box-lincome-sex
+#+LABEL:     fig:03-box-lincome-sex
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-box-lincome-sex.png]]
+
+
 ** La commande table
 
-La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. Attention, contrairement à [[stata:tabstat][tabstat]], le symbole =q= ne se substitue pas à =p25 p50 p75=. Concernant les critères de classification, on distingue les variables définissant les lignes et les colonnes, ainsi qu'une variable "super-colonne" en troisième position, indiquées juste avant le séparateur d'options, et une variable "super-ligne" indiquée dans une option =by=.
-
+La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. En l'absence de contenu à résumer, [[stata:table][table]] se comporte comme [[stata:tabulate+twoway][tabulate twoway]].
 
 #+BEGIN_SRC stata :session :results output :exports both
-table egp3 sex if !missing(egp3), content(p50 income) format(%5.0f)
+table egp3 sex, column
+#+END_SRC
+
+#+RESULTS:
+: table egp3 sex, column
+: 
+: ------------------------------------------
+: RECODE of egp     |
+: (Social Class     |         Gender        
+: (EGP))            |   Male  Female   Total
+: ------------------+-----------------------
+: Service class 1/2 |    569     524   1,093
+:       Non-manuals |    290     592     882
+:           Manuals |    717     396   1,113
+:                .a |     11      13      24
+:                .b |    185     413     598
+: ------------------------------------------
+
+Attention, contrairement à [[stata:tabstat][tabstat]], dans le cas où l'on spécifie l'option =content= le symbole =q= ne se substitue pas à =p25 p50 p75=. Concernant les critères de classification, on distingue les variables définissant les lignes et les colonnes, ainsi qu'une variable "super-colonne" en troisième position, indiquées juste avant le séparateur d'options, et une variable "super-ligne" indiquée dans une option =by=. Qui plus est, la commande [[stata:table][table]] est "byable", ce qui signifie que l'on peut inclure jusqu'à cinq variables de stratification. Voici un exemple de tableau croisant les niveaux de deux variables catégorielles pour chacun desquels on calcule la médiane du revenu. Le formatage des résultats numériques, ici arrondi à l'entier le plus proche, se fait directement via l'option =format= :
+
+#+BEGIN_SRC stata :session :results output :exports both
+table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 #+END_SRC
 
 #+RESULTS:
@@ -563,17 +625,22 @@ table egp3 sex if !missing(egp3), content(p50 income) format(%5.0f)
 : ----------------------------------
 
 
-** Les commandes additionnelles
+** Commandes additionnelles
+
+
+** Exportation des tableaux
+
+
 
 * Pour aller plus loin
-
-cite:mitchell-2010-data-manag
 
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
 
 * Footnotes
+
+[fn:3] Par défaut, l'échelle pour ce type de graphique inclut le 0, voir le [[][chapitre sur les graphiques]].
 
 [fn:2] Le fait que le type =byte= ne sétende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
 
