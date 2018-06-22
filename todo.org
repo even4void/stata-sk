@@ -19,15 +19,20 @@
 - [X] Add custom CSS
 - [ ] Fix auto-resize for logo + TOC CSS for mobile display
 - [ ] Add Makefile + manage GitHub links
+- [ ] Update README (cite only)
   
 * TODO 00-intro 
 - [-] Fix LaTeX memoir layout
 - [-] Fix BibTeX export for LaTeX
 - [ ] Add editors, do-file, graphics export
+- [ ] Add links (last section)
 
 * TODO 01-data
-- [ ] Find relevant datasets
-- [ ] Summarize difference between Stata 11 and 13-15
+- [X] Find relevant datasets
 - [ ] ODBC connector, JSON, XML
 - [ ] check differences between Stata 12, 13 et 14 re DTA specs
 
+* Notes
+
+ESS dataset: http://bit.ly/2K003rn
+Stata weight round 1: http://bit.ly/2I2BsAg

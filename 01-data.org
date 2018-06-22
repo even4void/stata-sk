@@ -4,7 +4,7 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. 
+Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme.
 
 * Gestion d'un tableau de données
 
@@ -190,6 +190,17 @@ codebook sex
 :             tabulation:  Freq.   Numeric  Label
 :                          2,585         1  Male
 :                          2,826         2  Female
+
+** Variables et liste de variables
+
+Un concept clé dans Stata est la possibilité de travailler avec une seule variable, comme on l'a vu dans l'expression =codebook sex=, ou avec plusieurs variables. Dans ce dernier cas, on parle de "varlist" et il est généralement utile de bien vérifier lorsque l'on cherche de l'aide si la commande accepte une seule, voire deux variables, ou bien une "varlist".
+
+#+BEGIN_SRC stata :session :results output :exports both
+order age, after(ybirth)
+rename wor* q*
+#+END_SRC
+
+
 
 
 * Manipulation de variables
@@ -437,7 +448,98 @@ tabulate egp3
 
 * Tableaux de description avancés
 
+** Les commandes tabulate et summarize
 
+Comme discuté précédemment, le préfixe [[stata:by][by]] permet de répéter une même opération selon les valeurs prises par une ou plusieurs variables, de sorte que l'instruction suivante permet de construire très rapidement des résumés descriptifs : (c'est même en réalité la manière la plus rapide de calculer des statistiques simples)
+
+#+BEGIN_SRC stata :session :results output :exports both
+bysort sex: summarize income
+#+END_SRC
+
+#+RESULTS:
+: bysort sex: summarize income
+: 
+: -------------------------------------------------------------------------------
+: -> sex = Male
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:       income |      2,320    28190.75    47868.24          0     897756
+: 
+: -------------------------------------------------------------------------------
+: -> sex = Female
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:       income |      2,459    13322.89    21286.44          0     612757
+
+Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate sex, summarize(income)
+#+END_SRC
+
+#+RESULTS:
+: tabulate sex, summarize(income)
+: 
+:             |     Summary of Individual Labor
+:             |              Earnings
+:      Gender |        Mean   Std. Dev.       Freq.
+: ------------+------------------------------------
+:        Male |   28190.753   47868.242       2,320
+:      Female |   13322.888   21286.438       2,459
+: ------------+------------------------------------
+:       Total |     20540.6   37422.487       4,779
+
+
+** La commande tabstat
+
+La commande [[stata:tabstat][tabstat]] permet au contraire de spécifier la liste des statistiques d'intérêt via l'option =stats=. La variable de stratification est indiquée dans l'option =by= (il ne peut y en avoir qu'une seule). Pour reproduire le résumé en 5 points de Tukey disponible sous R, on peut formuler la commande de la manière suivante :
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabstat income, by(sex) stats(min q max)
+#+END_SRC
+
+#+RESULTS:
+: tabstat income, by(sex) stats(min q max)
+: 
+: Summary for variables: income
+:      by categories of: sex (Gender)
+: 
+:              sex |       min       p25       p50       p75       max
+: -----------------+--------------------------------------------------
+:             Male |         0     270.5   22142.5     39884    897756
+:           Female |         0         0      6761     21787    612757
+: -----------------+--------------------------------------------------
+:            Total |         0         0     12424     30998    897756
+: --------------------------------------------------------------------
+
+Le symbole =q= est équivalent à utiliser =p25 p50 p75= pour reporter les trois quartiles.
+
+** La commande table
+
+La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. Attention, contrairement à [[stata:tabstat][tabstat]], le symbole =q= ne se substitue pas à =p25 p50 p75=. Concernant les critères de classification, on distingue les variables définissant les lignes et les colonnes, ainsi qu'une variable "super-colonne" en troisième position, indiquées juste avant le séparateur d'options, et une variable "super-ligne" indiquée dans une option =by=.
+
+
+#+BEGIN_SRC stata :session :results output :exports both
+table egp3 sex if !missing(egp3), content(p50 income) format(%5.0f)
+#+END_SRC
+
+#+RESULTS:
+: table egp3 sex if !missing(egp3), content(p50 income) format(%5.0f)
+: 
+: ----------------------------------
+: RECODE of egp     |
+: (Social Class     |     Gender    
+: (EGP))            |   Male  Female
+: ------------------+---------------
+: Service class 1/2 |  45799   25122
+:       Non-manuals |  31134   16928
+:           Manuals |  26963   10066
+: ----------------------------------
+
+
+** Les commandes additionnelles
 
 * Pour aller plus loin
 
@@ -445,6 +547,7 @@ cite:mitchell-2010-data-manag
 
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
+
 
 * Footnotes
 
