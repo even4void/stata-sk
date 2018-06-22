@@ -31,6 +31,7 @@
 - [X] Find relevant datasets
 - [ ] ODBC connector, JSON, XML
 - [ ] check differences between Stata 12, 13 et 14 re DTA specs
+- [ ] Fix import of graphic scheme (noexport block)
 
 * Notes
 

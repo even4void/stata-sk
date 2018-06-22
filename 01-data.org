@@ -320,15 +320,14 @@ generate lincome = log(income)
 L'expression ci-dessus correspond bien à la syntaxe discutée dans la [[*Syntaxe élémentaire des commandes Stata][section précédente]], =command [varlist] [=exp]=. Le résultat de cette instruction a généré de nombreuses valeurs manquantes, ce qui s'explique par la présence de revenus annuels valant 0, valeur pour laquelle le logarithme n'est pas défini, en plus des valeurs manquantes d'origine pour lesquelles le logarithme n'est pas non plus défini. Il y a au moins deux manières de pallier à ce problème : on peut remplacer l'expression =log(income)= par =log(income+1)= (l'ajout d'une unité ne devrait pas modifier foncièrement les analyses de cette variable étant donnée l'étendue des valeurs observées et la valeur de tendance centrale) ou alors on peut traiter les valeurs nulles de =income= comme des valeurs manquantes. Dans le second cas de figure, pour être à même de distinguer les valeurs manquantes d'origine des valeurs imputées, il convient d'utiliser un code de valeur manquante différent. Voici comment procéder :
 
 #+BEGIN_SRC stata :session :results output :exports both
-drop lincome
+cap drop lincome
 mvdecode income, mv(0=.a)
 generate lincome = log(income)
 #+END_SRC
 
 #+RESULTS:
-: drop lincome
+: cap drop lincome
 : mvdecode income, mv(0=.a)
-:       income: 1369 missing values generated
 : generate lincome = log(income)
 : (2,001 missing values generated)
 
@@ -348,6 +347,31 @@ misstable summarize *income
 :         income |       632     1,369     3,410  |   >500         46      897756
 :        lincome |     2,001               3,410  |   >500   3.828641    13.70765
 :   -----------------------------------------------------------------------------
+
+
+On pourra vérifier que la transformation logarithmique a contribué à stabiliser quelque peu la variance et à symétriser la distribution, même si celle-ci reste loin d'une distribution normale.
+
+#+BEGIN_SRC stata :session :results output :exports code
+set scheme plotplain
+label variable lincome "Annual income in euros (log)"
+histogram lincome, fraction bfcolor(dknavy) blcolor(none)
+graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+RESULTS:
+: set scheme plotplain
+: label variable lincome "Annual income in euros (log)"
+: histogram lincome, fraction bfcolor(dknavy) blcolor(none)
+: (bin=35, start=3.8286414, width=.2822575)
+: graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
+: (file fig-01-histogram-lincome.pdf written in PDF format)
+
+#+CAPTION:   Distribution du log du revenu annuel (euros)
+#+NAME:      fig:01-histogram-lincome
+#+LABEL:     fig:01-histogram-lincome
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-01-histogram-lincome.png]]
 
 
 ** Changement de mode de stockage et format
