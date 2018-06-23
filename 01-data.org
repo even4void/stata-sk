@@ -43,7 +43,7 @@ describe, short
 :  size:       568,155                          
 : Sorted by: persnr
 
-La commande [[stata:describe][describe]] permet de décrire le tableau de données. Parmi ses différentes options, =short= permet de limiter la description à l'en-tête du tableau, c'est-à-dire les informations relatives au nombre d'observations et de variables et aux éventuelles annotations du tableau, tandis que =simple= permet de n'affichier que la liste des variables.
+La commande [[stata:describe][describe]] permet de décrire le tableau de données. Parmi ses différentes options, =short= permet de limiter la description à l'en-tête du tableau, c'est-à-dire les informations relatives au nombre d'observations et de variables et aux éventuelles annotations du tableau, tandis que =simple= permet de n'afficher que la liste des variables.
 
 #+BEGIN_SRC stata :session :results output :exports both
 describe, simple
@@ -63,6 +63,7 @@ describe, simple
 : emp          size         eqpsol       pia          wor08        xweights
 : egp          seval        eqpair       pib          wor09
 
+Notons qu'il s'agit de données d'enquête, même si nous n'exploiterons pas vraiment les poids de sondage dans les illustrations de ce chapitre. Les dernières variables du tableau sont spécifiques à Stata et permettent d'identifier les unités de sondage (=strata= et =psu=) et les poids analytiques (=dweight= et =xweights=). 
 
 Pour obtenir un aperçu des premières lignes du tableau, et en restreignant la liste des variables affichées, voici comment l'on procéderait avec [[stata:list][list]] :
 
@@ -193,14 +194,21 @@ codebook sex
 
 ** Variables et liste de variables
 
-Un concept clé dans Stata est la possibilité de travailler avec une seule variable, comme on l'a vu dans l'expression =codebook sex=, ou avec plusieurs variables. Dans ce dernier cas, on parle de "varlist" et il est généralement utile de bien vérifier lorsque l'on cherche de l'aide si la commande accepte une seule, voire deux variables, ou bien une "varlist".
+Un concept clé dans Stata est la possibilité de travailler avec une seule variable, comme on l'a vu dans l'expression =codebook sex=, ou avec plusieurs variables. Dans ce dernier cas, on parle de "varlist" et il est généralement utile de bien vérifier lorsque l'on cherche de l'aide si la commande accepte une seule, voire deux variables, ou bien une "varlist". Voici comment on peut changer l'ordre des variables avec [[stata:order][order]] et renommer des variables en bloc à l'aide de [[stata:rename][rename]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
-order age, after(ybirth)
+#+BEGIN_SRC stata :session :results output :exports code
+order sex, before(ybirth)
 rename wor* q*
 #+END_SRC
 
+La variable =hhnr= s'apprente à =hhnr2009= puisqu'il s'agit d'un identifiant unique pour les foyers résidentiels. Cette variable peut être d'ores et déjà supprimée à l'aide de [[stata:drop][drop]] puisqu'elle ne sera pas exploitée :
 
+#+BEGIN_SRC stata :session :results output :exports both
+drop hhnr
+#+END_SRC
+
+#+RESULTS:
+: drop hhnr
 
 
 * Manipulation de variables
@@ -323,13 +331,13 @@ L'expression ci-dessus correspond bien à la syntaxe discutée dans la [[*Syntax
 
 #+BEGIN_SRC stata :session :results output :exports both
 cap drop lincome
-mvdecode income, mv(0=.a)
+mvdecode income, mv(0=.c)
 generate lincome = log(income)
 #+END_SRC
 
 #+RESULTS:
 : cap drop lincome
-: mvdecode income, mv(0=.a)
+: mvdecode income, mv(0=.c)
 : generate lincome = log(income)
 : (2,001 missing values generated)
 
@@ -373,6 +381,89 @@ graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-01-histogram-lincome.png]]
+
+
+** Etiquette et annotation
+
+Il est préférable de travailler avec des noms de variables court, en minuscules, et groupés par ordre logique dans le tableau. Cela facilite le travail de sélection de variable isolées ou de groupes de variables (=varlist=), leur insertion dans des commandes ou dans des structures de contrôle, par exemple des boucles =foreach=. Ceci dit, il est toujours plus pratique de donner un descriptif même succint de chacune des variables afin de pouvoir annoter automatiquement les axes des graphiques sur lesquels ces variables sont amenées à varier ou dans les tableaux de synthèse. C'est d'ailleurs une pratique assez courante dans le monde des enquêtes que d'annoter systématiquement les différents items d'un questionaire avec l'intitulé de la question.
+
+La commande =label= est une méta commande qui comporte plusieurs sous commandes. Ainsi, avec [[stata:label+variable][label variable]] il est possible de donner un intitulé bref à la variable elle-même. Prenons le cas de la variable =lincome= créée à l'étape précédente. 
+
+#+BEGIN_SRC stata :session :results output :exports both
+label variable lincome "Annual income in euros (log)"
+#+END_SRC
+
+#+RESULTS:
+: label variable lincome "Annual income in euros (log)"
+
+Une fois étiquetté, le libellé des variables apparaîtra dans les sorties de [[stata:describe][describe]], [[stata:codebook][codebook]], les graphiques et les tableaux :
+
+#+BEGIN_SRC stata :session :results output :exports both
+codebook lincome
+#+END_SRC
+
+#+RESULTS:
+: codebook lincome
+: 
+: -------------------------------------------------------------------------------
+: lincome                                            Annual income in euros (log)
+: -------------------------------------------------------------------------------
+: 
+:                   type:  numeric (float)
+: 
+:                  range:  [3.8286414,13.707654]        units:  1.000e-07
+:          unique values:  3,286                    missing .:  2,001/5,411
+: 
+:                   mean:   9.77026
+:               std. dev:   1.12441
+: 
+:            percentiles:        10%       25%       50%       75%       90%
+:                            8.25946   9.21433   10.0363   10.5168   10.8828
+
+Quant aux variables catégorielles, on a vu qu'il s'agit essentiellement de variables représentées sous forme d'entiers consécutifs, $\{1,2,\dots,k\}$, ou de valeurs 0/1 dans le cas des variables binaires, auxquels on associe des étiquettes. Ceci est réalisé avec les commandes [[stata:label+define][label define]] et [[stata:label+values][label values]], comme illustré dans l'exemple suivant :
+
+#+BEGIN_SRC stata :session :results output :exports both
+generate insample = !missing(lincome)
+label define insample 0 "Not analyzed (income = .)" 1 "In sample (income > .)"
+label values insample insample
+#+END_SRC
+
+#+RESULTS:
+: generate insample = !missing(lincome)
+:  "
+: label values insample insample
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate insample
+#+END_SRC
+
+#+RESULTS:
+: tabulate insample
+: 
+:                  insample |      Freq.     Percent        Cum.
+: --------------------------+-----------------------------------
+: Not analyzed (income = .) |      2,001       36.98       36.98
+:    In sample (income > .) |      3,410       63.02      100.00
+: --------------------------+-----------------------------------
+:                     Total |      5,411      100.00
+
+Notons que l'on utilise souvent le même nom d'étiquette que le nom de la variable lorsque ce jeu d'étiquette de niveaux est réellement spécifique de cette variable. Le cas échéant, un même jeu d'étiquettes peut être appliqué à une liste de variables. C'est le cas par exemple pour les variables =wor*= :
+
+#+BEGIN_SRC stata :session :results output :exports both
+label list concern3
+#+END_SRC
+
+#+RESULTS:
+: label list concern3
+: concern3:
+:            1 Very concerned
+:            2 Somewhat concerned
+:            3 Not concerned at all
+:           .a Refusal
+:           .b Does not apply
+:           .c Inconsistent
+
+Enfin, il est possible d'annoter un tableau ou une variable à l'aide de la commande [[stata:note][note]]. Un usage courant consiste à indiquer pour le tableau sa date de création et la source des données, et pour les variables les éventuelles transformations ou révisions qu'elles ont subi.
 
 
 ** Changement de mode de stockage et format
@@ -469,6 +560,37 @@ tabulate egp3
 :           Manuals |      1,113       36.04      100.00
 : ------------------+-----------------------------------
 :             Total |      3,088      100.00
+
+
+* Transformation d'un tableau
+
+** Sélection d'observations et tri
+
+keep
+
+sort
+
+** Optimisation de la taille mémoire
+
+compress
+
+** Agrégation
+
+collapse
+
+contract
+
+** Fusion de sources de données
+
+merge
+
+append
+
+** Mode de représentation rectangulaire
+
+fillin
+
+reshape
 
 
 * Tableaux de description avancés
@@ -624,6 +746,8 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 :           Manuals |  26963   10066
 : ----------------------------------
 
+
+** Analyses pondérées
 
 ** Commandes additionnelles
 
