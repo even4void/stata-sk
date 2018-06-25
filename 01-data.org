@@ -566,9 +566,53 @@ tabulate egp3
 
 ** Sélection d'observations et tri
 
-keep
+On a vu que la commande [[stata:drop][drop]] permet de supprimer une ou plusieurs variables dans un tableau de données. En réalité cette commande fonctionne également pour filtrer des observations, de même que [[stata:keep][keep]] qui permet, au contraire, de conserver des variables ou des observations. Dans l'enquête socio-économique, supposons que l'on souhaite ne conserver pour les analyses que les personnes majeures (=age > 17=), il suffirait d'utiliser l'une de ces deux commandes. Par exemple :
 
-sort
+#+BEGIN_SRC stata :session :results output :exports both
+keep if age > 17 & !missing(age)
+count
+#+END_SRC
+
+#+RESULTS:
+: keep if age > 17 & !missing(age)
+: (0 observations deleted)
+: count
+:   5,345
+
+Les procédures de tri, comme on l'a déjà dit, sont essentielles pour travailler efficacement avec Stata. 
+
+
+
+Voici un exemple plus élaboré, tiré directement de l'ouvrage de Kohler & Kreuter :
+
+#+BEGIN_SRC stata :session :results output :exports code
+by hhnr2009 (rel2head), sort: generate agediff = ybirth - ybirth[_n-1] if rel2head == 2
+#+END_SRC
+
+Cette instruction permet de calculer la différence d'âge entre le père de famille (=head=) et sa partenaire (=partner=) dans chacun des foyers. La subtilité vient du tri primaire sur la variable =hhnr2009= (foyer) puis du tri secondaire sur la variable =rel2head= (situation familiale des répondants) sans que ce dernier ne soit utilisé pour grouper les opérations sous le préfixe [[stata:by][by]]. La condition =if rel2head==2= permet de s'assurer que l'on effectue bien le calcule dans le cas où il existe au moins deux personnes dans le foyer.
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate rel2head if rel2head < 3
+summarize agediff
+#+END_SRC
+
+#+RESULTS:
+: tabulate rel2head if rel2head < 3
+: 
+:   Relationship |
+:     to HH Head |      Freq.     Percent        Cum.
+: ---------------+-----------------------------------
+:           Head |      3,045       64.50       64.50
+:        Partner |      1,676       35.50      100.00
+: ---------------+-----------------------------------
+:          Total |      4,721      100.00
+: summarize agediff
+: 
+:     Variable |        Obs        Mean    Std. Dev.       Min        Max
+: -------------+---------------------------------------------------------
+:      agediff |      1,672    1.358852    5.168304        -27         33
+
+
 
 ** Optimisation de la taille mémoire
 
