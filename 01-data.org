@@ -579,11 +579,9 @@ count
 : count
 :   5,345
 
-Les procédures de tri, comme on l'a déjà dit, sont essentielles pour travailler efficacement avec Stata. 
+Les procédures de tri, comme on l'a déjà dit, sont essentielles pour travailler efficacement avec Stata. Stata dispose de deux commandes pour réaliser des tri croissants (=sort=) ou dans les deux directions (=gsort=), bien que dans la commande générique reste la commande [[stata:sort][sort]]. Celle-ci agit également comme option dans le cas du préfixe [[stata:by][by]]. Si un tableau est trié sur une ou plusieurs variables, la commande [[stata:describe][describe]] l'indique à la suite de la liste des variables. Dasn le cas de l'enquête socio-économique, les données sont triées selon la variable =persnr=.
 
-
-
-Voici un exemple plus élaboré, tiré directement de l'ouvrage de Kohler & Kreuter :
+Voici un exemple plus élaboré, tiré directement de l'ouvrage de Kohler & Kreuter cite:kohler-2012-data-analy :
 
 #+BEGIN_SRC stata :session :results output :exports code
 by hhnr2009 (rel2head), sort: generate agediff = ybirth - ybirth[_n-1] if rel2head == 2
@@ -616,13 +614,85 @@ summarize agediff
 
 ** Optimisation de la taille mémoire
 
-compress
+La commande [[stata:compress][compress]] permet d'optimiser le mode de stockage des variables. Cette commande n'altère pas le contenu de la base de données et n'induit aucune perte de précision.
+
+La taille d'un tableau de données peut être approximée de la manière suivante : il s'agit du rapport $(N\times V\times W + 4N) / 1024^2$, où $N$ désigne le nombre d'observations, $V$ le nombre de variabels et $W$ la taille moyenne des variables (entiers de 1 à 4, réels de 4 à 8).[fn:4]
+
+[[https://www.stata.com/support/faqs/data-management/approximating-dataset-size/][How big will my dataset be?]]
+
+Dans le cas de l'enquête socio-économique, la taille en mémoire du tableau est d'environ 568 Ko :
+
+#+BEGIN_SRC stata :session :results output :exports both
+describe, short
+#+END_SRC
+
+#+RESULTS:
+: describe, short
+: 
+: Contains data from data/gsoep09.dta
+:   obs:         5,411                          SOEP 2009 (Kohler/Kreuter)
+:  vars:            65                          13 Feb 2012 17:08
+:  size:       568,155                          
+: Sorted by: persnr
+
+
+On ne gagnera rien à compresser ce tableau dans la mesure où il est déjà optimisé mais cela vaut souvent la peine de vérifier si le gain de taille est substantiel ou non avant de sauvegarder la version finale d'une base de données.
+
 
 ** Agrégation
 
-collapse
+Par agrégation on entend le procédé qui consiste à réduire un ensemble d'observations à une valeur unique, typiquement un indicateur de tendance centrale ou l'effectif total, selon différentes variables de classification. Par exemple, dans cette enquête socio-économique, on pourrait vouloir calculer le revenu médian par "lander" (=state=) selon le sexe et la classe d'âge. Voici une manière de procéder avec la commande [[stata:collapse][collapse]] :
 
-contract
+#+BEGIN_SRC stata :session :results output :exports both
+preserve
+collapse (p50) income, by(sex age4)
+list
+#+END_SRC
+
+#+RESULTS:
+: collapse (p50) income, by(sex age4)
+: list
+: 
+:      +--------------------------+
+:      |    sex   age4     income |
+:      |--------------------------|
+:   1. |   Male      1      12588 |
+:   2. |   Male      2   36248.25 |
+:   3. |   Male      3   28620.75 |
+:   4. |   Male      4          0 |
+:   5. | Female      1     7327.5 |
+:      |--------------------------|
+:   6. | Female      2    16974.5 |
+:   7. | Female      3    13534.5 |
+:   8. | Female      4          0 |
+:      +--------------------------+
+
+
+Pour revenir au tableau d'origine, on utilisera [[stata:restore][restore]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+restore
+list sex age4 income in 1/5
+#+END_SRC
+
+#+RESULTS:
+: restore
+: nothing to restore
+: r(622);
+: list sex age4 income in 1/5
+: 
+:      +--------------------------+
+:      |    sex   age4     income |
+:      |--------------------------|
+:   1. |   Male      1      12588 |
+:   2. |   Male      2   36248.25 |
+:   3. |   Male      3   28620.75 |
+:   4. |   Male      4          0 |
+:   5. | Female      1     7327.5 |
+:      +--------------------------+
+
+
+La commande [[stata:contract][contract]] permet de construire un tableau de données agrégées selon le même procédé mais en travaillant avec des effectifs ou des fréquences.
 
 ** Fusion de sources de données
 
@@ -808,9 +878,11 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 
 * Footnotes
 
+[fn:4] Voir [[https://www.stata.com/support/faqs/data-management/approximating-dataset-size/][How big will my dataset be?]] 
+
 [fn:3] Par défaut, l'échelle pour ce type de graphique inclut le 0, voir le [[][chapitre sur les graphiques]].
 
-[fn:2] Le fait que le type =byte= ne sétende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
+[fn:2] Le fait que le type =byte= ne s'étende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
 
 [fn:1] Il existe également d'anciens utilitaires, comme [[http://radyakin.org/transfer/use13/use13.htm][use13]], permettant de lire des fichiers vrsion 13 sous Stata 10. 
 
