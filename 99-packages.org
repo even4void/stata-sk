@@ -1,0 +1,95 @@
+#+TITLE: Stata : liste de modules utiles
+#+LANGUAGE: fr
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
+#+HTML_MATHJAX: scale: 90
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+
+
+* Reporting
+
+** fitstat
+
+La commande [[https://ideas.repec.org/c/boc/bocode/s407201.html][fitstat]], développée par les auteurs de /Regression Models for Categorical Dependent Variables Using Stata/ cite:scott-2001-regres-model fournit des indicateurs additionnels de qualité d'ajustement d'une large variété de modèles de régression. Elle est compatible avec 
+
+Exemple :
+
+#+BEGIN_SRC stata :session :results output :exports both
+webuse lbw
+tabulate race, gen(irace)
+logit low lwt irace2 irace3 ui, or nolog
+fitstat
+#+END_SRC
+
+#+RESULTS:
+: webuse lbw
+: (Hosmer & Lemeshow data)
+: tabulate race, gen(irace)
+: 
+:        race |      Freq.     Percent        Cum.
+: ------------+-----------------------------------
+:       white |         96       50.79       50.79
+:       black |         26       13.76       64.55
+:       other |         67       35.45      100.00
+: ------------+-----------------------------------
+:       Total |        189      100.00
+: logit low lwt irace2 irace3 ui, or nolog
+: 
+: Logistic regression                             Number of obs     =        189
+:                                                 LR chi2(4)        =      15.15
+:                                                 Prob > chi2       =     0.0044
+: Log likelihood = -109.76147                     Pseudo R2         =     0.0646
+: 
+: ------------------------------------------------------------------------------
+:          low | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:          lwt |   .9862315   .0063834    -2.14   0.032     .9737992    .9988226
+:       irace2 |   3.032503   1.485612     2.26   0.024     1.160916    7.921398
+:       irace3 |   1.616586   .5835255     1.33   0.183     .7967967    3.279819
+:           ui |   2.299748   .9819923     1.95   0.051     .9959037    5.310596
+:        _cons |   1.628981   1.399932     0.57   0.570      .302274    8.778724
+: ------------------------------------------------------------------------------
+: Note: _cons estimates baseline odds.
+: fitstat
+: 
+: Measures of Fit for logit of low
+: 
+: Log-Lik Intercept Only:     -117.336     Log-Lik Full Model:         -109.761
+: D(184):                      219.523     LR(4):                        15.149
+:                                          Prob > LR:                     0.004
+: McFadden's R2:                 0.065     McFadden's Adj R2:             0.022
+: Maximum Likelihood R2:         0.077     Cragg & Uhler's R2:            0.108
+: McKelvey and Zavoina's R2:     0.115     Efron's R2:                    0.078
+: Variance of y*:                3.718     Variance of error:             3.290
+: Count R2:                      0.683     Adj Count R2:                 -0.017
+: AIC:                           1.214     AIC*n:                       229.523
+: BIC:                        -744.959     BIC':                          5.818
+
+Une commande de post-estimation similaire est prvalue
+
+Attention, pour installer cette commande correctement il faut bien choisir le package =spost9= et non l'entrée correspondant à un /Stata Journal/.
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly: summarize lwt, detail
+display r(p50)
+prvalue, x(lwt=121 irace2=1 irace3=0 ui=1)
+#+END_SRC
+
+#+RESULTS:
+: quietly: summarize lwt, detail
+: display r(p50)
+: 121
+: prvalue, x(lwt=121 irace2=1 irace3=0 ui=1)
+: 
+: logit: Predictions for low
+: 
+: Confidence intervals by delta method
+: 
+:                                 95% Conf. Interval
+:   Pr(y=1|x):          0.6797   [ 0.4394,    0.9201]
+:   Pr(y=0|x):          0.3203   [ 0.0799,    0.5606]
+: 
+:        lwt  irace2  irace3      ui
+: x=     121       1       0       1
+
+
+#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
