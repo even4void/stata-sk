@@ -4,7 +4,7 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme.
+Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme, et non au sens informatique : Stata dispose de "macros" pour tout ce qui relève de la programmation, et ceci fait l'objet d'un autre chapitre.
 
 * Gestion d'un tableau de données
 
@@ -93,7 +93,7 @@ On distinguera essentiellement les nombres et les caractères, et par extension 
 
 Le mode de stockage des variables numériques, qui s'apparente à la précision de la variable numérique dans sa représentation machine, peut être de 5 types, par degré croissant de précision : =byte=, =int=, =long=, =double= et =float=. Les deux derniers types représentent des nombres réels (4 et 8-bytes IEEE float). Par exemple, les variables de type =byte= permettent de représenter des nombres allant de -127 à 100[fn:2] tandis que le type =long= correspond à un intervalle de valeurs de $[-2 147 483 647, 2 147 483 620]$. Le type =byte= est généralement utilisé pour le codage numérique des variables catégorielles (binaires ou à plusieurs niveaux). Il est préférable d'utiliser le type =long=, voire =double=, ou alors des chaînes de caractères (=string=) pour coder les identifiants uniques d’une base de données.
 
-Dans le visualisateur/éditeur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge.
+Dans le visualisateur de données ([[stata:browse][browse]]), les variables numériques apparaissent en noir, les variables catégorielles en bleu et les chaînes de caractères en rouge. Bien qu'il soit préférable de travailler exclusivement avec la console de commandes, la possibilité de visualiser les données à l'aide d'un tableur intégré est un grand plus de Stata. Notons que ce tableur est également accessible en mode édition.
 
 Voici deux exemples de variables : le revenu (=income=), variable numérique stockée sous forme d'entiers, et le sexe (=sex=) des répondants, variable catégorielle à deux classes ou niveaux :
 
@@ -192,12 +192,95 @@ codebook sex
 :                          2,585         1  Male
 :                          2,826         2  Female
 
+
 ** Variables et liste de variables
 
-Un concept clé dans Stata est la possibilité de travailler avec une seule variable, comme on l'a vu dans l'expression =codebook sex=, ou avec plusieurs variables. Dans ce dernier cas, on parle de "varlist" et il est généralement utile de bien vérifier lorsque l'on cherche de l'aide si la commande accepte une seule, voire deux variables, ou bien une "varlist". Voici comment on peut changer l'ordre des variables avec [[stata:order][order]] et renommer des variables en bloc à l'aide de [[stata:rename][rename]] :
+Un concept clé dans Stata est la possibilité de travailler avec une seule variable, comme on l'a vu dans l'expression =codebook sex=, ou avec plusieurs variables. Dans ce dernier cas, on parle de "varlist" et il est généralement utile de bien vérifier lorsque l'on cherche de l'aide si la commande accepte une seule, voire deux variables, ou bien une [[stata:varlist][varlist]]. 
+
+Pour spécifier une liste de variables, il suffit d'indiquer les noms de variables en les séparant par un espace, comme dans l'illustration suivante :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list wor01 wor02 wor03 in 5
+#+END_SRC
+
+#+RESULTS:
+: list wor01 wor02 wor03 in 5
+: 
+:      +--------------------------------------------------------------+
+:      |              wor01                wor02                wor03 |
+:      |--------------------------------------------------------------|
+:   5. | Somewhat concerned   Somewhat concerned   Somewhat concerned |
+:      +--------------------------------------------------------------+
+
+Il est également possible d'indiquer le nom de la première variable et le nom de la dernière variable d'une séquence de variables consécutives. Dans ce cas, le délimietur d'étendue est le tiret :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list wor01-wor03 in 5
+#+END_SRC
+
+#+RESULTS:
+: list wor01-wor03 in 5
+: 
+:      +--------------------------------------------------------------+
+:      |              wor01                wor02                wor03 |
+:      |--------------------------------------------------------------|
+:   5. | Somewhat concerned   Somewhat concerned   Somewhat concerned |
+:      +--------------------------------------------------------------+
+
+Les noms de variable peuvent être interpolés par Stata à l'aide des symboles d'expressions rationelles =?= (un seul caractère, n'importe lequel parmi les caractères autorisés) et =*= (un ou plusieurs caractères). Voici deux exemples d'utilisation :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list wor0? in 5
+list wor* in 3
+#+END_SRC
+
+#+RESULTS:
+: list wor0? in 5
+: 
+:      +--------------------------------------------------------------+
+:   5. |              wor01 |              wor02 |              wor03 |
+:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
+:      |--------------------+--------------------+--------------------|
+:      |              wor04 |              wor05 |              wor06 |
+:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
+:      |--------------------------------------------------------------|
+:      |              wor07  |          wor08  |               wor09  |
+:      | Somewhat concerned  | Very concerned  |  Somewhat concerned  |
+:      +--------------------------------------------------------------+
+: list wor* in 3
+: 
+:      +--------------------------------------------------------------+
+:   3. |              wor01 |              wor02 |              wor03 |
+:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
+:      |--------------------------------------------------------------|
+:      |          wor04  |              wor05  |               wor06  |
+:      | Very concerned  | Somewhat concerned  |  Somewhat concerned  |
+:      |--------------------------------------------------------------|
+:      |              wor07  |              wor08  |           wor09  |
+:      | Somewhat concerned  | Somewhat concerned  |  Very concerned  |
+:      |---------------------+---------------------+------------------|
+:      |              wor10  |              wor11  |           wor12  |
+:      | Somewhat concerned  | Somewhat concerned  |  Does not apply  |
+:      +--------------------------------------------------------------+
+
+Enfin, on peut combiner les différentes approches comme dans l'exemple suivant :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list persnr sex wor01-wor03 in 1
+#+END_SRC
+
+#+RESULTS:
+: list persnr sex wor01-wor03 in 1
+: 
+:      +----------------------------------------------------------------------+
+:      | persnr    sex            wor01                wor02            wor03 |
+:      |----------------------------------------------------------------------|
+:   1. |   8501   Male   Very concerned   Somewhat concerned   Very concerned |
+:      +----------------------------------------------------------------------+
+
+L'usage de listes de variables facilite beaucoup de tâches qui pourrait apparaître fastidieuses autrement (lister explicitement une dizaine de variables) ou nécessiter de programmer une boucle (renommer un ensemble de variables). Voici par exemple comment renommer des variables en bloc à l'aide de [[stata:rename][rename]] :
 
 #+BEGIN_SRC stata :session :results output :exports code
-order sex, before(ybirth)
 rename wor* q*
 #+END_SRC
 
@@ -265,16 +348,20 @@ Considérons à présent l'âge des répondants, que l'on peut reconstruire à p
 
 #+BEGIN_SRC stata :session :results output :exports both
 generate age = 2009 - ybirth
+order age, after(ybirth)
 summarize age
 #+END_SRC
 
 #+RESULTS:
 : generate age = 2009 - ybirth
+: order age, after(ybirth)
 : summarize age
 : 
 :     Variable |        Obs        Mean    Std. Dev.       Min        Max
 : -------------+---------------------------------------------------------
 :          age |      5,411    49.50712    18.12642         17        100
+
+La commande [[stata:order][order]] permet de déplacer la position d'une variables, ou plus généralement d'une [[stata:varlist][varlist]], en spécifiant en option la position relative par rapport à une variable déjà présente dans le tableau. Il est également possible d'utiliser les options =first= ou =last= pour placer la ou les variables en première ou dernière position du tableau, respectivement.
 
 Voici comment résumer numériquement cette variable pour les seuls individus pour lesquels l'information concernant le revenu est connue :
 
@@ -289,7 +376,7 @@ summarize age if !missing(income)
 : -------------+---------------------------------------------------------
 :          age |      4,779    48.15694    17.32985         17        100
 
-Enfin, il est éaglement possible de stratifier l'analyse selon le sexe à l'aide du préfixe [[stata:by][by]] :
+Enfin, il est également possible de stratifier l'analyse selon le sexe à l'aide du préfixe [[stata:by][by]] :
 
 #+BEGIN_SRC stata :session :results output :exports both
 by sex, sort : summarize age if !missing(income)
@@ -338,6 +425,7 @@ generate lincome = log(income)
 #+RESULTS:
 : cap drop lincome
 : mvdecode income, mv(0=.c)
+:       income: 1369 missing values generated
 : generate lincome = log(income)
 : (2,001 missing values generated)
 
@@ -734,6 +822,25 @@ bysort sex: summarize income
 : -------------+---------------------------------------------------------
 :       income |      2,459    13322.89    21286.44          0     612757
 
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
+graph export "fig-01-histogram-lincome-sex.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+RESULTS:
+: graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
+: graph export "fig-01-histogram-lincome-sex.pdf", fontface(DroidSans) replace
+: (file fig-01-histogram-lincome-sex.pdf written in PDF format)
+
+#+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
+#+NAME:      fig:02-bar-lincome-sex
+#+LABEL:     fig:02-bar-lincome-sex
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-01-histogram-lincome-sex.png]]
+
+
 Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
 
 #+BEGIN_SRC stata :session :results output :exports both
@@ -758,20 +865,20 @@ Un diagramme en points cite:cleveland-1985-elemen-graph-data, qui reste préfér
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
-graph export "fig-02-bar-lincome-sex.pdf", fontface(DroidSans) replace
+graph export "fig-01-bar-lincome-sex.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 :  e("Log income")
-: graph export "fig-02-bar-lincome-sex.pdf", fontface(DroidSans) replace
-: (file fig-02-bar-lincome-sex.pdf written in PDF format)
+: graph export "fig-01-bar-lincome-sex.pdf", fontface(DroidSans) replace
+: (file fig-01-bar-lincome-sex.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
 #+NAME:      fig:02-bar-lincome-sex
 #+LABEL:     fig:02-bar-lincome-sex
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-02-bar-lincome-sex.png]]
+[[./fig-01-bar-lincome-sex.png]]
 
 
 ** La commande tabstat
@@ -802,20 +909,20 @@ En guise de représentation graphique, il existe les diagrammes en forme de boî
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph box lincome, over(sex)
-graph export "fig-03-box-lincome-sex.pdf", fontface(DroidSans) replace
+graph export "fig-01-box-lincome-sex.pdf", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 : graph box lincome, over(sex)
-: graph export "fig-03-box-lincome-sex.pdf", fontface(DroidSans) replace
-: (file fig-03-box-lincome-sex.pdf written in PDF format)
+: graph export "fig-01-box-lincome-sex.pdf", fontface(DroidSans) replace
+: (file fig-01-box-lincome-sex.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe
 #+NAME:      fig:03-box-lincome-sex
 #+LABEL:     fig:03-box-lincome-sex
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-03-box-lincome-sex.png]]
+[[./fig-01-box-lincome-sex.png]]
 
 
 ** La commande table
