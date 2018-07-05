@@ -1,7 +1,7 @@
 ;; FIXME Find a way to make the following independant of ELPA versioning
-(add-to-list 'load-path "~/.emacs.d/elpa/27.0/develop/org-plus-contrib-20180625")
+(add-to-list 'load-path "~/.emacs.d/elpa/27.0/develop/org-plus-contrib-20180702")
 (add-to-list 'load-path "~/.emacs.d/elpa/27.0/develop/htmlize-20180412.1244")
-(add-to-list 'load-path "~/.emacs.d/elpa/27.0/develop/ess-20180625.352")
+(add-to-list 'load-path "~/.emacs.d/elpa/27.0/develop/ess-20180704.807")
 
 ;; Required stuff
 (require 'ess-stata-mode)

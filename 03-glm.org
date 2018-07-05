@@ -1,20 +1,74 @@
 #+TITLE: Stata : modélisation statistique
 #+LANGUAGE: fr
-#+LATEX_CLASS: handout-fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil tags:not-in-toc
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
 Dans cet exposé, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs.
 
-Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]], de Hardin & Hilbe.
+Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe.
 
-La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés[fn::Ceci est une note de bas de page que j'aimerais faire apparaître dans la marge.].
+La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 
 * Le modèle de régression linéaire simple
 
-Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. Dans ce premier exemple, on utilise [[stata:describe][describe]] est [[span:sidenote][here is a sidenote that may sapna multiple lines but remains aligned with insertion point in the body.]]
+Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. 
+
+Les données d'illustration peuvent être chargées directement depuis internet à l'aide de la commande [[stata:webuse][webuse]]. Il s'agit d'une enquête épidémiologique rétrospective dans laquelle on s'intéresse aux facteurs de risque d'un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l'ouvrage de Hosmer & Lemeshow cite:hosmer-2000-applied-logis-regres. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (=bwt=) :
+
 #+BEGIN_SRC stata :session :results output :exports both
 webuse lbw
 describe, simple
 #+END_SRC
+
+#+RESULTS:
+: set more off
+: webuse lbw
+: (Hosmer & Lemeshow data)
+: describe, simple
+: id     low    age    lwt    race   smoke  ptl    ht     ui     ftv    bwt
+
+La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentées dans la figure suivante sous la forme d'un simple diagramme de dispersion.
+
+#+BEGIN_SRC stata :session :results output :exports code
+set scheme plotplain
+replace lwt = lwt / 2.204623, nopromote
+graph twoway scatter bwt lwt
+graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre le poids des bébés et le poids des mères
+#+NAME:      fig:03-scatter-bwt-lwt
+#+LABEL:     fig:03-scatter-bwt-lwt
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-bwt-lwt.png]]
+
+Il est tout à fait possible et largement recommendé de rajouter une courbe loess afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
+graph export "fig-03-lowess-bwt-lwt.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre le poids des bébés et le poids des mères
+#+NAME:      fig:03-lowess-bwt-lwt
+#+LABEL:     fig:03-lowess-bwt-lwt
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-lowess-bwt-lwt.png]]
+
+
+La corrélation entre ces deux variables s'obtient grâce à [[stata:correlate][correlate]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+summarize bwt lwt
+correlate bwt lwt
+#+END_SRC
+
+
+
+
+
+#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
+

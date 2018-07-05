@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
 <head>
-<!-- 2018-07-02 Lun 09:21 -->
+<!-- 2018-07-05 Jeu 22:05 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Stata : modélisation statistique</title>
@@ -56,6 +56,28 @@ for the JavaScript code in this tag.
  }
 /*]]>*///-->
 </script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 90,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 90,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 90},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
 </head>
 <body>
 <div id="content">
@@ -64,7 +86,7 @@ for the JavaScript code in this tag.
 <h2>Table des matières</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgaccb1ab">Le modèle de régression linéaire simple</a></li>
+<li><a href="#org55b44ee">Le modèle de régression linéaire simple</a></li>
 </ul>
 </div>
 </div>
@@ -77,15 +99,20 @@ Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à p
 </p>
 
 <p>
-La mise en oeuvre d&rsquo;un modèle de régression a déjà été discutée brièvement dans le <a href="./00-intro.html">tutoriel d&rsquo;introduction à Stata</a>. Dans ce chapitre, on va s&rsquo;intéresser à l&rsquo;estimation des paramètres d&rsquo;un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d&rsquo;enquêtes ou d&rsquo;études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>.
+La mise en oeuvre d&rsquo;un modèle de régression a déjà été discutée brièvement dans le <a href="./00-intro.html">tutoriel d&rsquo;introduction à Stata</a>. Dans ce chapitre, on va s&rsquo;intéresser à l&rsquo;estimation des paramètres d&rsquo;un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d&rsquo;enquêtes ou d&rsquo;études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 </p>
 
-<div id="outline-container-orgaccb1ab" class="outline-2">
-<h2 id="orgaccb1ab">Le modèle de régression linéaire simple</h2>
-<div class="outline-text-2" id="text-orgaccb1ab">
+<div id="outline-container-org55b44ee" class="outline-2">
+<h2 id="org55b44ee">Le modèle de régression linéaire simple</h2>
+<div class="outline-text-2" id="text-org55b44ee">
 <p>
-Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. Dans ce premier exemple, on utilise <a href="https://www.stata.com/help.cgi?describe" class="stata">describe</a> est <span class="sidenote">here is a sidenote that may sapna multiple lines but remains aligned with insertion point in the body.</span>
+Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. 
 </p>
+
+<p>
+Les données d&rsquo;illustration peuvent être chargées directement depuis internet à l&rsquo;aide de la commande <a href="https://www.stata.com/help.cgi?webuse" class="stata">webuse</a>. Il s&rsquo;agit d&rsquo;une enquête épidémiologique rétrospective dans laquelle on s&rsquo;intéresse aux facteurs de risque d&rsquo;un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l&rsquo;ouvrage de Hosmer &amp; Lemeshow [<a href="#hosmer-2000-applied-logis-regres">1</a>]. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (<code>bwt</code>) :
+</p>
+
 <div class="org-src-container">
 <pre class="src src-stata">webuse lbw
 describe, simple
@@ -100,21 +127,94 @@ describe, simple
 id     low    age    lwt    race   smoke  ptl    ht     ui     ftv    bwt
 
 </pre>
+
+<p>
+La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentées dans la figure suivante sous la forme d&rsquo;un simple diagramme de dispersion.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">set scheme plotplain
+replace lwt = lwt / 2.204623, nopromote
+graph twoway scatter bwt lwt
+graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org7afbbe9" class="figure">
+<p><img src="./fig-03-scatter-bwt-lwt.png" alt="fig-03-scatter-bwt-lwt.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;1&nbsp;: </span>Relation entre le poids des bébés et le poids des mères</p>
+</div>
+
+<p>
+Il est tout à fait possible et largement recommendé de rajouter une courbe loess afin d&rsquo;évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. La commande <a href="https://www.stata.com/help.cgi?lowess" class="stata">lowess</a> peut être combinée à <a href="https://www.stata.com/help.cgi?scatter" class="stata">scatter</a> :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
+graph export "fig-03-lowess-bwt-lwt.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="org7f533de" class="figure">
+<p><img src="./fig-03-lowess-bwt-lwt.png" alt="fig-03-lowess-bwt-lwt.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;2&nbsp;: </span>Relation entre le poids des bébés et le poids des mères</p>
+</div>
+
+
+<p>
+La corrélation entre ces deux variables s&rsquo;obtient grâce à <a href="https://www.stata.com/help.cgi?correlate" class="stata">correlate</a> :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">summarize bwt lwt
+correlate bwt lwt
+</pre>
+</div>
+
+<pre class="example">
+summarize bwt lwt
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+         bwt |        189    2944.286     729.016        709       4990
+         lwt |        189    58.34392    13.88108         36        113
+correlate bwt lwt
+(obs=189)
+
+             |      bwt      lwt
+-------------+------------------
+         bwt |   1.0000
+         lwt |   0.1863   1.0000
+</pre>
+
+
+
+
+
+<div id="bibliography">
+<h2>Références</h2>
+
+<table>
+
+<tr valign="top">
+<td align="right" class="bibtexnumber">
+[<a name="hosmer-2000-applied-logis-regres">1</a>]
+</td>
+<td class="bibtexitem">
+David&nbsp;W. Hosmer and Stanley Lemeshow.
+ <em>Applied Logistic Regression</em>.
+ Wiley, 2000.
+
+</td>
+</tr>
+</table>
 </div>
 </div>
-<div id="footnotes">
-<h2 class="footnotes">Notes de bas de page: </h2>
-<div id="text-footnotes">
-
-<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara">Ceci est une note de bas de page que j&rsquo;aimerais faire apparaître dans la marge.</div></div>
-
-
 </div>
-</div></div>
-<div id="postamble" class="status">
-<p class="author">Auteur: Christophe Lalanne</p>
-<p class="date">Created: 2018-07-02 Lun 09:21</p>
-<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
 </html>
