@@ -28,11 +28,16 @@ describe, simple
 : describe, simple
 : id     low    age    lwt    race   smoke  ptl    ht     ui     ftv    bwt
 
-La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentées dans la figure suivante sous la forme d'un simple diagramme de dispersion.
+La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentée dans la figure suivante sous la forme d'un simple diagramme de dispersion. Pour faciliter la lecture, le poids des mères est converti en kilogrammes, sans modifier le mode de représentation de la variable :
+
+#+BEGIN_SRC stata :session :results output :exports both
+replace lwt = lwt / 2.204623, nopromote
+#+END_SRC
+
+Ensuite, on utilise la commande [[stata:scatter][scatter]] pour construire le diagramme de dispersion :
 
 #+BEGIN_SRC stata :session :results output :exports code
 set scheme plotplain
-replace lwt = lwt / 2.204623, nopromote
 graph twoway scatter bwt lwt
 graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
 #+END_SRC
@@ -44,29 +49,87 @@ graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-bwt-lwt.png]]
 
-Il est tout à fait possible et largement recommendé de rajouter une courbe loess afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
+Il est tout à fait possible et largement recommendé de superposer une courbe loess cite:cleveland-1979-robus-local sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
 graph export "fig-03-lowess-bwt-lwt.pdf", fontface(DroidSans) replace
 #+END_SRC
 
-#+CAPTION:   Relation entre le poids des bébés et le poids des mères
+#+CAPTION:   Relation entre le poids des bébés et le poids des mères (courbe loess)
 #+NAME:      fig:03-lowess-bwt-lwt
 #+LABEL:     fig:03-lowess-bwt-lwt
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-03-lowess-bwt-lwt.png]]
 
-
-La corrélation entre ces deux variables s'obtient grâce à [[stata:correlate][correlate]] :
+La corrélation entre ces deux variables s'obtient grâce à [[stata:correlate][correlate]]. Notons que cette commande fonctionne avec deux variables ou une liste de variables de sorte qu'elle pourra également être utilisée pour construire une matrice de corrélation :
 
 #+BEGIN_SRC stata :session :results output :exports both
 summarize bwt lwt
 correlate bwt lwt
 #+END_SRC
 
+Voici une formulation simplifiée du modèle de régression linéaire. Soit $y_i$ la réponse observée sur l'individu $i$, et $x_i$ sa valeur
+observée pour le prédicteur $x$. Le modèle de régression linéaire s'écrit :
+$$y_i = \beta_0+\beta_1x_i+\varepsilon_i,$$
+où $\beta_0$ représente l'ordonnée à l'origine (/intercept/) et $\beta_1$ la pente (\emph{slope}) de la droite de régression, et
+$\varepsilon_i\sim\mathcal{N}(0,\sigma^2)$ est un terme d'erreur (résidus, supposés indépendants). En minimisant les différences quadratiques entre les valeurs observées et les valeurs prédites (principe des MCO), on peut estimer les coefficients de régression, $\widehat\beta_0$ et $\widehat\beta_1$ :
+$$\begin{array}{l}
+\widehat\beta_0 = \bar y - \widehat\beta_1\bar x\\
+\widehat\beta_1 = \sum(y_i-\bar y)(x_i-\bar x)/\sum(x_i-\bar x)^2\\
+\end{array}$$
 
+Sous $H_0$, le rapport entre l'estimé de la pente ($\widehat\beta_1$, de variance $\frac{\text{SSR}/(n-2)}{(n-1)s_x^2}$) et son erreur standard suit une loi de Student à $(n-2)$ degrés de liberté.
+
+Les paramètres d'un tel modèle de régression, $\widehat\beta_0$ et $\widehat\beta_1$, peuvent être estimés grâce à la commande [[stata:regress][regress]], en indiquant la variable à prédire et la ou les variables explicatives. Pour un modèle de régression linéaire simple, on se retrouve donc avec l'expression la plus simple qui soit :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt lwt
+#+END_SRC
+
+Les résultats fournis par [[stata:regress][regress]] se composent de deux tableaux : le tableau d'analyse de variance du modèle de régression, qui peut être supprimé via l'option =noheader=, et le tableau des coefficients de régression. La ligne =_cons= désigne le terme d'ordonnée à l'origine, $\widehat\beta_0$. Le résultat du test de Student associé à =lwt= ($\widehat\beta_1$) peut se retrouver manuellement une fois que l'on a extrait les valeurs d'intérêt :
+
+#+BEGIN_SRC stata :session :results output :exports both
+local tstat = _b[lwt] / _se[lwt]
+display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
+#+END_SRC
+
+ 
+La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
+
+#+BEGIN_SRC stata :session :results output :exports both
+predict double yhat
+predict double rs, rstudent
+summarize rs
+#+END_SRC
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph twoway kdensity rs
+graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Distribution des résidus studentisés
+#+NAME:      fig:03-kdensity-rs
+#+LABEL:     fig:03-kdensity-rs
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-kdensity-rs.png]]
+
+
+Le graphique suivant est plus informatif car il resneigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle.
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph twoway scatter rs yhat, yline(0)
+graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre valeurs ajustées et résidus
+#+NAME:      fig:03-scatter-rs-yhat
+#+LABEL:     fig:03-scatter-rs-yhat
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-rs-yhat.png]]
 
 
 
