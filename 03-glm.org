@@ -121,7 +121,7 @@ graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-kdensity-rs.png]]
 
-Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] :
+Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] (ou [[stata:rvpplot][rvpplot]], mais dans le cas d'une régression avec un seul prédicteur cela ne change rien) :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter rs yhat, yline(0)
@@ -137,7 +137,53 @@ graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
 
 ** Cas de la régression sur une variable catégorielle
 
+On a vu dans le chapitre sur la [[./01-data.html][gestion des données]] comment représenter les variables catégorielles sous Stata : dans le cas des variables binaires, un codage sous forme de 0 et de 1 est parfaitement adéquat, tandis que dans le cas des variables à plus de deux modalités, on assigne à chaque niveau un code numérique en débutant à 1. Ainsi, pour une variable à trois modalités, le premier niveau sera représenté par la valeur 1 tandis que le troisième et dernier niveau prendra la valeur 3. On associera éventuellement des étiquettes à chacun des niveaux afin de mieux identifier les différentes classes.
+
+Considérons la variable =smoke= qui indique si la mère fumait pendant le premier trimestre de sa grossesse :
+
+#+BEGIN_SRC stata :session :results output :exports both
+tabulate smoke, nolabel
+tabstat bwt, by(smoke) stat(mean sd n)
+#+END_SRC
+
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph box bwt, over(smoke)
+graph export "fig-03-box-bwt-smoke.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre poids des bébés et statut fumeur
+#+NAME:      fig:03-box-bwt-smoke
+#+LABEL:     fig:03-box-bwt-smoke
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-box-bwt-smoke.png]]
+
+Le modèle de régression suivant considère la variable =smoke= comme une variable numérique et le coefficient de régression pour cette variable représente la variation de poids lorsque =smoke= varie d'une unité (de 0 à 1, précisément) :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt smoke
+#+END_SRC
+
+En indiquant à Stata que la variable =smoke= doit être traitée comme une variable catégorielle et de générer l'ensemble de variables indicatrices correspondant, on obtiendra strictement le même résultat du fait du codage initial en 0/1 :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt i.smoke
+#+END_SRC
+
+
+
+
+
+
+
 ** Lien avec le test de Student
+
+#+BEGIN_SRC stata :session :results output :exports both
+ttest bwt, by(smoke)
+#+END_SRC
+
+
 
 ** Traitement de la non linéarité
 

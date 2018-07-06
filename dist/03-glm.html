@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
 <head>
-<!-- 2018-07-06 Ven 10:09 -->
+<!-- 2018-07-06 Ven 22:15 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Stata : modélisation statistique</title>
@@ -86,7 +86,26 @@ for the JavaScript code in this tag.
 <h2>Table des matières</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org9b33f5c">Le modèle de régression linéaire simple</a></li>
+<li><a href="#org3edde9b">Le modèle de régression linéaire simple</a>
+<ul>
+<li><a href="#orgbb53101">Un exemple de régression linéaire simple</a></li>
+<li><a href="#org79cd00a">Diagnostic du modèle</a></li>
+<li><a href="#org7cce5b6">Cas de la régression sur une variable catégorielle</a></li>
+<li><a href="#org24855e5">Lien avec le test de Student</a></li>
+<li><a href="#orgadd0b4b">Traitement de la non linéarité</a></li>
+</ul>
+</li>
+<li><a href="#orge505d5b">La régression linéaire multiple</a>
+<ul>
+<li><a href="#orgbc49bf7">Exemple de base</a></li>
+<li><a href="#org9395322">Diagnostic du modèle</a></li>
+<li><a href="#org790ca77">Tests joints et intervalles de confiance simultanés</a></li>
+<li><a href="#org9c6cd38">Spécification de contrastes</a></li>
+<li><a href="#org22e808b">Comparaison de modèles emboîtés</a></li>
+</ul>
+</li>
+<li><a href="#org4277039">Modèle linéaire et applications</a></li>
+<li><a href="#orgd5f15c0">Le modèle de régression logistique</a></li>
 </ul>
 </div>
 </div>
@@ -102,13 +121,17 @@ Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à p
 La mise en oeuvre d&rsquo;un modèle de régression a déjà été discutée brièvement dans le <a href="./00-intro.html">tutoriel d&rsquo;introduction à Stata</a>. Dans ce chapitre, on va s&rsquo;intéresser à l&rsquo;estimation des paramètres d&rsquo;un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d&rsquo;enquêtes ou d&rsquo;études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 </p>
 
-<div id="outline-container-org9b33f5c" class="outline-2">
-<h2 id="org9b33f5c">Le modèle de régression linéaire simple</h2>
-<div class="outline-text-2" id="text-org9b33f5c">
+<div id="outline-container-org3edde9b" class="outline-2">
+<h2 id="org3edde9b">Le modèle de régression linéaire simple</h2>
+<div class="outline-text-2" id="text-org3edde9b">
 <p>
 Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. 
 </p>
+</div>
 
+<div id="outline-container-orgbb53101" class="outline-3">
+<h3 id="orgbb53101">Un exemple de régression linéaire simple</h3>
+<div class="outline-text-3" id="text-orgbb53101">
 <p>
 Les données d&rsquo;illustration peuvent être chargées directement depuis internet à l&rsquo;aide de la commande <a href="https://www.stata.com/help.cgi?webuse" class="stata">webuse</a>. Il s&rsquo;agit d&rsquo;une enquête épidémiologique rétrospective dans laquelle on s&rsquo;intéresse aux facteurs de risque d&rsquo;un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l&rsquo;ouvrage de Hosmer &amp; Lemeshow [<a href="#hosmer-2000-applied-logis-regres">2</a>]. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (<code>bwt</code>) :
 </p>
@@ -156,7 +179,7 @@ graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
 </div>
 
 
-<div id="org1d231c2" class="figure">
+<div id="org0c56afb" class="figure">
 <p><img src="./fig-03-scatter-bwt-lwt.png" alt="fig-03-scatter-bwt-lwt.png" width="640px" />
 </p>
 <p><span class="figure-number">Figure&nbsp;1&nbsp;: </span>Relation entre le poids des bébés et le poids des mères</p>
@@ -173,7 +196,7 @@ graph export "fig-03-lowess-bwt-lwt.pdf", fontface(DroidSans) replace
 </div>
 
 
-<div id="orga1e3a4e" class="figure">
+<div id="org68283a0" class="figure">
 <p><img src="./fig-03-lowess-bwt-lwt.png" alt="fig-03-lowess-bwt-lwt.png" width="640px" />
 </p>
 <p><span class="figure-number">Figure&nbsp;2&nbsp;: </span>Relation entre le poids des bébés et le poids des mères (courbe loess)</p>
@@ -264,10 +287,14 @@ display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
 t = 2.59 p = 0.010
 
 </pre>
+</div>
+</div>
 
-
+<div id="outline-container-org79cd00a" class="outline-3">
+<h3 id="org79cd00a">Diagnostic du modèle</h3>
+<div class="outline-text-3" id="text-org79cd00a">
 <p>
-La commande <a href="https://www.stata.com/help.cgi?predict" class="stata">predict</a> permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ainsi que d&rsquo;autres statistiques utiles pour diagnostiquer la qualité d&rsquo;ajustement du modèle de régression. 
+La commande <a href="https://www.stata.com/help.cgi?predict" class="stata">predict</a> permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle (\(\tilde y_i - y_i\)) ainsi que d&rsquo;autres statistiques utiles pour diagnostiquer la qualité d&rsquo;ajustement du modèle de régression. 
 </p>
 
 <div class="org-src-container">
@@ -289,22 +316,25 @@ summarize rs
 
 </pre>
 
+<p>
+Un histogramme ou une courbe de densité permet de visualiser rapidement la forme de distribution des résidus. Voici un exemple avec <a href="https://www.stata.com/help.cgi?kdensity" class="stata">kdensity</a>, pour lequel une courbe de desnité normale a été ajoutée à l&rsquo;aide de l&rsquo;option <code>normal</code> :
+</p>
+
 <div class="org-src-container">
-<pre class="src src-stata">graph twoway kdensity rs
+<pre class="src src-stata">kdensity rs, normal normopts(lpat(--))
 graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
 </pre>
 </div>
 
 
-<div id="orgc6396d9" class="figure">
+<div id="org3d6a9be" class="figure">
 <p><img src="./fig-03-kdensity-rs.png" alt="fig-03-kdensity-rs.png" width="640px" />
 </p>
 <p><span class="figure-number">Figure&nbsp;3&nbsp;: </span>Distribution des résidus studentisés</p>
 </div>
 
-
 <p>
-Le graphique suivant est plus informatif car il resneigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l&rsquo;hypothèse du modèle doit être nulle.
+Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l&rsquo;hypothèse du modèle doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d&rsquo;utiliser directement la commande de post-estimation <a href="https://www.stata.com/help.cgi?rvfplot" class="stata">rvfplot</a> (ou <a href="https://www.stata.com/help.cgi?rvpplot" class="stata">rvpplot</a>, mais dans le cas d&rsquo;une régression avec un seul prédicteur cela ne change rien) :
 </p>
 
 <div class="org-src-container">
@@ -314,14 +344,205 @@ graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
 </div>
 
 
-<div id="org5cb4493" class="figure">
+<div id="orga4e71c1" class="figure">
 <p><img src="./fig-03-scatter-rs-yhat.png" alt="fig-03-scatter-rs-yhat.png" width="640px" />
 </p>
 <p><span class="figure-number">Figure&nbsp;4&nbsp;: </span>Relation entre valeurs ajustées et résidus</p>
 </div>
+</div>
+</div>
+
+<div id="outline-container-org7cce5b6" class="outline-3">
+<h3 id="org7cce5b6">Cas de la régression sur une variable catégorielle</h3>
+<div class="outline-text-3" id="text-org7cce5b6">
+<p>
+On a vu dans le chapitre sur la <a href="./01-data.html">gestion des données</a> comment représenter les variables catégorielles sous Stata : dans le cas des variables binaires, un codage sous forme de 0 et de 1 est parfaitement adéquat, tandis que dans le cas des variables à plus de deux modalités, on assigne à chaque niveau un code numérique en débutant à 1. Ainsi, pour une variable à trois modalités, le premier niveau sera représenté par la valeur 1 tandis que le troisième et dernier niveau prendra la valeur 3. On associera éventuellement des étiquettes à chacun des niveaux afin de mieux identifier les différentes classes.
+</p>
+
+<p>
+Considérons la variable <code>smoke</code> qui indique si la mère fumait pendant le premier trimestre de sa grossesse :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">tabulate smoke, nolabel
+tabstat bwt, by(smoke) stat(mean sd n)
+</pre>
+</div>
+
+<pre class="example">
+tabulate smoke, nolabel
+
+     smoked |
+     during |
+  pregnancy |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        115       60.85       60.85
+          1 |         74       39.15      100.00
+------------+-----------------------------------
+      Total |        189      100.00
+tabstat bwt, by(smoke) stat(mean sd n)
+
+Summary for variables: bwt
+     by categories of: smoke (smoked during pregnancy)
+
+    smoke |      mean        sd         N
+----------+------------------------------
+nonsmoker |  3054.957   752.409       115
+   smoker |  2772.297  659.8075        74
+----------+------------------------------
+    Total |  2944.286   729.016       189
+-----------------------------------------
+</pre>
+
+
+<div class="org-src-container">
+<pre class="src src-stata">graph box bwt, over(smoke)
+graph export "fig-03-box-bwt-smoke.pdf", fontface(DroidSans) replace
+</pre>
+</div>
+
+
+<div id="orgce6ff1c" class="figure">
+<p><img src="./fig-03-box-bwt-smoke.png" alt="fig-03-box-bwt-smoke.png" width="640px" />
+</p>
+<p><span class="figure-number">Figure&nbsp;5&nbsp;: </span>Relation entre poids des bébés et statut fumeur</p>
+</div>
+
+<p>
+Le modèle de régression suivant considère la variable <code>smoke</code> comme une variable numérique et le coefficient de régression pour cette variable représente la variation de poids lorsque <code>smoke</code> varie d&rsquo;une unité (de 0 à 1, précisément) :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">regress bwt smoke
+</pre>
+</div>
+
+<pre class="example">
+regress bwt smoke
+
+      Source |       SS           df       MS      Number of obs   =       189
+-------------+----------------------------------   F(1, 187)       =      6.98
+       Model |  3597444.33         1  3597444.33   Prob &gt; F        =    0.0089
+    Residual |  96317854.2       187  515068.739   R-squared       =    0.0360
+-------------+----------------------------------   Adj R-squared   =    0.0308
+       Total |  99915298.6       188  531464.354   Root MSE        =    717.68
+
+------------------------------------------------------------------------------
+         bwt |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       smoke |  -282.6592   106.9544    -2.64   0.009    -493.6515   -71.66693
+       _cons |   3054.957   66.92428    45.65   0.000     2922.933     3186.98
+------------------------------------------------------------------------------
+</pre>
+
+<p>
+En indiquant à Stata que la variable <code>smoke</code> doit être traitée comme une variable catégorielle et de générer l&rsquo;ensemble de variables indicatrices correspondant, on obtiendra strictement le même résultat du fait du codage initial en 0/1 :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-stata">regress bwt i.smoke
+</pre>
+</div>
+
+<pre class="example">
+regress bwt i.smoke
+
+      Source |       SS           df       MS      Number of obs   =       189
+-------------+----------------------------------   F(1, 187)       =      6.98
+       Model |  3597444.33         1  3597444.33   Prob &gt; F        =    0.0089
+    Residual |  96317854.2       187  515068.739   R-squared       =    0.0360
+-------------+----------------------------------   Adj R-squared   =    0.0308
+       Total |  99915298.6       188  531464.354   Root MSE        =    717.68
+
+------------------------------------------------------------------------------
+         bwt |      Coef.   Std. Err.      t    P&gt;|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       smoke |
+     smoker  |  -282.6592   106.9544    -2.64   0.009    -493.6515   -71.66693
+       _cons |   3054.957   66.92428    45.65   0.000     2922.933     3186.98
+------------------------------------------------------------------------------
+</pre>
+</div>
+</div>
 
 
 
+
+
+
+
+<div id="outline-container-org24855e5" class="outline-3">
+<h3 id="org24855e5">Lien avec le test de Student</h3>
+<div class="outline-text-3" id="text-org24855e5">
+<div class="org-src-container">
+<pre class="src src-stata">ttest bwt, by(smoke)
+</pre>
+</div>
+
+<pre class="example">
+ttest bwt, by(smoke)
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+nonsmoke |     115    3054.957     70.1625     752.409    2915.965    3193.948
+  smoker |      74    2772.297    76.70106    659.8075    2619.432    2925.162
+---------+--------------------------------------------------------------------
+combined |     189    2944.286    53.02811     729.016    2839.679    3048.892
+---------+--------------------------------------------------------------------
+    diff |            282.6592    106.9544                71.66693    493.6515
+------------------------------------------------------------------------------
+    diff = mean(nonsmoke) - mean(smoker)                          t =   2.6428
+Ho: diff = 0                                     degrees of freedom =      187
+
+    Ha: diff &lt; 0                 Ha: diff != 0                 Ha: diff &gt; 0
+ Pr(T &lt; t) = 0.9955         Pr(|T| &gt; |t|) = 0.0089          Pr(T &gt; t) = 0.0045
+</pre>
+</div>
+</div>
+
+
+
+<div id="outline-container-orgadd0b4b" class="outline-3">
+<h3 id="orgadd0b4b">Traitement de la non linéarité</h3>
+</div>
+</div>
+
+
+<div id="outline-container-orge505d5b" class="outline-2">
+<h2 id="orge505d5b">La régression linéaire multiple</h2>
+<div class="outline-text-2" id="text-orge505d5b">
+</div>
+<div id="outline-container-orgbc49bf7" class="outline-3">
+<h3 id="orgbc49bf7">Exemple de base</h3>
+</div>
+
+<div id="outline-container-org9395322" class="outline-3">
+<h3 id="org9395322">Diagnostic du modèle</h3>
+</div>
+
+<div id="outline-container-org790ca77" class="outline-3">
+<h3 id="org790ca77">Tests joints et intervalles de confiance simultanés</h3>
+</div>
+
+<div id="outline-container-org9c6cd38" class="outline-3">
+<h3 id="org9c6cd38">Spécification de contrastes</h3>
+</div>
+
+<div id="outline-container-org22e808b" class="outline-3">
+<h3 id="org22e808b">Comparaison de modèles emboîtés</h3>
+</div>
+</div>
+
+
+<div id="outline-container-org4277039" class="outline-2">
+<h2 id="org4277039">Modèle linéaire et applications</h2>
+</div>
+
+<div id="outline-container-orgd5f15c0" class="outline-2">
+<h2 id="orgd5f15c0">Le modèle de régression logistique</h2>
+<div class="outline-text-2" id="text-orgd5f15c0">
 <div id="bibliography">
 <h2>Références</h2>
 
@@ -336,8 +557,7 @@ William&nbsp;S. Cleveland.
  Robust locally weighted regression and smoothing scatterplots.
  <em>Journal of the American Statistical Association</em>,
   74(368):829–836, Dec 1979.
-[&nbsp;<a href="http://dx.doi.org/10.1080/01621459.1979.10481038">DOI</a>&nbsp;| 
-<a href="http://dx.doi.org/10.1080/01621459.1979.10481038">http</a>&nbsp;]
+[&nbsp;<a href="http://dx.doi.org/10.1080/01621459.1979.10481038">DOI</a>&nbsp;]
 
 </td>
 </tr>
