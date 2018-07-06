@@ -14,6 +14,8 @@ La mise en oeuvre d'un modèle de régression a déjà été discutée brièveme
 
 Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. 
 
+** Un exemple de régression linéaire simple
+
 Les données d'illustration peuvent être chargées directement depuis internet à l'aide de la commande [[stata:webuse][webuse]]. Il s'agit d'une enquête épidémiologique rétrospective dans laquelle on s'intéresse aux facteurs de risque d'un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l'ouvrage de Hosmer & Lemeshow cite:hosmer-2000-applied-logis-regres. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (=bwt=) :
 
 #+BEGIN_SRC stata :session :results output :exports both
@@ -94,9 +96,10 @@ Les résultats fournis par [[stata:regress][regress]] se composent de deux table
 local tstat = _b[lwt] / _se[lwt]
 display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
 #+END_SRC
-
  
-La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
+** Diagnostic du modèle
+
+La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($\tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
 
 #+BEGIN_SRC stata :session :results output :exports both
 predict double yhat
@@ -104,8 +107,10 @@ predict double rs, rstudent
 summarize rs
 #+END_SRC
 
+Un histogramme ou une courbe de densité permet de visualiser rapidement la forme de distribution des résidus. Voici un exemple avec [[stata:kdensity][kdensity]], pour lequel une courbe de desnité normale a été ajoutée à l'aide de l'option =normal= :
+
 #+BEGIN_SRC stata :session :results output :exports code
-graph twoway kdensity rs
+kdensity rs, normal normopts(lpat(--))
 graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
 #+END_SRC
 
@@ -116,8 +121,7 @@ graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-kdensity-rs.png]]
 
-
-Le graphique suivant est plus informatif car il resneigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle.
+Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter rs yhat, yline(0)
@@ -131,7 +135,29 @@ graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-rs-yhat.png]]
 
+** Cas de la régression sur une variable catégorielle
 
+** Lien avec le test de Student
+
+** Traitement de la non linéarité
+
+
+* La régression linéaire multiple
+
+** Exemple de base
+
+** Diagnostic du modèle
+
+** Tests joints et intervalles de confiance simultanés
+
+** Spécification de contrastes
+
+** Comparaison de modèles emboîtés
+
+
+* Modèle linéaire et applications
+
+* Le modèle de régression logistique
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
