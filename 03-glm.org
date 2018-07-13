@@ -172,20 +172,78 @@ regress bwt i.smoke
 #+END_SRC
 
 
-
-
-
-
-
 ** Lien avec le test de Student
+
+La différence de moyennes utilisées pour former la statistique de test de Student et qui est rappelée dans la sortie de [[stata:ttest][ttest]] ci-dessous correspond strictement à la pente de la droite de régression estimée plus haut. 
 
 #+BEGIN_SRC stata :session :results output :exports both
 ttest bwt, by(smoke)
 #+END_SRC
 
+On peut d'ailleurs visualiser très facilement ce différentiel de moyenne à l'aide d'un simple diagramme de dispersion en considérant la variable binaire sur l'axe des abscisses. Plutôt que d'utiliser [[stata:scatter][scatter]] et de redéfinir l'axe des x, il est plus simple d'utiliser un diagramme un point tel que proposé par la commande externe =stripplot= (à installer au préalable, =ssc install stripplot=) :
+
+#+BEGIN_SRC stata :session :results output :exports code
+stripplot bwt, over(smoke) vertical jitter(1 0) addplot(lfit bwt smoke)
+graph export "fig-03-stripplot-bwt-smoke.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre poids des bébés et statut fumeur
+#+NAME:      fig:03-stripplot-bwt-smoke
+#+LABEL:     fig:03-stripplot-bwt-smoke
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-stripplot-bwt-smoke.png]]
+
 
 
 ** Traitement de la non linéarité
+
+
+** Approche robuste
+
+Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et les valeurs observées, il est tout à fait possible d'utiliser un autre type d'estimateur.
+
+Considérons la relation entre le poids des bébés et le poids des mères dont l'ethnicité est =black=. La commande suivante permet d'afficher un simple diagramme de dispersion ainsi que la droite de régression associée :
+
+#+BEGIN_SRC stata :session :results output :exports code
+twoway (scatter bwt lwt) (lfit bwt lwt) if race == 3
+graph export "fig-03-scatter-bwt-lwt-race3.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre poids des bébés et taille de la mère
+#+NAME:      fig:03-scatter-bwt-lwt-race3
+#+LABEL:     fig:03-scatter-bwt-lwt-race3
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-bwt-lwt-race3.png]]
+
+Les valeurs ajustées du modèle de régression peuvent être obtenues à l'aide de [[stata:predict][predict]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt lwt if race == 3
+predict yhols
+#+END_SRC
+
+La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (FIXME check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
+
+#+BEGIN_SRC stata :session :results output :exports code
+quietly robreg m bwt lwt if race == 3
+predict yhm
+#+END_SRC
+
+On peut superposer les prédictions de ces deux modèles sur le diagramme de dispersion précédent comme illustré ci-dessous :
+
+#+BEGIN_SRC stata :session :results output :exports code
+twoway (scatter bwt lwt if race == 3) (line yhols yhm lwt, lwidth(*2 *2)), legend(order(2 "OLS" 3 "Huber"))
+graph export "fig-03-scatter-bwt-lwt-race3-2.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Estimation MCO versus M-estimateur
+#+NAME:      fig:03-scatter-bwt-lwt-race3-2
+#+LABEL:     fig:03-scatter-bwt-lwt-race3-2
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-bwt-lwt-race3-2.png]]
 
 
 * La régression linéaire multiple
@@ -200,6 +258,8 @@ ttest bwt, by(smoke)
 
 ** Comparaison de modèles emboîtés
 
+
+** Ces des données en cluster
 
 * Modèle linéaire et applications
 

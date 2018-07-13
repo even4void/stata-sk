@@ -33,8 +33,14 @@
 - [ ] check differences between Stata 12, 13 et 14 re DTA specs
 - [ ] Fix import of graphic scheme (noexport block)
 
+* TODO 02-graphics
+* TODO 03-glm
 * Notes
 
 ESS dataset: http://bit.ly/2K003rn
 Stata weight round 1: http://bit.ly/2I2BsAg
 ESS R package: https://github.com/ropensci/essurvey
+
+twoway (function y = normalden(x), range(-4 4) lw(*2) lp(dash)) (function y = tden(2,x), range(-4 4) lw(*2)), ytitle(Density) xtitle(””) ysize(3) legend(order(2 ”t(2)” 1 ”normal”) col(1) ring(0) pos(11))
+
+See also https://stats.idre.ucla.edu/stata/faq/graph/njc-stata-plots/
