@@ -159,7 +159,7 @@ graph export "fig-03-box-bwt-smoke.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-box-bwt-smoke.png]]
 
-Le modèle de régression suivant considère la variable =smoke= comme une variable numérique et le coefficient de régression pour cette variable représente la variation de poids lorsque =smoke= varie d'une unité (de 0 à 1, précisément) :
+Le modèle de régression suivant considère la variable =smoke= comme une variable numérique et le coefficient de régression pour cette variable représente la variation de poids lorsque =smoke= varie d'une unité (de 0 à 1) :
 
 #+BEGIN_SRC stata :session :results output :exports both
 regress bwt smoke
@@ -171,16 +171,41 @@ En indiquant à Stata que la variable =smoke= doit être traitée comme une vari
 regress bwt i.smoke
 #+END_SRC
 
+Considérons la variable =race= qui a trois niveaux. Il est tout à fait possible de générer l'ensemble des indicatrices associées à cette variable à l'aide de [[stata:tabulate][tabulate]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly tabulate race, gen(irace)
+list race irace* in 1/5
+#+END_SRC
+
+Ensuite, il suffira d'inclure deux indicatrices parmi les trois dans le modèle de régression, par exemple =regress bwt irace2 irace3=. Mais comme on l'a vu plus haut, l'opérateur =i.= permet de générer automatiquement un ensemble d'indicatrices pour n'importe quelle variable catégorielle :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt i.race
+#+END_SRC
+
+Par défaut, le premier niveau de la variable catégorielle (ici, =white=) sert de niveau de référence, mais il est tout à fait possible de modifier ce comportement en indiquant la catégorie à utiliser pour la "baseline". En utilisant le préfixe =ib3=, on indique à Stata que le troisième niveau de =race= servira de catégorie de référence :
+
+#+BEGIN_SRC stata :session :results output :exports both
+regress bwt ib3.race
+#+END_SRC
+
+On retrouvera bien les différences de moyennes par simple estimation de contrastes grâce à [[stata:contrast][contrast]] ou [[stata:margins][margins]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+contrast r.race, nowald effects
+#+END_SRC
+
 
 ** Lien avec le test de Student
 
-La différence de moyennes utilisées pour former la statistique de test de Student et qui est rappelée dans la sortie de [[stata:ttest][ttest]] ci-dessous correspond strictement à la pente de la droite de régression estimée plus haut. 
+La différence de moyennes utilisée pour former la statistique de test de Student et qui est rappelée dans la sortie de [[stata:ttest][ttest]] ci-dessous correspond strictement à la pente de la droite de régression estimée dans la section précédente :
 
 #+BEGIN_SRC stata :session :results output :exports both
 ttest bwt, by(smoke)
 #+END_SRC
 
-On peut d'ailleurs visualiser très facilement ce différentiel de moyenne à l'aide d'un simple diagramme de dispersion en considérant la variable binaire sur l'axe des abscisses. Plutôt que d'utiliser [[stata:scatter][scatter]] et de redéfinir l'axe des x, il est plus simple d'utiliser un diagramme un point tel que proposé par la commande externe =stripplot= (à installer au préalable, =ssc install stripplot=) :
+On peut d'ailleurs visualiser très facilement ce différentiel de moyennes à l'aide d'un simple diagramme de dispersion en considérant la variable binaire sur l'axe des abscisses. Plutôt que d'utiliser [[stata:scatter][scatter]] et de redéfinir l'axe des x, il est plus simple d'utiliser un diagramme un point tel que proposé par la commande externe =stripplot= (à installer au préalable, =ssc install stripplot=) :
 
 #+BEGIN_SRC stata :session :results output :exports code
 stripplot bwt, over(smoke) vertical jitter(1 0) addplot(lfit bwt smoke)
@@ -194,12 +219,64 @@ graph export "fig-03-stripplot-bwt-smoke.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-stripplot-bwt-smoke.png]]
 
+Une manière de vérifier graphiquement l'hypothèse d'égalité des variances, nécessaire dans le test ci-dessus afin de recouvrer les résultats du test du coefficient de régression, consisterait à comparer les fonctions de répartition empirique des deux groupes comme suggéré sur le [[https://www.statalist.org/forums/forum/general-stata-discussion/general/1322693-how-to-visualize-independent-two-sample-t-tests][forum Stata]].
+
+Dans le cas d'une variable catégorielle à plus de deux niveaux, telle que =race=, il est toujours possible de former l'ensemble des tests de Student pour la comparaison des différentes paires de moyennes à l'aide de [[stata:pwmean][pwmean]] comme illsutré ci-dessous :
+
+#+BEGIN_SRC stata :session :results output :exports code
+pwmean bwt, over(race) effects
+#+END_SRC
+
+L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Dunnett), mais dans le cas du modèle de régression précédent il n'y a pas lieu d'appliquer de correction pour les tests multiples ou de modifier la statistique de test. La commande [[stata:pwmean][pwmean]] fournit les mêmes résultats et accepte les mêmes options que [[stata:pwcompare][pwcompare]]. La seule différence est qye cette dernière s'utilise en tant que commande de post-estimation et sa syntaxe est plus souple dans le cas des modèles à plusieurs prédicteurs, incluant d'éventuels termes d'interaction.
 
 
 ** Traitement de la non linéarité
 
+Il existe plusieurs approches pour traiter le cas d'une relation non linéaire entre la variable réponse et un prédicteur continu.
+
+Voici une illustration avec l'âge de la mère :
+
+#+BEGIN_SRC stata :session :results output :exports code
+scatter bwt age || qfitci bwt age, legend(off)
+graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Relation entre poids des bébés et âge de la mère
+#+NAME:      fig:03-scatter-bwt-age
+#+LABEL:     fig:03-scatter-bwt-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-bwt-age.png]]
+
+L'estimation des paramètres du modèle de régression ne pose pas de difficulté lorsque l'on suppose une simple relation linéaire :
+
+#+BEGIN_SRC stata :session :results output :exports code
+gen agesq = age^2
+regress bwt age agesq
+#+END_SRC
+
+Voici une approche reposant sur des polynômes fractionnaires :
+
+#+BEGIN_SRC stata :session :results output :exports code
+fp <age> : regress bwt <age>
+#+END_SRC
+
+#+BEGIN_SRC stata :session :results output :exports code
+fp plot, residuals(none)
+graph export "fig-03-fpplot-bwt-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Utilisation de polynômes fractionnaires pour la relation entre poids des bébés et âge de la mère
+#+NAME:      fig:03-fpplot-bwt-age
+#+LABEL:     fig:03-fpplot-bwt-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-fpplot-bwt-age.png]]
+
 
 ** Approche robuste
+
+*FIXME* Find a better illustration + provide more background
 
 Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et les valeurs observées, il est tout à fait possible d'utiliser un autre type d'estimateur.
 
@@ -224,7 +301,7 @@ regress bwt lwt if race == 3
 predict yhols
 #+END_SRC
 
-La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (FIXME check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
+La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (*FIXME* check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
 
 #+BEGIN_SRC stata :session :results output :exports code
 quietly robreg m bwt lwt if race == 3
