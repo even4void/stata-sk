@@ -427,8 +427,9 @@ log close
 
 On trouve de nombreux tutoriels sur internet (la plupart du temps en anglais). En voici quelques-un :
 
-- les ressources Stata ainsi que le blog Stata
-- le site pédagogique de l'UCLA
+- les [[https://www.stata.com/links/resources-for-learning-stata/][ressources Stata]] ainsi que le [[https://blog.stata.com][blog Stata]] ;
+- le [[https://stats.idre.ucla.edu/stata/][site pédagogique de l'UCLA]] ;
+- les notes de [[https://www.princeton.edu/~otorres/Stata/statnotes][Oscar Torres-Reyna]], [[http://data.princeton.edu/stata/][Germán Rodríguez]] et [[https://github.com/briatte/srqm][François Briatte]].
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
