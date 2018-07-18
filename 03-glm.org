@@ -1,14 +1,12 @@
-#+TITLE: Stata : modélisation statistique
+#+TITLE: Stata : modélisation statistique (1)
 #+LANGUAGE: fr
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-Dans cet exposé, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs.
+Dans cet exposé, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle liénaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. cite:vittinghoff-2005-regres-method-biost et Dupont cite:dupont-2009-statis-model couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de Harrell cite:harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical.
 
-Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe.
-
-La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
+La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression linéaire, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 
 * Le modèle de régression linéaire simple
 
@@ -99,7 +97,7 @@ display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
  
 ** Diagnostic du modèle
 
-La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($\tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
+La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($e_i = \tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
 
 #+BEGIN_SRC stata :session :results output :exports both
 predict double yhat
@@ -107,7 +105,22 @@ predict double rs, rstudent
 summarize rs
 #+END_SRC
 
-Un histogramme ou une courbe de densité permet de visualiser rapidement la forme de distribution des résidus. Voici un exemple avec [[stata:kdensity][kdensity]], pour lequel une courbe de desnité normale a été ajoutée à l'aide de l'option =normal= :
+Dans le cas ci-dessus, ce sont les [[https://onlinecourses.science.psu.edu/stat462/node/247/][résidus studentisés]], $r_i = e_i / (s_{(i)}\sqrt{1-h_i})$, qui ont été calculés. D'autres options sont également disponibles mais ce type de résidus facilite à la fois l'interprétation et la détection de valeurs extrêmes (voir également l'aide en ligne, =help regress postestimation=). Par exemple, voici un diagramme de quantiles pour les résidus simples :
+
+#+BEGIN_SRC stata :session :results output :exports code
+predict double r, resid
+qnorm r
+graph export "fig-03-qnorm-r.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Distribution des résidus studentisés
+#+NAME:      fig:03-qnorm-r
+#+LABEL:     fig:03-qnorm-r
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-qnorm-r.png]]
+
+Un histogramme ou une courbe de densité permet également d'examiner rapidement la forme de la distribution des résidus. Voici un exemple avec [[stata:kdensity][kdensity]], pour lequel une courbe de densité normale a été ajoutée à l'aide de l'option =normal= :
 
 #+BEGIN_SRC stata :session :results output :exports code
 kdensity rs, normal normopts(lpat(--))
@@ -223,7 +236,7 @@ Une manière de vérifier graphiquement l'hypothèse d'égalité des variances, 
 
 Dans le cas d'une variable catégorielle à plus de deux niveaux, telle que =race=, il est toujours possible de former l'ensemble des tests de Student pour la comparaison des différentes paires de moyennes à l'aide de [[stata:pwmean][pwmean]] comme illsutré ci-dessous :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+BEGIN_SRC stata :session :results output :exports both
 pwmean bwt, over(race) effects
 #+END_SRC
 
@@ -250,14 +263,14 @@ graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
 
 L'estimation des paramètres du modèle de régression ne pose pas de difficulté lorsque l'on suppose une simple relation linéaire :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+BEGIN_SRC stata :session :results output :exports both
 gen agesq = age^2
 regress bwt age agesq
 #+END_SRC
 
 Voici une approche reposant sur des polynômes fractionnaires :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+BEGIN_SRC stata :session :results output :exports both
 fp <age> : regress bwt <age>
 #+END_SRC
 
@@ -340,7 +353,6 @@ graph export "fig-03-scatter-bwt-lwt-race3-2.pdf", fontface(DroidSans) replace
 
 * Modèle linéaire et applications
 
-* Le modèle de régression logistique
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
 
