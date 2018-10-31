@@ -4,7 +4,7 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-Dans cet exposé, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle liénaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. cite:vittinghoff-2005-regres-method-biost et Dupont cite:dupont-2009-statis-model couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de Harrell cite:harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical.
+Dans ce chapitre, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle linéaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. cite:vittinghoff-2005-regres-method-biost et Dupont cite:dupont-2009-statis-model couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de Harrell cite:harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical. Bien que reposant sur le logiciel R, la plupart des techniques discutées dans cet ouvrage sont disponibles sous Stata.
 
 La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression linéaire, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 
@@ -113,7 +113,7 @@ qnorm r
 graph export "fig-03-qnorm-r.pdf", fontface(DroidSans) replace
 #+END_SRC
 
-#+CAPTION:   Distribution des résidus studentisés
+#+CAPTION:   Distribution des résidus simples 
 #+NAME:      fig:03-qnorm-r
 #+LABEL:     fig:03-qnorm-r
 #+ATTR_HTML: :width 640px
@@ -268,7 +268,9 @@ gen agesq = age^2
 regress bwt age agesq
 #+END_SRC
 
-Voici une approche reposant sur des polynômes fractionnaires :
+L'approche qui suit repose sur des polynômes fractionnaires, qui ont été largement développés et popularisés par Royston et coll. cite:royston-1994-regres-using. L'idée générale est de considérer des polynômes dont les exposants sont pris dans un ensemble prédéfini de valeurs $P = {-2, -1, -0.5, 0, 0.5, 1, 2, 3}$, où par convention $x^{(0)} = \ln(x)$. Un polynôme fractionnaire de degré $m$ se construit comme $\text{FPm} = \beta_0 + \sum_{j=1}^m \beta_jx^{(p_j)}$, où $p_j \in P$. On notera que pour un polynôme de degré $m$, une même puissance peut être répétée $m$ fois.
+
+Stata 13 disposait de la commande [[stata:fracpoly][fracpoly]] mais désormais il est recommendé d'utiliser les commandes [[stata:fp][fp]] (cas univarié) et [[stata:mfp][mfp]] (cas multivarié) qui permettent de construire automatiquement les termes d'un ou plusieurs polynômes fractionnaires pour une variable numérique donnée. Voici un exemple d'application sur la variable =age= :
 
 #+BEGIN_SRC stata :session :results output :exports both
 fp <age> : regress bwt <age>
@@ -314,7 +316,9 @@ regress bwt lwt if race == 3
 predict yhols
 #+END_SRC
 
-La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (*FIXME* check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
+La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. Dans le cas d'une approche par M-estimation, les estimés des paramètres du modèle de régression sont obtenus en minimisant une fonction de coût, $\rho$, reposant sur la valeur des résidus sur l'ensemble des valeurs de $X$. Spécifiquement, on recherche une fonction $\rho(e) \ge 0$, symétrique et monotone, 
+
+La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (*FIXME* check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
 
 #+BEGIN_SRC stata :session :results output :exports code
 quietly robreg m bwt lwt if race == 3
@@ -334,7 +338,6 @@ graph export "fig-03-scatter-bwt-lwt-race3-2.pdf", fontface(DroidSans) replace
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-bwt-lwt-race3-2.png]]
-
 
 * La régression linéaire multiple
 

@@ -17,6 +17,7 @@ $(OUT_DIR):
 $(OUT_DIR)/%.html: %.html
 	./gen-png.sh
 	mv $< $(OUT_DIR)
+	rm dist/todo.html
 
 clean:
 	rm fig-*.pdf
