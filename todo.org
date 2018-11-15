@@ -1,41 +1,52 @@
-* Structure
+* Structure [1/13] 
+
+** DONE 00-intro 
+   CLOSED: [2018-11-15 Thu 20:17]
+- [-] Fix LaTeX memoir layout
+- [-] Fix BibTeX export for LaTeX
+- [ ] Add editors, do-file, graphics export
+- [ ] Add links (last section)
+
+** STAR 01-data
+- [X] Find relevant datasets
+- [ ] ODBC connector, JSON, XML
+- [ ] check differences between Stata 12, 13 et 14 re DTA specs
+- [ ] Fix import of graphic scheme (noexport block)
+
+** TODO 02-graphics
+** STAR 03-glm
+** TODO 04-programming
+** TODO 05-epidemiology
+** TODO 06-time-series
+** TODO 07-time-to-event
+** TODO 08-correlated-data
+** TODO 09-mixed-models
+** TODO 10-meta-analysis
+** TODO 11-survey
+** TODO 12-bayesian-analysis
+
+* Checklist [4/7]
+
+- [X] Clean up logo
+- [ ] Create project hyperlinks
+- [X] Add subdir to [[file:~/Sites/aliquote/content/]] 
+- [X] Add custom CSS
+- [ ] Fix auto-resize for logo + TOC CSS for mobile display
+- [X] Add Makefile + manage GitHub links
+- [ ] Tangle Stata code
+- [ ] Split 03-glm in two parts
+- [ ] Update README (cite only)
+- [ ] Review Stata books
+- [ ] More examples (econometrics, social sciences) + overview page
+
+* Notes
 
 - [[file:./00-intro.org]]: kickstarter
 - [[file:./01-data.org]]: data management, programming, automation
 - file:./02-graphics.org: basic and advanced graphics
 - file:./03-glm.org: regression modeling
 - file:./04-programming.org: Ado and Mata programming
-- multivariate  
-- time series
-- survey processing
-- econometrics
-- biostatistics
-- bayesian models 
-
-* TODO project
-- [X] Clean up logo
-- [ ] Create project hyperlinks
-- [X] Add subdir to [[file:~/Sites/aliquote/content/]] 
-- [X] Add custom CSS
-- [ ] Fix auto-resize for logo + TOC CSS for mobile display
-- [ ] Add Makefile + manage GitHub links
-- [ ] Update README (cite only)
-  
-* TODO 00-intro 
-- [-] Fix LaTeX memoir layout
-- [-] Fix BibTeX export for LaTeX
-- [ ] Add editors, do-file, graphics export
-- [ ] Add links (last section)
-
-* TODO 01-data
-- [X] Find relevant datasets
-- [ ] ODBC connector, JSON, XML
-- [ ] check differences between Stata 12, 13 et 14 re DTA specs
-- [ ] Fix import of graphic scheme (noexport block)
-
-* TODO 02-graphics
-* TODO 03-glm
-* Notes
+- multivariate -> as EDA in 02-graphics
 
 ESS dataset: http://bit.ly/2K003rn
 Stata weight round 1: http://bit.ly/2I2BsAg
