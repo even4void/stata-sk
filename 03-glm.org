@@ -6,7 +6,7 @@
 
 Dans ce chapitre, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle linéaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. cite:vittinghoff-2005-regres-method-biost et Dupont cite:dupont-2009-statis-model couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de Harrell cite:harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical. Bien que reposant sur le logiciel R, la plupart des techniques discutées dans cet ouvrage sont disponibles sous Stata.
 
-La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression linéaire, à la sélection de modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
+La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression linéaire, à la sélection du "meilleur" modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 
 * Le modèle de régression linéaire simple
 
@@ -49,7 +49,9 @@ graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-bwt-lwt.png]]
 
-Il est tout à fait possible et largement recommendé de superposer une courbe loess cite:cleveland-1979-robus-local sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
+Il est tout à fait possible et largement recommendé de superposer une courbe loess cite:cleveland-1979-robus-local sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. Une courbe loess, ou lowess (/locally weighted scatterplot smoothing/), fait partie de la famille des régressions polynomiales "locales", c'est-à-dire des modèles non-paramétriques de régression tenant compte du voisinage des observations, un peu à l'image des techniques telles que les $k$ plus proches voisins dans une tâche de classification (car l'estimation est pondérée) ou les moyennes mobiles en séries chronologiques (car on définit une fenêtre de lissage que l'on déplace sur l'axe des $x$). Le poids de chaque observation est déterminé par sa distance par rapport au point sur lequel se centre la régression, et généralement la fonction de pondération utilisée est de type tri-cubique comme proposée par cite:cleveland-1979-robus-local, $(1 - (\text{dist}/\text{maxdist})^3)^3)$, ce qui revient à donner un poids maximal à l'observation centrale, les observations les distantes plus de cette dernière contribuant le moins à la régression polynomiale. Stata autorise n'importe quelle combinaison des options =mean= (utiliser la moyenne des observations, comme dans une moyenne mobile, au lieu des valeurs prédites par la régression) et =noweight= (l'utilisation d'une fonction de pondération tri-cubique ou non). À noter, il s'agit d'une approche quelque peu intensive sur le plan des calculs : pour $n$ observations, $n$ régressions sont réalisées.
+
+La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
@@ -242,14 +244,70 @@ pwmean bwt, over(race) effects
 
 L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Dunnett), mais dans le cas du modèle de régression précédent il n'y a pas lieu d'appliquer de correction pour les tests multiples ou de modifier la statistique de test. La commande [[stata:pwmean][pwmean]] fournit les mêmes résultats et accepte les mêmes options que [[stata:pwcompare][pwcompare]]. La seule différence est qye cette dernière s'utilise en tant que commande de post-estimation et sa syntaxe est plus souple dans le cas des modèles à plusieurs prédicteurs, incluant d'éventuels termes d'interaction.
 
+Voici une autre illustration, cette fois-ci avec les données d'un essai clinique randomisé visant à évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère cite:bernard-1997-effec-ibupr. Les données, disponibles dans le fichier =sepsis.dta=, sont largement exploitées dans l'ouvrage de William Dupont cite:dupont-2009-statis-model. Au total, le tableau de données est composé 22 variables dont 16 variables représentant une mesure de la température entre $T_0$ et $T_0 + 15 \times 2$ h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE). 
+
+#+BEGIN_SRC stata :session :results output :exports both
+use "data/sepsis.dta", replace
+describe, simple
+table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
+#+END_SRC
+
+#+RESULTS:
+: use "data/sepsis.dta", replace
+: describe, simple
+: id        apache    followup  temp2     temp5     temp8     temp11    temp14
+: treat     o2del     temp0     temp3     temp6     temp9     temp12    temp15
+: race      fate      temp1     temp4     temp7     temp10    temp13
+: table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
+: 
+: -------------------------------------------------
+: Treatment | mean(temp0)  mean(temp1)  mean(temp6)
+: ----------+--------------------------------------
+:   Placebo |       100.5        100.2         99.7
+: Ibuprofen |       100.4         99.5         98.4
+: -------------------------------------------------
+
+Voici comment générer un aperçu des données individuelles sous forme longitudinale, limité à la période 0-6 heures :
+
+#+BEGIN_SRC stata :session :results output :exports code
+keep id treat temp0-temp6
+reshape long temp, i(id) j(hour)
+replace temp = (temp-32) / 1.8
+graph twoway (scatter temp hour, ms(none) lcol(gs15) connect(l)) (scatter temp hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time unit (x2 hours)) ytitle (Temperature (°C))
+graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Évolution de la température après la prise en charge dans les deux groupes de patients
+#+NAME:      fig:03-scatter-temp-hour
+#+LABEL:     fig:03-scatter-temp-hour
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-03-scatter-temp-hour.png]]
+
+Bien que la technique appropriée pour modéliser l'évolution de la température entre $T_0$ et $T_1$ entre les deux groupes soit une analyse de covariance, voici en attendant les questions auxquelles il est possible de répondre à l'aide de simples tests de Student. Premièrement, les deux groupes sont-ils comparables à $T_0$ ($H_0$ : =temp0(ibuprofène) = temp0(placebo)=) ? Voici l'instruction Stata correspondante :
+
+#+BEGIN_SRC stata :session :results output :exports both
+ttest temp if hour == 0, by(treat)
+#+END_SRC
+
+Deuxièmement, les deux groupes sont-ils comparables à $T_1$ en terme d’évolution $(T_0-T_1)$ ($H_0$ : =temp0−temp1(ibuprofène) = temp0−temp1(placebo)=) ?
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly: reshape wide
+gen difftemp = temp0 - temp1
+ttest difftemp, by(treat)
+#+END_SRC
+
 
 ** Traitement de la non linéarité
 
 Il existe plusieurs approches pour traiter le cas d'une relation non linéaire entre la variable réponse et un prédicteur continu.
 
-Voici une illustration avec l'âge de la mère :
+Revenons aux données sur les poids de naissance. Voici une illustration avec l'âge de la mère :
 
 #+BEGIN_SRC stata :session :results output :exports code
+clear all
+webuse lbw
 scatter bwt age || qfitci bwt age, legend(off)
 graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
 #+END_SRC
