@@ -298,6 +298,35 @@ gen difftemp = temp0 - temp1
 ttest difftemp, by(treat)
 #+END_SRC
 
+Enfin, troisièment, on pourrait se demander s'il y a une évolution significative entre $T_0$ et $T_1$ pour le groupe traité : il s'agit cette fois d'un test t pour données appariées. Voici le code correspondant :
+
+#+BEGIN_SRC stata :session :results output :exports both
+ttest temp0 == temp1 if treat == 1
+#+END_SRC
+
+Par une approche de régression simple, on obtiendrait essentiellement des réponses similaires. Voici déjà une commande permettant d'estimer les paramètres du modèle dans les deux groupes :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly: reshape long
+bysort treat: regress temp hour, noheader
+#+END_SRC
+
+À partir de là, on souhaite comparer les coefficients de régression entre les deux groupes. Pour cela, il y a deux approches possibles. D'une part il est possible, et c'est sans doute le plus simple, de reconnaître qu'il s'agit essentiellement d'un test de l'interaction entre les deux variables =hour= et =treat=. Dans ce cas, il suffit de générer le terme d'interaction et de tester ses composantes directement :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly: tabulate treat, gen(treat)
+generate treat1hour = treat1*hour
+generate treat2hour = treat2*hour
+quietly: regress temp treat1 treat2 treat1hour treat2hour
+test treat1hour treat2hour
+#+END_SRC
+
+Le test ci-dessus est un test simultané (2 degrés de liberté) pour la nullité des termes d'interaction, tandis que le test ci-dessous permet d'évaluer l'égalité de ces deux termes :
+
+#+BEGIN_SRC stata :session :results output :exports both
+test treat1hour = treat2hour
+#+END_SRC
+
 
 ** Traitement de la non linéarité
 
