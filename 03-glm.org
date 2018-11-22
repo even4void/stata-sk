@@ -21,13 +21,6 @@ webuse lbw
 describe, simple
 #+END_SRC
 
-#+RESULTS:
-: set more off
-: webuse lbw
-: (Hosmer & Lemeshow data)
-: describe, simple
-: id     low    age    lwt    race   smoke  ptl    ht     ui     ftv    bwt
-
 La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentée dans la figure suivante sous la forme d'un simple diagramme de dispersion. Pour faciliter la lecture, le poids des mères est converti en kilogrammes, sans modifier le mode de représentation de la variable :
 
 #+BEGIN_SRC stata :session :results output :exports both
@@ -150,6 +143,15 @@ graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-rs-yhat.png]]
 
+** Approche bayésienne
+
+Bien que l'analyse bayésienne soit traitée dans un chapitre à part, on peut d'ores et déjà jeter un oeil aux résultats fournis à l'aide d'une estimation bayésienne grâce au préfixe [[stata:bayes][bayes]] :
+
+#+BEGIN_SRC stata :session :results output :exports both
+bayes: regress bwt lwt
+#+END_SRC
+
+
 ** Cas de la régression sur une variable catégorielle
 
 On a vu dans le chapitre sur la [[./01-data.html][gestion des données]] comment représenter les variables catégorielles sous Stata : dans le cas des variables binaires, un codage sous forme de 0 et de 1 est parfaitement adéquat, tandis que dans le cas des variables à plus de deux modalités, on assigne à chaque niveau un code numérique en débutant à 1. Ainsi, pour une variable à trois modalités, le premier niveau sera représenté par la valeur 1 tandis que le troisième et dernier niveau prendra la valeur 3. On associera éventuellement des étiquettes à chacun des niveaux afin de mieux identifier les différentes classes.
@@ -251,21 +253,6 @@ use "data/sepsis.dta", replace
 describe, simple
 table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
 #+END_SRC
-
-#+RESULTS:
-: use "data/sepsis.dta", replace
-: describe, simple
-: id        apache    followup  temp2     temp5     temp8     temp11    temp14
-: treat     o2del     temp0     temp3     temp6     temp9     temp12    temp15
-: race      fate      temp1     temp4     temp7     temp10    temp13
-: table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
-: 
-: -------------------------------------------------
-: Treatment | mean(temp0)  mean(temp1)  mean(temp6)
-: ----------+--------------------------------------
-:   Placebo |       100.5        100.2         99.7
-: Ibuprofen |       100.4         99.5         98.4
-: -------------------------------------------------
 
 Voici comment générer un aperçu des données individuelles sous forme longitudinale, limité à la période 0-6 heures :
 
