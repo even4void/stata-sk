@@ -6,7 +6,7 @@
 
 * Introduction
 
-Stata dispose d’un excellent système graphique avec de nombreuses options de personnalisation. La référence reste l’ouvrage de Mitchell, actuellement dans sa 3e édition cite:mitchell-2004-visual-guide.
+Stata dispose d’un excellent système graphique avec de nombreuses options de personnalisation. La référence reste l’ouvrage de Mitchell, actuellement dans sa 3e édition cite:mitchell-2004-visual-guide. D'autres ouvrages sont disponibles, comme par exemple celui de Nick Cox cite:cox-2014-speak-stata-graph. Mais il est également recommendé de consulter le [[http://www.stata.com/support/faqs/graphics/gph/stata-graphs/][site de support]] de Stata qui offre un panorama des différents types de graphique avec un accès interactif à chacun des cas de figure.
 
 Les commandes graphiques peuvent être utilisées pour décrire des données ou en tant que commandes de "post estimation" (par exemple, analyse en composantes principales, graphique de résidus).
 
@@ -29,12 +29,70 @@ list persnr-sex in 1/5
 
 * Graphiques univariés de base
 
-** Histogrammes et courbes de densité
+
+** Fonction de répartition et fractiles
+
+Considérons l'âge des répondants qui peut être reconstruit à partir de l'année de naissance (=ybirth=) et de l'année de réalisation de l'enquête (2009) :
 
 #+BEGIN_SRC stata :session :results output :exports both
 generate age = 2009 - ybirth
 summarize age
 #+END_SRC
+
+Bien entendu, l'option =details= de [[stata:summarize][summarize]] apporte beaucoup plus d'information concernant la distribution de la variable, notamment du point de vue des fractiles :
+#+BEGIN_SRC stata :session :results output :exports both
+summarize age, details
+#+END_SRC
+
+Pour se représenter ces chiffres sous forme graphique, il est possible d'afficher la fonction de répartition empirique des données, $F_X(x)$, définie comme $F_X(x) = P(X \le x)$ pour une variable aléatoire $X$, ce qui permet d'évaluer visuellement quelle proportion des données se situe en-deça d'une certaine valeur $x$. Il est également possible de jauger de la quantité d'observations contenues dans un intervalle (puisque $P(a < X \le b) = F_X(b) - F_X(a)$), surtout si l'on s'aide visuellement en superposant des lignes horizontales au points d'ordonnée $a$ et $b$.
+
+Dans un premier temps, examinons la courbe des quantiles produite par la commande [[stata:quantile][quantile]]. Il s'agit de représenter la distribution jointe des valeurs ordonnées de la variable d'intérêt en fonction des quantiles d'une loi uniforme :
+
+#+BEGIN_SRC stata :session :results output :exports code
+quantile age
+graph export "fig-02-quantile-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Distribution des fractiles d'âge
+#+NAME:      fig:02-quantile-age
+#+LABEL:     fig:02-quantile-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-quantile-age.png]]
+
+Pour la fonction de répartition, si l'on ne souhaite pas passer par des packages additionnels (p.ex., [[https://ideas.repec.org/c/boc/bocode/s456409.html][cdfplot]]), le plus simple consiste à calculer directement à calculer la fonction de répartition empirique à l'aide de [[stata:cumul][cumul]]. Il s'agit en réalité de la fonction réciproque de celle présentée plus haut. Dans l'exemple ci-après, on affiche cette variable auxiliaire en fonction de l'âge et on surligne le premier et le troisième quartile par des lignes horizontales : 
+
+#+BEGIN_SRC stata :session :results output :exports code
+cumul age, gen(agecum)
+sort agecum
+graph twoway line agecum age, ytitle(F(x)) yline(.25 .75, lwidth(thin))
+graph export "fig-02-cumul-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Fonction de répartition empirique de l'âge
+#+NAME:      fig:02-cumul-age
+#+LABEL:     fig:02-cumul-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-cumul-age.png]]
+
+Un graphique tout aussi intéressant consiste à afficher les fractiles d'une variable en fonction des fractiles d'une loi normale, ce que l'on appelle communément un diagramme de type quantile-quantile. L'examen de la forme de la courbe permet d'évaluer rapidement si les données sont compartibles avec l'hypothèse selon laquelle elles se distribuent "à peu près normalement".
+
+#+BEGIN_SRC stata :session :results output :exports code
+qnorm age, grid
+graph export "fig-02-qnorm-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Diagramme quantile-quantile pour l'âge
+#+NAME:      fig:02-qnorm-age
+#+LABEL:     fig:02-qnorm-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-qnorm-age.png]]
+
+
+** Histogrammes et courbes de densité
+
 
 Pour construire un histogramme de cette variable, on utilisera la commande [[stata:histogram][histogram]], en précisant l'option =freq= si l'on souhaite afficher les effectifs ("fréquences" en anglais) plutôt que la densité :
 
@@ -66,6 +124,33 @@ graph export "fig-02-histogram-age-sex.pdf", fontface(DroidSans) replace
 [[./fig-02-histogram-age-sex.png]]
 
 
+Une courbe de densité empirique
+
+Rappelons que la fonction de densité, $f_X$, et la fonction de répartition, $F_X(x)$, discutée plus haut sont liées par une relation simple. Dans le cas continu, $F_X(x) = \int_{-\infty}^x f_X(t)\, \mathrm{d}t$.
+
+#+BEGIN_SRC stata :session :results output :exports code
+kdensity age, normal bw(5) lwidth(0.8)
+graph export "fig-02-kdensity-age.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Distribution de l'âge des répondants selon le sexe
+#+NAME:      fig:02-kdensity-age
+#+LABEL:     fig:02-kdensity-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-kdensity-age.png]]
+
+#+BEGIN_SRC stata :session :results output :exports code
+graph twoway kdensity age, by(sex)
+graph export "fig-02-kdensity-age-sex.pdf", fontface(DroidSans) replace
+#+END_SRC
+
+#+CAPTION:   Distribution de l'âge des répondants selon le sexe
+#+NAME:      fig:02-kdensity-age-sex
+#+LABEL:     fig:02-kdensity-age-sex
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-kdensity-age-sex.png]]
 
 
 ** Diagrammes en barres et en points

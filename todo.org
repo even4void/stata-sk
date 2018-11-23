@@ -13,7 +13,7 @@
 - [ ] check differences between Stata 12, 13 et 14 re DTA specs
 - [ ] Fix import of graphic scheme (noexport block)
 
-** TODO 02-graphics
+** STAR 02-graphics
 ** STAR 03-glm
 ** TODO 04-programming
 ** TODO 05-epidemiology
