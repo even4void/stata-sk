@@ -6,6 +6,8 @@
 
 Ce document présente selon un angle très pragmatique une session de travail typique avec le logiciel Stata. Il ne s'agit pas de couvrir toutes les fonctionnalités de Stata, ni de présenter en détails les principales commandes Stata, voire même la représentation interne des données sus Stata. Au contraire, l'idée est d'offrir un panorama de certaines fonctionnalités de Stata et comment organiser une session de travail simple avec comme objectif la réalisation d'un modèle de régression linéaire.
 
+*Remarque :* Les commandes présentées dans les différents chapitres sont compatibles avec Stata 13, mais certaines commandes sont spécifiques de la version 15 qui introduit de nouveaux préfixes tels que =bayes:= et de nouvelles options graphiques, par exemple.
+
 * Stata en quelques mots
 
 Stata est un logiciel d'analyses statistiques développé dans les années 80 par une équipe de statisticiens américains, dont William Gould. À l'origine, il s'agissait esentiellement d'un logiciel orienté vers le traitement des enquêtes et des séries chronologiques [[cite:cox-2005-stata]], puis ses fonctionnalités se sont largement développées pour en faire à l'heure actuelle un logiciel très performant dans de nombreux domaines d'application, principalement le traitement des enquêtes [[cite:kohler-2012-data-analy]], l'économétrie [[cite:baum-2006-introd-moder]] ou l'épidémiologie [[cite:juul-2014-introd-stata]]. Les ouvrages publiés par Stata Press incluent en général un ou deux chapitres de présentation des principales commandes Stata.
@@ -169,7 +171,7 @@ On reconnaît le préfixe [[stata:by][by]] et les qualificateurs [[stata:in][in]
 ** Visualiser et interpréter
 Les instructions suivantes vont permettre de construire un diagramme de dispersion représentant la covariation des deux variables =price= et =mpg= et d'y superposer la droite de régression. Les mots clé [[stata:graph][graph]] et [[stata:twoway][twoway]] peuvent être omis et le symbole =||= permet de superposer sur le même graphique plusieurs éléments. L'ancienne syntaxe consistant à isoler les instructions graphiques entre parenthèses est également valide.
 
-*Remarque :*  Les graphiques présentés dans ce document utilisent un schéma graphique spécifique, =plotplain=, qui peut être installé depuis le serveur SSC en tapant simplement la commande =ssc install blindschemes=. Pour rester cohérent avec la police utilisée dans ce document et parce qu'il n'est pas possible de définir la police des graphiques lorsque Stata est lancé en mode console, on utilisera systématiquement l'option =fontface()=, mais celle-ci peut être omise sans problème.
+*Remarque :* Les graphiques présentés dans ce document utilisent un schéma graphique spécifique, =plotplain=, qui peut être installé depuis le serveur SSC en tapant simplement la commande =ssc install blindschemes=. Pour rester cohérent avec la police utilisée dans ce document et parce qu'il n'est pas possible de définir la police des graphiques lorsque Stata est lancé en mode console, on utilisera systématiquement l'option =fontface()=, mais celle-ci peut être omise sans problème. De même, l'option =replace= ne sert qu'à s'assurer qu'un fichier graphique portant le même nom sera remplacé par la nouvelle version.
 
 Voici donc pour le diagramme de dispersion et la droite de régression. L'ordre des variables suit celui du modèle de régression, et dans le cas des graphiques la première variable est représentée sur l'axe des ordonnées (verticalement) :
 #+BEGIN_SRC stata :session :results output :exports code
@@ -185,7 +187,7 @@ graph export "fig-00-scatter-price-mpg.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-00-scatter-price-mpg.png]]
 
-Le graphique précédent suggère qu'une relation simplement linéaire entre les deux variables n'est pas vraiment satisfaisante. On peut imaginer utiliser une approche par polynômes ou par splines, mais dans l'immédiat ajoutons simplement un terme quadratique :
+Le graphique précédent suggère qu'une relation simplement linéaire entre les deux variables n'est pas vraiment satisfaisante. On peut imaginer utiliser une approche par polynômes ou par splines (chapitre [[./03-glm.html][3]]), mais dans l'immédiat ajoutons simplement un terme quadratique :
 #+BEGIN_SRC stata :session :results output :exports both
 generate mpg2 = mpg * mpg
 regress price mpg mpg2 
@@ -212,7 +214,7 @@ regress price mpg mpg2
 ------------------------------------------------------------------------------
 #+end_example
 
-Comme on le voit, la génération d'une nouvelle variable ne pose pas de difficulté majeure et il n'est même pas besoin de définir son type : Stata est capable d'inférer que la variable =mpg2= est un nombre réel puisqu'elle est construite à partir du produit d'un nombre réel par lui même. La mise à jour du modèle linéaire est relativement simple puisqu'il suffit d'ajouter le nouveau prédicteur à la suite du prédicteur initial, =mpg=.
+Comme on le voit, la génération d'une nouvelle variable ne pose pas de difficulté majeure et il n'est même pas besoin de définir son type : Stata est capable d'inférer que la variable =mpg2= est constituée de nombres réels puisqu'elle est construite à partir du produit d'un nombre réel par lui même. La mise à jour du modèle linéaire est relativement simple puisqu'il suffit d'ajouter le nouveau prédicteur à la suite du prédicteur initial, =mpg=.
 
 Pour construire un graphique incluant la courbe d'ajustement quadratique, on remplace simplement [[stata:lfit][lfit]] par [[stata:qfit][qfit]] comme illustré ci-après :
 #+BEGIN_SRC stata :session :results output :exports code
@@ -236,7 +238,8 @@ display %4.3f e(r2_a)
 : display %4.3f e(r2_a)
 : 0.321
 
-Un affichage plus complexe pourrait inclure un mélange de texte et de résultat numérique, comme par exemple =display "R2 = " %5.2f e(r2_a)*100 "%"=, et une utilisation plus avancée consisterait à définir une macro locale pour stocker le résultat d'un tel calcul, de manière statique ou dynamique.
+Un affichage plus complexe pourrait inclure un mélange de texte et de résultat numérique, comme par exemple =display "R2 = " %5.2f e(r2_a)*100 "%"=, et une utilisation plus avancée consisterait à définir une macro locale pour stocker le résultat d'un tel calcul, de manière statique ou dynamique (chapitre 4).
+# FIXME Update link when chapter 4 is ready
 
 L'analyse des résidus d'un modèle de régression est souvent négligée, pourtant elle permet de diagnostiquer assez rapidement la qualité d'ajustement du modèle de manière graphique et de vérifier si les conditions de validité d'interprétation du modèle (linéarité de la relation, constance de la variance) sont vérifiées ou non. Pour cela, on a essentiellement besoin des valeurs ajustées (c'est-à-dire les valeurs prédites par le modèle linéaire pour les données observées) et des valeurs résiduelles, qui représentent l'écart entre les valeurs observées et les valeurs ajustées. Une seule et même commande Stata, [[stata:predict][predict]], permet de calculer ces deux séries de valeurs :
 #+BEGIN_SRC stata :session :results output :exports code
@@ -293,7 +296,7 @@ Cette dernière série d'instructions peut sembler un peu complexe lorsqu'on n'e
 
 ** Synthétiser
 
-Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée. Heureusement, il existe plusieurs possibilités pour exporter des tableaux générés par Stata au format texte, HTML ou PDF. Dans le dernier cas, cela nécessite de disposer d'un compilateur LATEX.
+Comme on peut le constater, les tableaux renvoyés par Stata dans la fenêtre de résultats sont relativement convenables pour une lecture à l'écran. En revanche, dans le cas de la génération d'un rapport structuré d'analyses, cette solution est limitée. Heureusement, il existe plusieurs possibilités pour exporter des tableaux générés par Stata au format texte, HTML ou PDF. Dans le dernier cas, cela nécessite de disposer d'un compilateur LATEX. La version 15 de Stata embarque également des outils de reporting automatisés vers Microsft Word ou Excel, ainsi qu'un [[https://www.stata.com/new-in-stata/markdown/][langage dérivé de Markdown]].
 
 Dans un premier temps, on va simplement reprendre les deux modèles précédents et sauvegarder les résultats d'estimations. On pourrait très bien utiliser des macros locales pour stocker chacune des valeurs de retour mais cela risque de s'avérer rapidement fastidieux. On utilisera donc la famille de commande [[stata:estimates][estimates]] :
 #+BEGIN_SRC stata :session :results output :exports code
@@ -365,14 +368,13 @@ r2_a             .2087437     .3212682
 --------------------------------------
 #+end_example
 
-Comme on peut le constater, moyennant le formatage des nombres, il s'agit à peu près du même résultat que celui produit par =estimates table=. 
-Voici notre commande finale, avec quelques améliorations de mise en page et de formatage des nombres :
+Comme on peut le constater, moyennant le formatage des nombres, il s'agit à peu près du même résultat que celui produit par =estimates table=. Voici notre commande finale, avec quelques améliorations de mise en page et de formatage des nombres :
 #+BEGIN_SRC stata :session :results output :exports code
 estout m*, cells("b(fmt(3) label(Coef.)) p(label(P-value))" "se(label(SE)) t(par fmt(2))") ///
   stats(N r2_a, labels("Sample size" R-squared) fmt(0 3))
 #+END_SRC
 
-Voici le résultat produit par la dernière commande :
+Et voici le résultat produit par la dernière commande :
 #+BEGIN_EXAMPLE
 ----------------------------------------------------------------
                        m0                        m1             
@@ -390,7 +392,7 @@ R-squared           0.209                     0.321
 ----------------------------------------------------------------
 #+END_EXAMPLE
 
-Pour sauvegarder ce tableau au format texte, il suffira de rajouter =using estout.txt= avant la virgule qui précède la liste d'options. Notons qu'il est possible de remplacer les étapes impliquant =quietly regress= et =estimates store= à l'aide de =eststo:= qui fournit le même résultat. Il existe bien d'autres options qui peuvent être consultées sur le [[http://repec.sowi.unibe.ch/stata/estout/][site dédié à estout]]. La commande =tabout= permet quant à elle de générer et d'exporter des tableaux complexes dans de nombreux formats. On pourra consulter l'ancien tutoriel de l'auteur Ian Watson, [[http://ianwatson.com.au/stata/tabout_tutorial.pdf][Publication quality tables in Stata: a tutorial for the tabout program]] (PDF), et visiter le site de la [[http://tabout.net.au/docs/home.php][version 3 de tabout]].
+Pour sauvegarder ce tableau au format texte, il suffira de rajouter les instructions =using estout.txt= avant la virgule qui précède la liste d'options. Notons qu'il est possible de remplacer les étapes impliquant =quietly regress= et =estimates store= à l'aide de =eststo:= qui fournit le même résultat. Il existe bien d'autres options qui peuvent être consultées sur le [[http://repec.sowi.unibe.ch/stata/estout/][site dédié à estout]]. La commande =tabout= permet quant à elle de générer et d'exporter des tableaux complexes dans de nombreux formats. On pourra consulter l'ancien tutoriel de l'auteur Ian Watson, [[http://ianwatson.com.au/stata/tabout_tutorial.pdf][Publication quality tables in Stata: a tutorial for the tabout program]] (PDF), et visiter le site de la [[http://tabout.net.au/docs/home.php][version 3 de tabout]].
 
 * Enregistrer son travail
 
@@ -425,7 +427,7 @@ log close
 
 * Pour aller plus loin
 
-On trouve de nombreux tutoriels sur internet (la plupart du temps en anglais). En voici quelques-un :
+On trouve de [[https://www.stata.com/links/resources-for-learning-stata/][nombreux tutoriels]] sur internet (la plupart du temps en anglais). En voici quelques-uns qui méritent une mention spéciale pour la clarté du contenu ou la diversité des thèmes traités :
 
 - les [[https://www.stata.com/links/resources-for-learning-stata/][ressources Stata]] ainsi que le [[https://blog.stata.com][blog Stata]] ;
 - le [[https://stats.idre.ucla.edu/stata/][site pédagogique de l'UCLA]] ;
