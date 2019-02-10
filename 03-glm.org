@@ -21,11 +21,23 @@ webuse lbw
 describe, simple
 #+END_SRC
 
+#+RESULTS:
+: set more off
+: webuse lbw
+: (Hosmer & Lemeshow data)
+: describe, simple
+: id     low    age    lwt    race   smoke  ptl    ht     ui     ftv    bwt
+
 La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentée dans la figure suivante sous la forme d'un simple diagramme de dispersion. Pour faciliter la lecture, le poids des mères est converti en kilogrammes, sans modifier le mode de représentation de la variable :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC stata :session :results output :exports code
 replace lwt = lwt / 2.204623, nopromote
 #+END_SRC
+
+#+RESULTS:
+: replace lwt = lwt / 2.204623, nopromote
+: (189 real changes made)
+: (189 values truncated because of storage type)
 
 Ensuite, on utilise la commande [[stata:scatter][scatter]] pour construire le diagramme de dispersion :
 
@@ -42,9 +54,9 @@ graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-bwt-lwt.png]]
 
-Il est tout à fait possible et largement recommendé de superposer une courbe loess cite:cleveland-1979-robus-local sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. Une courbe loess, ou lowess (/locally weighted scatterplot smoothing/), fait partie de la famille des régressions polynomiales "locales", c'est-à-dire des modèles non-paramétriques de régression tenant compte du voisinage des observations, un peu à l'image des techniques telles que les $k$ plus proches voisins dans une tâche de classification (car l'estimation est pondérée) ou les moyennes mobiles en séries chronologiques (car on définit une fenêtre de lissage que l'on déplace sur l'axe des $x$). Le poids de chaque observation est déterminé par sa distance par rapport au point sur lequel se centre la régression, et généralement la fonction de pondération utilisée est de type tri-cubique comme proposée par cite:cleveland-1979-robus-local, $(1 - (\text{dist}/\text{maxdist})^3)^3)$, ce qui revient à donner un poids maximal à l'observation centrale, les observations les distantes plus de cette dernière contribuant le moins à la régression polynomiale. Stata autorise n'importe quelle combinaison des options =mean= (utiliser la moyenne des observations, comme dans une moyenne mobile, au lieu des valeurs prédites par la régression) et =noweight= (l'utilisation d'une fonction de pondération tri-cubique ou non). À noter, il s'agit d'une approche quelque peu intensive sur le plan des calculs : pour $n$ observations, $n$ régressions sont réalisées.
+Il est tout à fait possible et largement recommendé de superposer une courbe loess cite:cleveland-1979-robus-local sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. Une courbe loess, ou lowess (/locally weighted scatterplot smoothing/), fait partie de la famille des régressions polynomiales "locales", c'est-à-dire des modèles non-paramétriques de régression tenant compte du voisinage des observations, un peu à l'image des techniques telles que les $k$ plus proches voisins dans une tâche de classification (car l'estimation est pondérée) ou les moyennes mobiles en séries chronologiques (car on définit une fenêtre de lissage que l'on déplace sur l'axe des $x$). Le poids de chaque observation est déterminé par sa distance par rapport au point sur lequel se centre la régression, et généralement la fonction de pondération utilisée est de type tri-cubique comme proposée par cite:cleveland-1979-robus-local, $(1 - (\text{dist}/\text{maxdist})^3)^3)$, ce qui revient à donner un poids maximal à l'observation centrale, les observations les plus distantes plus de cette dernière contribuant le moins à la régression polynomiale. Stata autorise n'importe quelle combinaison des options =mean= (utiliser la moyenne des observations, comme dans une moyenne mobile, au lieu des valeurs prédites par la régression) et =noweight= (l'utilisation d'une fonction de pondération tri-cubique ou non). À noter qu'il s'agit d'une approche quelque peu intensive sur le plan des calculs : pour $n$ observations, $n$ régressions sont réalisées.
 
-La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]] :
+La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]], en utilisant la commande [[stata:twoway][twoway]] et en regroupant les différentes instructions graphiques à l'aide de l'opérateur =||= ou de paires de parenthèses :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
@@ -65,11 +77,26 @@ summarize bwt lwt
 correlate bwt lwt
 #+END_SRC
 
+#+RESULTS:
+: summarize bwt lwt
+: 
+:     Variable |       Obs        Mean    Std. Dev.       Min        Max
+: -------------+--------------------------------------------------------
+:          bwt |       189    2944.286     729.016        709       4990
+:          lwt |       189    58.34392    13.88108         36        113
+: correlate bwt lwt
+: (obs=189)
+: 
+:              |      bwt      lwt
+: -------------+------------------
+:          bwt |   1.0000
+:          lwt |   0.1863   1.0000
+
 Voici une formulation simplifiée du modèle de régression linéaire. Soit $y_i$ la réponse observée sur l'individu $i$, et $x_i$ sa valeur
 observée pour le prédicteur $x$. Le modèle de régression linéaire s'écrit :
 $$y_i = \beta_0+\beta_1x_i+\varepsilon_i,$$
-où $\beta_0$ représente l'ordonnée à l'origine (/intercept/) et $\beta_1$ la pente (\emph{slope}) de la droite de régression, et
-$\varepsilon_i\sim\mathcal{N}(0,\sigma^2)$ est un terme d'erreur (résidus, supposés indépendants). En minimisant les différences quadratiques entre les valeurs observées et les valeurs prédites (principe des MCO), on peut estimer les coefficients de régression, $\widehat\beta_0$ et $\widehat\beta_1$ :
+où $\beta_0$ représente l'ordonnée à l'origine (/intercept/) et $\beta_1$ la pente (/slope/) de la droite de régression, et
+$\varepsilon_i\sim\mathcal{N}(0,\sigma^2)$ est un terme d'erreur (résidus, supposés indépendants entre eux ainsi que de $x$). En minimisant les différences quadratiques entre les valeurs observées et les valeurs prédites (principe des MCO), on peut estimer les coefficients de régression, $\widehat\beta_0$ et $\widehat\beta_1$ :
 $$\begin{array}{l}
 \widehat\beta_0 = \bar y - \widehat\beta_1\bar x\\
 \widehat\beta_1 = \sum(y_i-\bar y)(x_i-\bar x)/\sum(x_i-\bar x)^2\\
@@ -83,12 +110,46 @@ Les paramètres d'un tel modèle de régression, $\widehat\beta_0$ et $\widehat\
 regress bwt lwt
 #+END_SRC
 
-Les résultats fournis par [[stata:regress][regress]] se composent de deux tableaux : le tableau d'analyse de variance du modèle de régression, qui peut être supprimé via l'option =noheader=, et le tableau des coefficients de régression. La ligne =_cons= désigne le terme d'ordonnée à l'origine, $\widehat\beta_0$. Le résultat du test de Student associé à =lwt= ($\widehat\beta_1$) peut se retrouver manuellement une fois que l'on a extrait les valeurs d'intérêt :
+#+RESULTS:
+: regress bwt lwt
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  1,   187) =    6.72
+:        Model |  3467517.36     1  3467517.36           Prob > F      =  0.0103
+:     Residual |  96447781.2   187  515763.536           R-squared     =  0.0347
+: -------------+------------------------------           Adj R-squared =  0.0295
+:        Total |  99915298.6   188  531464.354           Root MSE      =  718.17
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:          lwt |   9.783793   3.773317     2.59   0.010     2.340054    17.22753
+:        _cons |   2373.461    226.263    10.49   0.000     1927.105    2819.817
+: ------------------------------------------------------------------------------
+
+Les résultats fournis par [[stata:regress][regress]] se composent de deux tableaux : le tableau d'analyse de variance du modèle de régression, qui peut être supprimé via l'option =noheader=, et le tableau des coefficients de régression. La ligne =_cons= désigne le terme d'ordonnée à l'origine estimé à l'aide de $\widehat\beta_0$ et que l'on notera $b_0$. Ici, $b_0=2373.5$. Cette valeur reste peu interprétable puisqu'elle représente le poids attendu pour un bébé lorsque le poids de la mère est de 0 kg. La pente ($b1=9.8$) indique de combien varie =bwt= lorsque =lwt= varie d'une unité, c'est-à-dire d'un kilogramme. Le résultat du test de Student associé à =lwt= ($\widehat\beta_1$) peut se retrouver manuellement une fois que l'on a extrait les valeurs d'intérêt :
 
 #+BEGIN_SRC stata :session :results output :exports both
 local tstat = _b[lwt] / _se[lwt]
 display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
 #+END_SRC
+
+#+RESULTS:
+: local tstat = _b[lwt] / _se[lwt]
+: display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
+: t = 2.59 p = 0.010
+
+L'instruction =_b[lwt]= est une variable dite variable "système" stockées en mémoire et mise à jour après cahque commande d'estimation par Stata. Les variables =_n= et =_rc= sont d'autres exemples de telles variables système ([[https://www.stata.com/manuals/u13.pdf#u13.4][(U) 13.4]]). Il est toutefois possible de sauvegarder ces résultats d'estimations à l'aide de la commande [[stata:estimates][estimates]] ou en stockant la matrice virtuelle =e(b)= dans une macro locale, mais dans ce cas on ne plus indexer les valeurs par le nom des variables :
+
+#+BEGIN_SRC stata :session :results output :exports both
+matrix b = e(b)
+display b[1,1]
+#+END_SRC
+
+#+RESULTS:
+: matrix b = e(b)
+: display b[1,1]
+: 9.7837929
  
 ** Diagnostic du modèle
 
@@ -99,6 +160,16 @@ predict double yhat
 predict double rs, rstudent
 summarize rs
 #+END_SRC
+
+#+RESULTS:
+: predict double yhat
+: (option xb assumed; fitted values)
+: predict double rs, rstudent
+: summarize rs
+: 
+:     Variable |       Obs        Mean    Std. Dev.       Min        Max
+: -------------+--------------------------------------------------------
+:           rs |       189   -.0010581    1.008052  -3.133601   2.961918
 
 Dans le cas ci-dessus, ce sont les [[https://onlinecourses.science.psu.edu/stat462/node/247/][résidus studentisés]], $r_i = e_i / (s_{(i)}\sqrt{1-h_i})$, qui ont été calculés. D'autres options sont également disponibles mais ce type de résidus facilite à la fois l'interprétation et la détection de valeurs extrêmes (voir également l'aide en ligne, =help regress postestimation=). Par exemple, voici un diagramme de quantiles pour les résidus simples :
 
@@ -115,7 +186,7 @@ graph export "fig-03-qnorm-r.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-qnorm-r.png]]
 
-Un histogramme ou une courbe de densité permet également d'examiner rapidement la forme de la distribution des résidus. Voici un exemple avec [[stata:kdensity][kdensity]], pour lequel une courbe de densité normale a été ajoutée à l'aide de l'option =normal= :
+Un histogramme ou une courbe de densité permet d'examiner rapidement la forme de la distribution des résidus. Voici un exemple de courbe de densité construite avec [[stata:kdensity][kdensity]], à laquelle on ajoute une courbe de densité normale à l'aide de l'option =normal= :
 
 #+BEGIN_SRC stata :session :results output :exports code
 kdensity rs, normal normopts(lpat(--))
@@ -129,7 +200,7 @@ graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-kdensity-rs.png]]
 
-Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui selon l'hypothèse du modèle doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] (ou [[stata:rvpplot][rvpplot]], mais dans le cas d'une régression avec un seul prédicteur cela ne change rien) :
+Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui, selon l'hypothèse du modèle, doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] (ou [[stata:rvpplot][rvpplot]], qui fournira la même information dans le cas d'une régression avec un seul prédicteur) :
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter rs yhat, yline(0)
@@ -143,15 +214,6 @@ graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-rs-yhat.png]]
 
-** Approche bayésienne
-
-Bien que l'analyse bayésienne soit traitée dans un chapitre à part, on peut d'ores et déjà jeter un oeil aux résultats fournis à l'aide d'une estimation bayésienne grâce au préfixe [[stata:bayes][bayes]] :
-
-#+BEGIN_SRC stata :session :results output :exports both
-bayes: regress bwt lwt
-#+END_SRC
-
-
 ** Cas de la régression sur une variable catégorielle
 
 On a vu dans le chapitre sur la [[./01-data.html][gestion des données]] comment représenter les variables catégorielles sous Stata : dans le cas des variables binaires, un codage sous forme de 0 et de 1 est parfaitement adéquat, tandis que dans le cas des variables à plus de deux modalités, on assigne à chaque niveau un code numérique en débutant à 1. Ainsi, pour une variable à trois modalités, le premier niveau sera représenté par la valeur 1 tandis que le troisième et dernier niveau prendra la valeur 3. On associera éventuellement des étiquettes à chacun des niveaux afin de mieux identifier les différentes classes.
@@ -163,6 +225,29 @@ tabulate smoke, nolabel
 tabstat bwt, by(smoke) stat(mean sd n)
 #+END_SRC
 
+#+RESULTS:
+: tabulate smoke, nolabel
+: 
+:      smoked |
+:      during |
+:   pregnancy |      Freq.     Percent        Cum.
+: ------------+-----------------------------------
+:           0 |        115       60.85       60.85
+:           1 |         74       39.15      100.00
+: ------------+-----------------------------------
+:       Total |        189      100.00
+: tabstat bwt, by(smoke) stat(mean sd n)
+: 
+: Summary for variables: bwt
+:      by categories of: smoke (smoked during pregnancy)
+: 
+:     smoke |      mean        sd         N
+: ----------+------------------------------
+: nonsmoker |  3054.957   752.409       115
+:    smoker |  2772.297  659.8075        74
+: ----------+------------------------------
+:     Total |  2944.286   729.016       189
+: -----------------------------------------
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph box bwt, over(smoke)
@@ -182,30 +267,119 @@ Le modèle de régression suivant considère la variable =smoke= comme une varia
 regress bwt smoke
 #+END_SRC
 
-En indiquant à Stata que la variable =smoke= doit être traitée comme une variable catégorielle et de générer l'ensemble de variables indicatrices correspondant, on obtiendra strictement le même résultat du fait du codage initial en 0/1 :
+#+RESULTS:
+: regress bwt smoke
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  1,   187) =    6.98
+:        Model |  3597444.33     1  3597444.33           Prob > F      =  0.0089
+:     Residual |  96317854.2   187  515068.739           R-squared     =  0.0360
+: -------------+------------------------------           Adj R-squared =  0.0308
+:        Total |  99915298.6   188  531464.354           Root MSE      =  717.68
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:        smoke |  -282.6592   106.9544    -2.64   0.009    -493.6515   -71.66693
+:        _cons |   3054.957   66.92428    45.65   0.000     2922.933     3186.98
+: ------------------------------------------------------------------------------
+
+En indiquant à Stata que la variable =smoke= doit être traitée comme une variable catégorielle et de générer l'ensemble de variables indicatrices correspondant à l'aide du préfixe =i.=, on obtiendra strictement le même résultat du fait du codage initial en 0/1 où une variation d'une unité correspond au passage de la classe "non fumeur" à la classe "fumeur" :
 
 #+BEGIN_SRC stata :session :results output :exports both
 regress bwt i.smoke
 #+END_SRC
 
-Considérons la variable =race= qui a trois niveaux. Il est tout à fait possible de générer l'ensemble des indicatrices associées à cette variable à l'aide de [[stata:tabulate][tabulate]] :
+#+RESULTS:
+: regress bwt i.smoke
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  1,   187) =    6.98
+:        Model |  3597444.33     1  3597444.33           Prob > F      =  0.0089
+:     Residual |  96317854.2   187  515068.739           R-squared     =  0.0360
+: -------------+------------------------------           Adj R-squared =  0.0308
+:        Total |  99915298.6   188  531464.354           Root MSE      =  717.68
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:        smoke |
+:      smoker  |  -282.6592   106.9544    -2.64   0.009    -493.6515   -71.66693
+:        _cons |   3054.957   66.92428    45.65   0.000     2922.933     3186.98
+: ------------------------------------------------------------------------------
+
+Considérons à présent la variable =race= qui a trois niveaux. Il est tout à fait possible de générer l'ensemble des indicatrices associées à cette variable à l'aide de [[stata:tabulate][tabulate]] :
 
 #+BEGIN_SRC stata :session :results output :exports both
 quietly tabulate race, gen(irace)
 list race irace* in 1/5
 #+END_SRC
 
-Ensuite, il suffira d'inclure deux indicatrices parmi les trois dans le modèle de régression, par exemple =regress bwt irace2 irace3=. Mais comme on l'a vu plus haut, l'opérateur =i.= permet de générer automatiquement un ensemble d'indicatrices pour n'importe quelle variable catégorielle :
+#+RESULTS:
+: quietly tabulate race, gen(irace)
+: list race irace* in 1/5
+: 
+:      +----------------------------------+
+:      |  race   irace1   irace2   irace3 |
+:      |----------------------------------|
+:   1. | black        0        1        0 |
+:   2. | other        0        0        1 |
+:   3. | white        1        0        0 |
+:   4. | white        1        0        0 |
+:   5. | white        1        0        0 |
+:      +----------------------------------+
+
+Ensuite, il suffira d'inclure deux indicatrices parmi les trois dans le modèle de régression, par exemple =regress bwt irace2 irace3=. L'indicatruice exclue servira de catégorie de référence. Mais comme on l'a vu plus haut, l'opérateur =i.= permet de générer automatiquement un ensemble d'indicatrices pour n'importe quelle variable catégorielle :
 
 #+BEGIN_SRC stata :session :results output :exports both
 regress bwt i.race
 #+END_SRC
 
-Par défaut, le premier niveau de la variable catégorielle (ici, =white=) sert de niveau de référence, mais il est tout à fait possible de modifier ce comportement en indiquant la catégorie à utiliser pour la "baseline". En utilisant le préfixe =ib3=, on indique à Stata que le troisième niveau de =race= servira de catégorie de référence :
+#+RESULTS:
+: regress bwt i.race
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  2,   186) =    4.95
+:        Model |  5048361.06     2  2524180.53           Prob > F      =  0.0081
+:     Residual |  94866937.5   186  510037.298           R-squared     =  0.0505
+: -------------+------------------------------           Adj R-squared =  0.0403
+:        Total |  99915298.6   188  531464.354           Root MSE      =  714.17
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:         race |
+:       black  |  -383.3181   157.8914    -2.43   0.016    -694.8064   -71.82985
+:       other  |  -298.9955   113.6899    -2.63   0.009    -523.2829   -74.70811
+:              |
+:        _cons |    3103.01   72.88956    42.57   0.000     2959.214    3246.807
+: ------------------------------------------------------------------------------
+
+Par défaut, le premier niveau de la variable catégorielle (ici, =white=) sert de niveau de référence, mais il est tout à fait possible de modifier ce comportement en indiquant la catégorie de référence. En utilisant le préfixe =ib3=, par exemple, on indique à Stata que le troisième niveau de =race= servira de catégorie de référence :
 
 #+BEGIN_SRC stata :session :results output :exports both
 regress bwt ib3.race
 #+END_SRC
+
+#+RESULTS:
+: regress bwt ib3.race
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  2,   186) =    4.95
+:        Model |  5048361.06     2  2524180.53           Prob > F      =  0.0081
+:     Residual |  94866937.5   186  510037.298           R-squared     =  0.0505
+: -------------+------------------------------           Adj R-squared =  0.0403
+:        Total |  99915298.6   188  531464.354           Root MSE      =  714.17
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:         race |
+:       white  |   298.9955   113.6899     2.63   0.009     74.70811    523.2829
+:       black  |  -84.32262   165.0131    -0.51   0.610    -409.8604    241.2152
+:              |
+:        _cons |   2804.015   87.24962    32.14   0.000     2631.889    2976.141
+: ------------------------------------------------------------------------------
 
 On retrouvera bien les différences de moyennes par simple estimation de contrastes grâce à [[stata:contrast][contrast]] ou [[stata:margins][margins]] :
 
@@ -213,6 +387,24 @@ On retrouvera bien les différences de moyennes par simple estimation de contras
 contrast r.race, nowald effects
 #+END_SRC
 
+#+RESULTS:
+: contrast r.race, nowald effects
+: 
+: Contrasts of marginal linear predictions
+: 
+: Margins      : asbalanced
+: 
+: ------------------------------------------------------------------------------
+:              |   Contrast   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:         race |
+:      (white  |
+:          vs  |
+:      other)  |   298.9955   113.6899     2.63   0.009     74.70811    523.2829
+:      (black  |
+:          vs  |
+:      other)  |  -84.32262   165.0131    -0.51   0.610    -409.8604    241.2152
+: ------------------------------------------------------------------------------
 
 ** Lien avec le test de Student
 
@@ -221,6 +413,26 @@ La différence de moyennes utilisée pour former la statistique de test de Stude
 #+BEGIN_SRC stata :session :results output :exports both
 ttest bwt, by(smoke)
 #+END_SRC
+
+#+RESULTS:
+: ttest bwt, by(smoke)
+: 
+: Two-sample t test with equal variances
+: ------------------------------------------------------------------------------
+:    Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+: ---------+--------------------------------------------------------------------
+: nonsmoke |     115    3054.957     70.1625     752.409    2915.965    3193.948
+:   smoker |      74    2772.297    76.70106    659.8075    2619.432    2925.162
+: ---------+--------------------------------------------------------------------
+: combined |     189    2944.286    53.02811     729.016    2839.679    3048.892
+: ---------+--------------------------------------------------------------------
+:     diff |            282.6592    106.9544                71.66693    493.6515
+: ------------------------------------------------------------------------------
+:     diff = mean(nonsmoke) - mean(smoker)                          t =   2.6428
+: Ho: diff = 0                                     degrees of freedom =      187
+: 
+:     Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+:  Pr(T < t) = 0.9955         Pr(|T| > |t|) = 0.0089          Pr(T > t) = 0.0045
 
 On peut d'ailleurs visualiser très facilement ce différentiel de moyennes à l'aide d'un simple diagramme de dispersion en considérant la variable binaire sur l'axe des abscisses. Plutôt que d'utiliser [[stata:scatter][scatter]] et de redéfinir l'axe des x, il est plus simple d'utiliser un diagramme un point tel que proposé par la commande externe =stripplot= (à installer au préalable, =ssc install stripplot=) :
 
@@ -238,13 +450,13 @@ graph export "fig-03-stripplot-bwt-smoke.pdf", fontface(DroidSans) replace
 
 Une manière de vérifier graphiquement l'hypothèse d'égalité des variances, nécessaire dans le test ci-dessus afin de recouvrer les résultats du test du coefficient de régression, consisterait à comparer les fonctions de répartition empirique des deux groupes comme suggéré sur le [[https://www.statalist.org/forums/forum/general-stata-discussion/general/1322693-how-to-visualize-independent-two-sample-t-tests][forum Stata]].
 
-Dans le cas d'une variable catégorielle à plus de deux niveaux, telle que =race=, il est toujours possible de former l'ensemble des tests de Student pour la comparaison des différentes paires de moyennes à l'aide de [[stata:pwmean][pwmean]] comme illsutré ci-dessous :
+Dans le cas d'une variable catégorielle à plus de deux niveaux telle que =race=, il est toujours possible de former l'ensemble des tests de Student pour la comparaison des différentes paires de moyennes à l'aide de [[stata:pwmean][pwmean]] comme illustré ci-dessous :
 
 #+BEGIN_SRC stata :session :results output :exports both
 pwmean bwt, over(race) effects
 #+END_SRC
 
-L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Dunnett), mais dans le cas du modèle de régression précédent il n'y a pas lieu d'appliquer de correction pour les tests multiples ou de modifier la statistique de test. La commande [[stata:pwmean][pwmean]] fournit les mêmes résultats et accepte les mêmes options que [[stata:pwcompare][pwcompare]]. La seule différence est qye cette dernière s'utilise en tant que commande de post-estimation et sa syntaxe est plus souple dans le cas des modèles à plusieurs prédicteurs, incluant d'éventuels termes d'interaction.
+L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Dunnett, ...), mais dans le cas du modèle de régression précédent il n'y a pas lieu d'appliquer de correction pour les tests multiples ou de modifier la statistique de test. La commande [[stata:pwmean][pwmean]] fournit les mêmes résultats et accepte les mêmes options que [[stata:pwcompare][pwcompare]]. La seule différence est que cette dernière s'utilise en tant que commande de post-estimation et sa syntaxe est plus souple dans le cas des modèles à plusieurs prédicteurs, incluant d'éventuels termes d'interaction.
 
 Voici une autre illustration, cette fois-ci avec les données d'un essai clinique randomisé visant à évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère cite:bernard-1997-effec-ibupr. Les données, disponibles dans le fichier =sepsis.dta=, sont largement exploitées dans l'ouvrage de William Dupont cite:dupont-2009-statis-model. Au total, le tableau de données est composé 22 variables dont 16 variables représentant une mesure de la température entre $T_0$ et $T_0 + 15 \times 2$ h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE). 
 
@@ -254,7 +466,22 @@ describe, simple
 table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
 #+END_SRC
 
-Voici comment générer un aperçu des données individuelles sous forme longitudinale, limité à la période 0-6 heures :
+#+RESULTS:
+: use "data/sepsis.dta", replace
+: describe, simple
+: id        apache    followup  temp2     temp5     temp8     temp11    temp14
+: treat     o2del     temp0     temp3     temp6     temp9     temp12    temp15
+: race      fate      temp1     temp4     temp7     temp10    temp13
+: table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
+: 
+: -------------------------------------------------
+: Treatment | mean(temp0)  mean(temp1)  mean(temp6)
+: ----------+--------------------------------------
+:   Placebo |       100.5        100.2         99.7
+: Ibuprofen |       100.4         99.5         98.4
+: -------------------------------------------------
+
+Voici comment générer un aperçu des données individuelles longitudinale, en se limitant à la période 0-6 heures :
 
 #+BEGIN_SRC stata :session :results output :exports code
 keep id treat temp0-temp6
@@ -263,6 +490,27 @@ replace temp = (temp-32) / 1.8
 graph twoway (scatter temp hour, ms(none) lcol(gs15) connect(l)) (scatter temp hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time unit (x2 hours)) ytitle (Temperature (°C))
 graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
 #+END_SRC
+
+#+RESULTS:
+: keep id treat temp0-temp6
+: reshape long temp, i(id) j(hour)
+: (note: j = 0 1 2 3 4 5 6)
+: 
+: Data                               wide   ->   long
+: -----------------------------------------------------------------------------
+: Number of obs.                      455   ->    3185
+: Number of variables                   9   ->       4
+: j variable (7 values)                     ->   hour
+: xij variables:
+:                   temp0 temp1 ... temp6   ->   temp
+: -----------------------------------------------------------------------------
+: replace temp = (temp-32) / 1.8
+: (2970 real changes made)
+:  p hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time 
+: > unit (x2 hours)) ytitle (Temperature (°C))
+: graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
+: translator Graph2pdf not found
+: r(111);
 
 #+CAPTION:   Évolution de la température après la prise en charge dans les deux groupes de patients
 #+NAME:      fig:03-scatter-temp-hour
@@ -277,13 +525,56 @@ Bien que la technique appropriée pour modéliser l'évolution de la températur
 ttest temp if hour == 0, by(treat)
 #+END_SRC
 
+#+RESULTS:
+: ttest temp if hour == 0, by(treat)
+: 
+: Two-sample t test with equal variances
+: ------------------------------------------------------------------------------
+:    Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+: ---------+--------------------------------------------------------------------
+:  Placebo |     231    38.05012    .0699302    1.062847    37.91233    38.18791
+: Ibuprofe |     224    37.97862    .0793881    1.188173    37.82217    38.13507
+: ---------+--------------------------------------------------------------------
+: combined |     455    38.01492    .0527696    1.125614    37.91122    38.11862
+: ---------+--------------------------------------------------------------------
+:     diff |            .0714991    .1056147               -.1360564    .2790546
+: ------------------------------------------------------------------------------
+:     diff = mean(Placebo) - mean(Ibuprofe)                         t =   0.6770
+: Ho: diff = 0                                     degrees of freedom =      453
+: 
+:     Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+:  Pr(T < t) = 0.7506         Pr(|T| > |t|) = 0.4988          Pr(T > t) = 0.2494
+
 Deuxièmement, les deux groupes sont-ils comparables à $T_1$ en terme d’évolution $(T_0-T_1)$ ($H_0$ : =temp0−temp1(ibuprofène) = temp0−temp1(placebo)=) ?
 
 #+BEGIN_SRC stata :session :results output :exports both
-quietly: reshape wide
+quietly reshape wide
 gen difftemp = temp0 - temp1
 ttest difftemp, by(treat)
 #+END_SRC
+
+#+RESULTS:
+: quietly reshape wide
+: gen difftemp = temp0 - temp1
+: (35 missing values generated)
+: ttest difftemp, by(treat)
+: 
+: Two-sample t test with equal variances
+: ------------------------------------------------------------------------------
+:    Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+: ---------+--------------------------------------------------------------------
+:  Placebo |     212    .1733228    .0408455     .594719    .0928054    .2538403
+: Ibuprofe |     208    .4913999    .0478614    .6902662    .3970417    .5857581
+: ---------+--------------------------------------------------------------------
+: combined |     420    .3308467    .0323248    .6624603    .2673078    .3943856
+: ---------+--------------------------------------------------------------------
+:     diff |            -.318077    .0628323               -.4415837   -.1945704
+: ------------------------------------------------------------------------------
+:     diff = mean(Placebo) - mean(Ibuprofe)                         t =  -5.0623
+: Ho: diff = 0                                     degrees of freedom =      418
+: 
+:     Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+:  Pr(T < t) = 0.0000         Pr(|T| > |t|) = 0.0000          Pr(T > t) = 1.0000
 
 Enfin, troisièment, on pourrait se demander s'il y a une évolution significative entre $T_0$ et $T_1$ pour le groupe traité : il s'agit cette fois d'un test t pour données appariées. Voici le code correspondant :
 
@@ -291,22 +582,75 @@ Enfin, troisièment, on pourrait se demander s'il y a une évolution significati
 ttest temp0 == temp1 if treat == 1
 #+END_SRC
 
+#+RESULTS:
+: ttest temp0 == temp1 if treat == 1
+: 
+: Paired t test
+: ------------------------------------------------------------------------------
+: Variable |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+: ---------+--------------------------------------------------------------------
+:    temp0 |     208     38.0031    .0829791    1.196742    37.83951    38.16669
+:    temp1 |     208     37.5117    .0714197    1.030029     37.3709     37.6525
+: ---------+--------------------------------------------------------------------
+:     diff |     208    .4913999    .0478614    .6902662    .3970417    .5857581
+: ------------------------------------------------------------------------------
+:      mean(diff) = mean(temp0 - temp1)                             t =  10.2672
+:  Ho: mean(diff) = 0                              degrees of freedom =      207
+: 
+:  Ha: mean(diff) < 0           Ha: mean(diff) != 0           Ha: mean(diff) > 0
+:  Pr(T < t) = 1.0000         Pr(|T| > |t|) = 0.0000          Pr(T > t) = 0.0000
+
 Par une approche de régression simple, on obtiendrait essentiellement des réponses similaires. Voici déjà une commande permettant d'estimer les paramètres du modèle dans les deux groupes :
 
 #+BEGIN_SRC stata :session :results output :exports both
-quietly: reshape long
+quietly reshape long
 bysort treat: regress temp hour, noheader
 #+END_SRC
 
-À partir de là, on souhaite comparer les coefficients de régression entre les deux groupes. Pour cela, il y a deux approches possibles. D'une part il est possible, et c'est sans doute le plus simple, de reconnaître qu'il s'agit essentiellement d'un test de l'interaction entre les deux variables =hour= et =treat=. Dans ce cas, il suffit de générer le terme d'interaction et de tester ses composantes directement :
+#+RESULTS:
+: quietly reshape long
+: bysort treat: regress temp hour, noheader
+: 
+: -------------------------------------------------------------------------------
+: -> treat = Placebo
+: ------------------------------------------------------------------------------
+:         temp |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:         hour |   -.072687   .0138938    -5.23   0.000    -.0999401   -.0454339
+:        _cons |   38.00192    .050157   757.66   0.000     37.90353     38.1003
+: ------------------------------------------------------------------------------
+: 
+: -------------------------------------------------------------------------------
+: -> treat = Ibuprofen
+: ------------------------------------------------------------------------------
+:         temp |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:         hour |  -.1675952   .0132796   -12.62   0.000    -.1936444   -.1415459
+:        _cons |   37.72096    .047841   788.46   0.000     37.62712    37.81481
+: ------------------------------------------------------------------------------
+
+À partir de là, on souhaite comparer les coefficients de régression entre les deux groupes. Pour cela, il y a deux approches possibles. D'un côté il est possible de reconnaître qu'il s'agit essentiellement d'un test de l'interaction entre les deux variables =hour= et =treat=, et c'est sans doute l'approche la plus simple de la question. Dans ce cas, il suffit de générer le terme d'interaction et de tester ses composantes directement :
 
 #+BEGIN_SRC stata :session :results output :exports both
-quietly: tabulate treat, gen(treat)
+quietly tabulate treat, gen(treat)
 generate treat1hour = treat1*hour
 generate treat2hour = treat2*hour
-quietly: regress temp treat1 treat2 treat1hour treat2hour
+quietly regress temp treat1 treat2 treat1hour treat2hour
 test treat1hour treat2hour
 #+END_SRC
+
+#+RESULTS:
+: quietly tabulate treat, gen(treat)
+: generate treat1hour = treat1*hour
+: generate treat2hour = treat2*hour
+: quietly regress temp treat1 treat2 treat1hour treat2hour
+: test treat1hour treat2hour
+: 
+:  ( 1)  treat1hour = 0
+:  ( 2)  treat2hour = 0
+: 
+:        F(  2,  2966) =   89.02
+:             Prob > F =    0.0000
 
 Le test ci-dessus est un test simultané (2 degrés de liberté) pour la nullité des termes d'interaction, tandis que le test ci-dessous permet d'évaluer l'égalité de ces deux termes :
 
@@ -314,6 +658,13 @@ Le test ci-dessus est un test simultané (2 degrés de liberté) pour la nullit�
 test treat1hour = treat2hour
 #+END_SRC
 
+#+RESULTS:
+: test treat1hour = treat2hour
+: 
+:  ( 1)  treat1hour - treat2hour = 0
+: 
+:        F(  1,  2966) =   24.33
+:             Prob > F =    0.0000
 
 ** Traitement de la non linéarité
 
@@ -361,7 +712,6 @@ graph export "fig-03-fpplot-bwt-age.pdf", fontface(DroidSans) replace
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-03-fpplot-bwt-age.png]]
-
 
 ** Approche robuste
 
