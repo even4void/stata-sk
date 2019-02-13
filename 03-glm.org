@@ -668,13 +668,19 @@ test treat1hour = treat2hour
 
 ** Traitement de la non linéarité
 
-Il existe plusieurs approches pour traiter le cas d'une relation non linéaire entre la variable réponse et un prédicteur continu.
-
-Revenons aux données sur les poids de naissance. Voici une illustration avec l'âge de la mère :
+Il existe plusieurs approches pour traiter le cas d'une relation non linéaire entre la variable réponse et un prédicteur continu. Revenons aux données sur les poids de naissance pour illustrer avec l'âge de la mère quelques-unes des approches possibles :
 
 #+BEGIN_SRC stata :session :results output :exports code
 clear all
 webuse lbw
+#+END_SRC
+
+#+RESULTS:
+: clear all
+: webuse lbw
+: (Hosmer & Lemeshow data)
+
+#+BEGIN_SRC stata :session :results output :exports code
 scatter bwt age || qfitci bwt age, legend(off)
 graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
 #+END_SRC
@@ -686,20 +692,98 @@ graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-03-scatter-bwt-age.png]]
 
-L'estimation des paramètres du modèle de régression ne pose pas de difficulté lorsque l'on suppose une simple relation linéaire :
+L'estimation des paramètres du modèle de régression ne pose pas de difficulté lorsque l'on suppose une simple relation linéaire incluant l'âge et le carré de l'âge :
 
 #+BEGIN_SRC stata :session :results output :exports both
 gen agesq = age^2
 regress bwt age agesq
 #+END_SRC
 
-L'approche qui suit repose sur des polynômes fractionnaires, qui ont été largement développés et popularisés par Royston et coll. cite:royston-1994-regres-using. L'idée générale est de considérer des polynômes dont les exposants sont pris dans un ensemble prédéfini de valeurs $P = {-2, -1, -0.5, 0, 0.5, 1, 2, 3}$, où par convention $x^{(0)} = \ln(x)$. Un polynôme fractionnaire de degré $m$ se construit comme $\text{FPm} = \beta_0 + \sum_{j=1}^m \beta_jx^{(p_j)}$, où $p_j \in P$. On notera que pour un polynôme de degré $m$, une même puissance peut être répétée $m$ fois.
+#+RESULTS:
+: gen agesq = age^2
+: regress bwt age agesq
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  2,   186) =    3.89
+:        Model |   4007561.9     2  2003780.95           Prob > F      =  0.0222
+:     Residual |  95907736.7   186  515632.993           R-squared     =  0.0401
+: -------------+------------------------------           Adj R-squared =  0.0298
+:        Total |  99915298.6   188  531464.354           Root MSE      =  718.08
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:          age |  -151.2227    66.3142    -2.28   0.024    -282.0474   -20.39809
+:        agesq |   3.253674   1.304625     2.49   0.014     .6799088    5.827439
+:        _cons |   4610.534   817.5263     5.64   0.000     2997.718     6223.35
+: ------------------------------------------------------------------------------
 
-Stata 13 disposait de la commande [[stata:fracpoly][fracpoly]] mais désormais il est recommendé d'utiliser les commandes [[stata:fp][fp]] (cas univarié) et [[stata:mfp][mfp]] (cas multivarié) qui permettent de construire automatiquement les termes d'un ou plusieurs polynômes fractionnaires pour une variable numérique donnée. Voici un exemple d'application sur la variable =age= :
+Le terme quadratique améliore t-il la qualité d'ajustement d'un tel modèle ? Ici, on voit que le $R^2$ ajusté est de 3 %, ce qui ne change pas vraiment des résultats observés dans le cas d'une régression simple. On peut le vérifier également au niveau des indices AIC ou BIC :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly regress bwt age agesq
+estimates store m1
+quietly regress bwt age
+estimates store m0
+estimates stats m*
+#+END_SRC
+
+#+RESULTS:
+: quietly regress bwt age agesq
+: estimates store m1
+: quietly regress bwt age
+: estimates store m0
+: estimates stats m*
+: 
+: Akaike's information criterion and Bayesian information criterion
+: 
+: -----------------------------------------------------------------------------
+:        Model |    Obs    ll(null)   ll(model)     df          AIC         BIC
+: -------------+---------------------------------------------------------------
+:           m0 |    189   -1513.509   -1512.748      2     3029.497     3035.98
+:           m1 |    189   -1513.509    -1509.64      3      3025.28    3035.005
+: -----------------------------------------------------------------------------
+:                Note:  N=Obs used in calculating BIC; see [R] BIC note
+
+Une autre approche repose sur l'utilisation de polynômes fractionnaires, qui ont été largement développés et popularisés par Royston et coll. cite:royston-1994-regres-using. L'idée générale est de considérer des polynômes dont les exposants sont pris dans un ensemble prédéfini de valeurs $P = {-2, -1, -0.5, 0, 0.5, 1, 2, 3}$, où par convention $x^{(0)} = \ln(x)$. Un polynôme fractionnaire de degré $m$ se construit comme $\text{FPm} = \beta_0 + \sum_{j=1}^m \beta_jx^{(p_j)}$, où $p_j \in P$. On notera que pour un polynôme de degré $m$, une même puissance peut être répétée $m$ fois.
+
+Stata 13 dispose de la commande [[stata:fracpoly][fracpoly]] mais il est recommendé d'utiliser les commandes [[stata:fp][fp]] (cas univarié) et [[stata:mfp][mfp]] (cas multivarié) qui permettent de construire automatiquement les termes d'un ou plusieurs polynômes fractionnaires pour une variable numérique donnée. Voici un exemple d'application sur la variable =age= :
 
 #+BEGIN_SRC stata :session :results output :exports both
 fp <age> : regress bwt <age>
 #+END_SRC
+
+#+RESULTS:
+: fp <age> : regress bwt <age>
+: (fitting 44 models)
+: (....10%....20%....30%....40%....50%....60%....70%....80%....90%....100%)
+: 
+: Fractional polynomial comparisons:
+: -------------------------------------------------------------------------------
+:          age |   df    Deviance  Res. s.d.   Dev. dif.   P(*)   Powers
+: -------------+-----------------------------------------------------------------
+:      omitted |    0   3027.017    729.016      9.161    0.062               
+:       linear |    1   3025.497    728.029      7.641    0.059   1           
+:        m = 1 |    2   3023.143    723.510      5.288    0.076   3           
+:        m = 2 |    4   3017.856    715.375      0.000       --   3 3         
+: -------------------------------------------------------------------------------
+: (*) P = sig. level of model with m = 2 based on F with 184
+:     denominator dof.
+: 
+:       Source |       SS       df       MS              Number of obs =     189
+: -------------+------------------------------           F(  2,   186) =    4.62
+:        Model |  4727609.47     2  2363804.73           Prob > F      =  0.0110
+:     Residual |  95187689.1   186  511761.769           R-squared     =  0.0473
+: -------------+------------------------------           Adj R-squared =  0.0371
+:        Total |  99915298.6   188  531464.354           Root MSE      =  715.38
+: 
+: ------------------------------------------------------------------------------
+:          bwt |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+: -------------+----------------------------------------------------------------
+:        age_1 |  -.2336151   .1059006    -2.21   0.029    -.4425358   -.0246944
+:        age_2 |   .0660855   .0287679     2.30   0.023     .0093323    .1228388
+:        _cons |    3198.04   191.0215    16.74   0.000     2821.192    3574.887
+: ------------------------------------------------------------------------------
 
 #+BEGIN_SRC stata :session :results output :exports code
 fp plot, residuals(none)
@@ -714,12 +798,9 @@ graph export "fig-03-fpplot-bwt-age.pdf", fontface(DroidSans) replace
 [[./fig-03-fpplot-bwt-age.png]]
 
 ** Approche robuste
+*# FIXME* Find a better illustration + provide more background
 
-*FIXME* Find a better illustration + provide more background
-
-Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et les valeurs observées, il est tout à fait possible d'utiliser un autre type d'estimateur.
-
-Considérons la relation entre le poids des bébés et le poids des mères dont l'ethnicité est =black=. La commande suivante permet d'afficher un simple diagramme de dispersion ainsi que la droite de régression associée :
+Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et les valeurs observées, il est tout à fait possible d'utiliser un autre type d'estimateur. Considérons la relation entre le poids des bébés et le poids des mères dont l'ethnicité est =black=. La commande suivante permet d'afficher un simple diagramme de dispersion ainsi que la droite de régression associée :
 
 #+BEGIN_SRC stata :session :results output :exports code
 twoway (scatter bwt lwt) (lfit bwt lwt) if race == 3

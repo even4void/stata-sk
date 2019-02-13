@@ -9,7 +9,7 @@
 (load "ox-bibtex.el")
 
 ;; Setup default settings
-(setq inferior-STA-program "/usr/local/bin/stata"
+(setq inferior-STA-program "/usr/local/bin/stata-mp"
       org-confirm-babel-evaluate nil
       org-src-fontify-natively nil
       org-html-htmlize-output-type nil
