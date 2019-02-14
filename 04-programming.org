@@ -23,7 +23,67 @@ display r(mean)
 La command [[stata:summarize][summarize]] stocke temporairement la moyenne (=mean=) de la variable (ou dans le cas d'une liste de variables, de la dernière variable de la liste) en mémoire et il est possible d'obtenir la valeur de retour stockée dans =r()=. Ce type de données peut être stocké globalement (accessible depuis l’espace de travail, les programmes, etc.) ou localement, ou, comme dans l'exemple ci-dessus, affiché à l'écran. 
 # FIXME voir [U] 18.8
 
+** Macros locales
+
+Une macro locale se définit comme une expression : =local name [=] text=. Une macro locale permet de stocker sous forme de chaîne de caractères une expression (ou son résultat après évaluation dans le cas ou on utilise le signe =). Voici un exemple d'utilisation :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly summarize mpg, meanonly
+local m1 r(mean)
+display `m1'
+#+END_SRC
+
+Attention, l'utilisation de =m= comme nom de macro pourrait dans le cas de ce jeu de données prêter à confusion.
+
+L'ajout du symbole = dans l'expression ci-dessus permet de stocker la valeur de retour après évaluation :
+
+#+BEGIN_SRC stata :session :results output :exports both
+quietly regress mpg weight
+local r2 = r(r2)
+display `r2'
+#+END_SRC
+
+L’omission du signe = aurait pour conséquence de produire des résultats variable après l’estimation d’un nouveau modèle de régression. Après une instruction telle que =local r2 e(r2)=, c’est la formule =e(r2)= qui est stockée et non son résultat.
+
+Il existe également une autre manière de définir des macros locales : =scalar=. Essentiellement, les deux macros permettent de stocker des
+valeurs pour une utilisation future. Elles se distinguent sur les points suivants : (1) les scalars sont enregistrés globalement, et non localement, d’où un risque potentiel de conflit de nom ; (2) Stata stocke des valeurs sans perte de précision dans les scalars et non une représentation sous forme de chaîne de caractères (environ 8 chiffres significatifs).
+
+Un usage classique des macros locales consiste à enregistrer une liste de cofacteurs présents dans tous les modèles de régression dont on souhaite estimer les paramètres. Plutôt que de répéter systématiquement dans les modèles une même série de variables explicatives, il est souvent plus judicieux et plus économique de les stocker dans une macro, comme illustré ci-après :
+
+#+BEGIN_SRC stata :session :results output :exports both
+webuse lbw
+local cofactors age smoke
+quietly : regress bwt `cofactors' ht
+estimates store m1
+quietly : regress bwt `cofactors' ht i.race
+estimates store m2
+estimates table m*
+#+END_SRC
+
 ** Compteurs et boucles
+
+On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur =if= est l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
+
+#+BEGIN_SRC stata :session :results output :exports both
+list price if mpg <= 13
+list price if inrange(mpg, 12, 13)
+list price if inlist(mpg, 13, 16, 18, 19) & foreign == 1
+#+END_SRC
+
+Les instructions [[stata:inrange][inrange]] et [[stata:inlist][inlist]] permettent de construire des listes régulières ou irrégulières de valeurs numériques. Ce principe de sélection s’applique également aux commandes de résumé numérique ([[stata:summarize][summarize]], [[stata:tabulate][tabulate]]) ou de modélisation ([[stata:regress][regress]]).
+
+** Les différents types de boucles
+
+En dehors des utilitaires classiques de branchement conditionnel (if/else) ou d’itération (while), Stata permet de construire des boucles à partir de nombres ou d’éléments d’une liste. Les deux commandes clés sont :
+
+- [[stata:forvalues][forvalues]] : boucle sur une séquence régulière de nombres entiers
+- [[stata:foreach][foreach]] : boucle sur une séquence d’éléments pris dans une liste (nombres, texte ou variable)
+
+#+BEGIN_SRC stata :session :results output :exports both
+forvalues index = 1/3 {
+  display `index'
+}
+#+END_SRC
 
 * Automatisation
 

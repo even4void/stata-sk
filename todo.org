@@ -15,7 +15,7 @@
 
 ** STAR 02-graphics
 ** STAR 03-glm
-** TODO 04-programming
+** STAR 04-programming
 ** TODO 05-epidemiology
 ** TODO 06-time-series
 ** TODO 07-time-to-event
