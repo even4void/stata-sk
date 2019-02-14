@@ -1,0 +1,30 @@
+#+TITLE: Stata : programmation
+#+LANGUAGE: fr
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
+#+HTML_MATHJAX: scale: 90
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+
+Ce chapitre est consacré aux techniques de programmation avec le langage Stata, et dans une moindre mesure Mata. L'ouvrage de référence demeure l'ouvrage de Mitchell cite:mitchell-2010-data-manag pour tout ce qui relève de l'automatisation à l'aide de commandes Stata pour la gestion de données, ainsi que l'ouvrage de Baum sur la programmation en elle-même cite:baum-2009-introd-stata-progr. Germán Rodríguez propose également un [[http://data.princeton.edu/stata/programming.html][excellent tutoriel]] sur son site internet.
+
+* Prommation avec Stata
+
+** Les macros Stata
+
+Ce que l'on appelle "variable" dans la plupart des langages de programmation correspond au terme "macro" dans le langage Stata. Une variable reste définie dans le sens statistique et donc correspond aux colonnes d'un tableau de données. Quant aux "macros", on en distingue [[http://www.stata.com/statalist/archive/2008-08/msg01258.html][plusieurs types]], selon leur nature ou leur portée.
+
+Stata permet de stocker temporairement ou définitivement des valeurs calculées ou retournées par une procédure d’estimation. On parlera de macros au sens large. En voici une illustration avec le jeu de données sur les automobiles :
+
+#+BEGIN_SRC stata :session :results output :exports both
+sysuse auto, clear
+quietly summarize mpg, meanonly
+display r(mean)
+#+END_SRC
+
+La command [[stata:summarize][summarize]] stocke temporairement la moyenne (=mean=) de la variable (ou dans le cas d'une liste de variables, de la dernière variable de la liste) en mémoire et il est possible d'obtenir la valeur de retour stockée dans =r()=. Ce type de données peut être stocké globalement (accessible depuis l’espace de travail, les programmes, etc.) ou localement, ou, comme dans l'exemple ci-dessus, affiché à l'écran. 
+# FIXME voir [U] 18.8
+
+** Compteurs et boucles
+
+* Automatisation
+
+* Gestion d'un package
