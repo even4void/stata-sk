@@ -10,14 +10,13 @@ Stata est reconnu pour faciliter la gestion et le recodage des données ainsi qu
 
 ** Le format DTA
 
-On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, le package =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser le package [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande. Une autre solution consiste à utiliser le package [[https://cran.r-project.org/web/packages/readstata13/][readstata13]]. Pour les utilisateurs de Python, le package [[https://pandas.pydata.org][Pandas]] inclut un utilitaire pour la lecture de fichiers Stata (=from pandas.io.stata import StataReader=).
+On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, le package =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser le package [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande. Attention, dans ce cas, moins d'options sont disponibles (à la date de rédaction de ce chapitre), en particulier en ce qui concerne la gestion des dates et des formats de variable. Une autre solution consiste à utiliser le package [[https://cran.r-project.org/web/packages/readstata13/][readstata13]]. Pour les utilisateurs de Python, le package [[https://pandas.pydata.org][Pandas]] inclut un utilitaire pour la lecture de fichiers Stata (=from pandas.io.stata import StataReader=).
 
-Les changements notables entre les formats DTA 12 (juillet 2011), 13 (juin 2013, =help dta_117=) et 14 (avril 2015, =help dta= ou =help dta_119= car il s'agit de la même version que pour Stata 15) portent sur l'utilisation de chaînes de caratères longues, la gestion des facteurs et l'encodage UTF-8 des chaînes de caractères (incluant les noms de variable). Les versions DTA pour Stata 14 et 15 sont identiques, sauf dans le cas de Stata 15/MP qui autorise plus de 32767 variables et possède une structure légèrement différente.
+Les changements notables entre les formats DTA 12 (juillet 2011), 13 (juin 2013, =help dta_117=) et 14 (avril 2015, =help dta= ou =help dta_119= car il s'agit de la même version que pour Stata 15) portent sur l'utilisation de chaînes de caratères longues, la gestion des facteurs et l'encodage UTF-8 des chaînes de caractères (incluant les noms de variable). Les versions DTA pour Stata 14 et 15 sont identiques, sauf dans le cas de Stata 15/MP qui autorise plus de 32767 variables et possède une structure légèrement différente. En pratique, c'est le support des caratères accentués pour les utilisateurs concernés qui est vraiment appréciable dans la version 15.
 
-Les différentes méthodes permettant de lire des fichiers antérieurs ou postérieurs à la version utilisée de Stata sont décrit dans l'article [[https://www.stata.com/support/faqs/data-management/save-for-previous-version/][Reading a Stata dataset with an older version of Stata]].[fn:1] Si l'on souhaite connaître la version dans laquelle a été sauvé un fichier DTA sans avoir à lire l'en-tête du fichier binaire lui-même, il suffit d'utiliser la commande [[stata:dtaversion][dtaversion]] (à partir de Stata 13). Quant à la commande [[stata:saveold][saveold]], elle permet de sauvegarder un tableau de données au format Stata 13 ou au format Stata 12 (avec l'option =version(12)=).
+Les différentes méthodes permettant de lire des fichiers antérieurs ou postérieurs à la version utilisée de Stata sont décrit dans l'article [[https://www.stata.com/support/faqs/data-management/save-for-previous-version/][Reading a Stata dataset with an older version of Stata]].[fn:1] Si l'on souhaite connaître la version dans laquelle a été sauvé un fichier DTA sans avoir à lire l'en-tête du fichier binaire lui-même, il suffit d'utiliser la commande [[stata:dtaversion][dtaversion]] (à partir de Stata 13). Quant à la commande [[stata:saveold][saveold]], elle permet de sauvegarder un tableau de données au format Stata 13 ou au format Stata 12 (avec l'option =version(12)=). Notons que dans le cas où un fichier a été enregistré avec des caractères accentués depuis Stata 15 vers Stata 13, grâce à [[stata:saveold][saveold]], traiter ce fichier depuis Stata 13 résultera en une perte du codage Unicode dans l'interface graphique, mais celui-ci reste toutefois géré à peu près correctement dans un terminal.
 
 Les nouvelles versions majeures de Stata sont publiées à peu près [[https://www.stata.com/support/faqs/resources/history-of-stata/][tous les deux ans]]. Pour un historique du développement de Stata, voir l'article de Nick Cox paru dans le Stata Journal cite:cox-2005-stata.
-
 
 ** Propriétés d'un tableau Stata
 
@@ -86,6 +85,75 @@ list persnr-sex in 1/5
 
 On reviendra en détail sur les listes de variables et le qualifieur [[stata:if][if]] dans les sections suivantes. En attendant, il suffit de savoir que l'on peut indiquer une étendue de variables en indiquant le nom de la première variable séparé du nom de la dernière variable par un tiret et que l'instruction =in 1/5= permet de ne lister que les observations allant de la ligne 1 à 5. Les lignes correspondent à des unités statistiques mais une des particularités de Stata est l'usage extensif de procédures de tri du tableau de données, par exemple pour calculer des statistiques agrégées par groupes d'unités statistiques, de sorte qu'il n'est pas recommendé de raisonner selon l'hypothèse qu'un numéro de ligne désigne une seule et même unité statistique (immutabilité).
 
+** Autres sources de données
+
+En dehors des tableaux de données au format Stata, il est possible d'importer des sources de données de différents types. Outre les fichiers transport de SAS ou des bases de données relationnelles pour lequelles on dispose d'ODBC, Stata gère de manière assez simple les fichiers texte et Excel. Le cas échéant, le logiciel [[http://www.stattransfer.com][Stat/Transfer]] permet de passer de pratiquement n'importe quel format d'origine à un foramt Stata 13 (ou 15 avec la dernière version de Stat/Transfer).
+
+Par défaut, Stata cherche les fichiers dans le répertoire de travail courant. On peut le changer avec la commande [[stata:cd][cd]] ou avec le navigateur de répertoire situé dans la barre d’état.  
+
+Considérons le fichier CSV, =birthwt.csv=, dont les premières lignes sont affichées ci-dessous :
+
+#+BEGIN_EXAMPLE
+low,age,lwt,race,smoke,ptl,ht,ui,ftv,bwt 
+0,19,182,2,0,0,0,1,0,2523 
+0,33,155,3,0,0,0,0,3,2551 
+0,20,105,1,1,0,0,0,1,2557 
+0,21,108,1,1,0,0,1,2,2594 
+0,18,107,1,1,0,0,1,0,2600
+#+END_EXAMPLE
+
+La commande [[stata:import delimited][import delimited]] de Stata 13 permet d'importer l'ensemble des données une fois que l'on a précisé le type de délimiteur de champs (ici, des virgules) et signalé la présence d'une ligne d'en-tête regroupant le nom des variables : =import delimited "birthwt.csv", clear delimiter(comma) varnames(1)=. Les guillemets autour du nom du fichier sont, comme dans les cas des fichiers au format Stata, facultatifs si le nom du fichier ne contient pas d'espaces. L'extension est obligatoire en revanche.
+
+Voici un autre cas de figure, =birthwt.dat=, dans lequel les données sont séparées par des espaces ou des taquets de tabulation, le fichier ne contenant pas de ligne d'en-tête :
+
+#+BEGIN_EXAMPLE
+0 19 182 2 0 0 0 1 0 2523 
+0 33 155 3 0 0 0 0 3 2551 
+0 20 105 1 1 0 0 0 1 2557 
+0 21 108 1 1 0 0 1 2 2594 
+0 18 107 1 1 0 0 1 0 2600
+#+END_EXAMPLE
+
+La commande [[stata:infile][infile]] permet de gérer ce type de fichier, sachant que dans ce cas il est nécessaire de préciser le nom des variables : =infile low age lwt race smoke ptl ht ui ftv bwt using "birthwt.dat", clear=. Notons que Stata préfère généralement les extensions de type =raw= (utilisé par défaut par la commande [[stata:write][write]]) ou =txt=. La même commande [[stata:infile][infile]] permet également d'importer des données brutes accompagnées d'un dictionnaire de données ("codebook"). Voici un exemple de dictionnaire de données pour l'exemple précédent :
+
+#+BEGIN_EXAMPLE
+dictionary {
+_first (1)
+byte low "birthweight <2500g"
+byte age "age of mother"
+int lwt "weight at last menstrual period"
+byte race "race"
+byte smoke "smoked during pregnancy"
+byte ptl "premature labor history (count)"
+byte ht "has history of hypertension"
+byte ui "presence , uterine irritability"
+byte ftv "number of visits to physician during 1st trimester" int bwt "birthweight (grams)"
+}
+#+END_EXAMPLE
+
+L'importation se réalise alors à l'aide de l'instruction =infile using "birthwt.dct", using(birthwt.dat) clear=. Encore une fois, les guillemets sont facultatifs si le nom de fichier est sans ambiguïté.
+
+Une autre commande, [[stata:infix][infix]], moins souple que [[stata:infile][infile]], permet de gérer le cas des dictionnaires de données et des données en format fixe, tel qu'on peut encore le trouver dans les fichiers de données des années 80-90. Un exemple est disponible dans le fichier =data/lowbwt.dat=. Le fichier dictionnaire =birthwt.dct= contient cette fois-ci les instructions de formatage et de nommage des variables, ainsi que le nom du fichier de données lui-même :
+
+#+BEGIN_EXAMPLE
+infix dictionary using lowbwt.dat {
+8 first
+1 lines
+int id 2-4
+byte low 9-10
+byte age 16-18
+int lwt 22-25
+byte race 31-32
+byte smoke 39-40
+byte ptl 47-48
+byte ht 54-55
+byte ui 60-61
+byte ftv 66-67
+int bwt 72-76
+}
+#+END_EXAMPLE
+
+L'importation se réalise dans ce cas à l'aide de l'instruction =infix using lowbwt.dct, clear=.
 
 ** Type de variables
 
@@ -191,7 +259,6 @@ codebook sex
 :             tabulation:  Freq.   Numeric  Label
 :                          2,585         1  Male
 :                          2,826         2  Female
-
 
 ** Variables et liste de variables
 
@@ -401,7 +468,6 @@ by sex, sort : summarize age if !missing(income)
 
 Comme on peut le constater, il est impératif de trier les données selon la variable de classification avant de calculer les statistiques de groupe. Le tri peut être réalisé à l'aide de [[stata:sort][sort]] avant d'appeler la commande [[stata:summarize][summarize]], ou directement via le préfixe [[stata:by][by]] ; il s'agit alors d'une option à placer après la virgule. Il est également possible d'utiliser [[stata:bysort][bysort]], qui est strictement équivalent à [[stata:by][by]] avec l'option =sort=.
 
-
 ** Création et mise à jour de variables
 
 On a déjà vu un exemple de création de variable dans les illustrations précédentes avec la commande [[stata:generate][generate]]. Voici une utilisation plus avancée où l'on construit une nouvelle variable à partir d'une expression mathématique, le logarithme du revenu :
@@ -469,7 +535,6 @@ graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-01-histogram-lincome.png]]
-
 
 ** Etiquette et annotation
 
@@ -553,7 +618,6 @@ label list concern3
 
 Enfin, il est possible d'annoter un tableau ou une variable à l'aide de la commande [[stata:note][note]]. Un usage courant consiste à indiquer pour le tableau sa date de création et la source des données, et pour les variables les éventuelles transformations ou révisions qu'elles ont subi.
 
-
 ** Changement de mode de stockage et format
 
 Si la précision automatiquement choisie par Stata n'est pas indispensable à l'interprétation des résultats ou si l'on souhaite simplement appliquer automatiquement un arrondi des valeurs, la commande [[stata:format][format]] permet de modifier le format d'affichage global d'une ou plusieurs variables. Notons que les formats d'affichage peuvent également s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
@@ -571,9 +635,15 @@ summarize age, format
 : -------------+---------------------------------------------------------
 :          age |      5,411       49.51       18.13      17.00     100.00
 
+** Gestion des dates
 
+Stata offre deux types de représentation pour les dates : les dates simples (jour, mois, année) sont gérées avec [[stata:date][date]] tandis que les dates avec horaire (et fuseau horaire) sont gérées avec [[stata:datetime][datetime]]. Les dates peuvent être représentées sous forme de chaînes de caractère ou de nombres (nombre de jours depuis le 01/01/1960 ou de ms depuis le 01/01/1960 minuit). Cette dernière représentation facilite la manipulation numérique des dates puisque les opérations arithmétiques classiques sont permises. 
 
-** Recodage de variables 
+L’affichage des dates se personnalise à l’aide des formats =%td= et =%tc=. Stata dispose également des pseudo fonctions [[stata:td()][td()]] et [[stata:tc()][tc()]]. Il est toujours possible de passer d’un format de représentation à l’autre. La fonction [[stata:clock][clock]] convertit les dates + heures stockées sous forme de texte en nombres. De même, [[stata:date][date]] permet de convertir des dates simples en nombres. 
+
+Pour la conversion de dates gérées sous d’autres logiciels statistiques (SAS, SPSS, R), voir le manuel "[D] datetime" (=help datetime=). Les dates formatées sous MS Excel sont généralement traitées correctement (en utilisant [[stata:import excel][import excel]]).
+
+** Recodage de variables
 
 Par recodage, on entend la discrétisation d'une variable numérique en variable catégorielle à plusieurs classes ou niveaux, ainsi que la transformation d'une variable catégorielle (création ou agrégation de niveaux).
 
@@ -699,7 +769,6 @@ summarize agediff
 :      agediff |      1,672    1.358852    5.168304        -27         33
 
 
-
 ** Optimisation de la taille mémoire
 
 La commande [[stata:compress][compress]] permet d'optimiser le mode de stockage des variables. Cette commande n'altère pas le contenu de la base de données et n'induit aucune perte de précision.
@@ -725,7 +794,6 @@ describe, short
 
 
 On ne gagnera rien à compresser ce tableau dans la mesure où il est déjà optimisé mais cela vaut souvent la peine de vérifier si le gain de taille est substantiel ou non avant de sauvegarder la version finale d'une base de données.
-
 
 ** Agrégation
 
@@ -880,7 +948,6 @@ graph export "fig-01-bar-lincome-sex.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-01-bar-lincome-sex.png]]
 
-
 ** La commande tabstat
 
 La commande [[stata:tabstat][tabstat]] permet au contraire de spécifier la liste des statistiques d'intérêt via l'option =stats=. La variable de stratification est indiquée dans l'option =by= (il ne peut y en avoir qu'une seule). Pour reproduire le résumé en 5 points de Tukey disponible sous R, on peut formuler la commande de la manière suivante :
@@ -924,7 +991,6 @@ graph export "fig-01-box-lincome-sex.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-01-box-lincome-sex.png]]
 
-
 ** La commande table
 
 La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. En l'absence de contenu à résumer, [[stata:table][table]] se comporte comme [[stata:tabulate+twoway][tabulate twoway]].
@@ -967,21 +1033,15 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 :           Manuals |  26963   10066
 : ----------------------------------
 
-
 ** Analyses pondérées
 
 ** Commandes additionnelles
-
 
 ** Exportation des tableaux
 
 
 
-* Pour aller plus loin
-
-
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
-
 
 * Footnotes
 
