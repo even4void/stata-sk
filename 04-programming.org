@@ -4,9 +4,9 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-Ce chapitre est consacré aux techniques de programmation avec le langage Stata, et dans une moindre mesure Mata. L'ouvrage de référence demeure l'ouvrage de Mitchell cite:mitchell-2010-data-manag pour tout ce qui relève de l'automatisation à l'aide de commandes Stata pour la gestion de données, ainsi que l'ouvrage de Baum sur la programmation en elle-même cite:baum-2009-introd-stata-progr. Germán Rodríguez propose également un [[http://data.princeton.edu/stata/programming.html][excellent tutoriel]] sur son site internet.
+Ce chapitre est consacré aux techniques de programmation avec le langage Stata, et dans une moindre mesure Mata. L'ouvrage de référence demeure l'ouvrage de Mitchell cite:mitchell-2010-data-manag pour tout ce qui relève de l'automatisation à l'aide de commandes Stata pour la gestion de données, ainsi que l'ouvrage de Baum sur la programmation en elle-même cite:baum-2009-introd-stata-progr. Germán Rodríguez propose également un [[http://data.princeton.edu/stata/programming.html][excellent tutoriel]] sur son site internet. Concernant la création de commande et l'usage de Mata, l'ouvrage de Bill Gould cite:gould-2018-mata-book. 
 
-* Prommation avec Stata
+* Programmation avec Stata
 
 ** Les macros Stata
 
@@ -45,7 +45,7 @@ display `r2'
 
 L’omission du signe = aurait pour conséquence de produire des résultats variable après l’estimation d’un nouveau modèle de régression. Après une instruction telle que =local r2 e(r2)=, c’est la formule =e(r2)= qui est stockée et non son résultat.
 
-Il existe également une autre manière de définir des macros locales : =scalar=. Essentiellement, les deux macros permettent de stocker des
+Il existe également une autre manière de définir des macros locales : [[stata:scalar][scalar]]. Essentiellement, les deux macros permettent de stocker des
 valeurs pour une utilisation future. Elles se distinguent sur les points suivants : (1) les scalars sont enregistrés globalement, et non localement, d’où un risque potentiel de conflit de nom cite:kolev-2006-scalar-variab ; (2) Stata stocke des valeurs sans perte de précision dans les scalars et non une représentation sous forme de chaîne de caractères (environ 8 chiffres significatifs).
 
 Un usage classique des macros locales consiste à enregistrer une liste de cofacteurs présents dans tous les modèles de régression dont on souhaite estimer les paramètres. Plutôt que de répéter systématiquement dans les modèles une même série de variables explicatives, il est souvent plus judicieux et plus économique de les stocker dans une macro, comme illustré ci-après :
@@ -62,7 +62,7 @@ estimates table m*
 
 ** Compteurs et boucles
 
-On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur =if= est l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
+On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur [[stata:if][if e]]st l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
 
 #+BEGIN_SRC stata :session :results output :exports both
 list price if mpg <= 13
@@ -74,7 +74,7 @@ Les instructions [[stata:inrange][inrange]] et [[stata:inlist][inlist]] permette
 
 ** Les différents types de boucles
 
-En dehors des utilitaires classiques de branchement conditionnel (if/else) ou d’itération (while), Stata permet de construire des boucles à partir de nombres ou d’éléments d’une liste. Les deux commandes clés sont :
+En dehors des utilitaires classiques de branchement conditionnel (if/else) ou d’itération (while) détaillé dans la section suivante, Stata permet de construire des boucles à partir de nombres ou d’éléments d’une liste. Les deux commandes clés sont :
 
 - [[stata:forvalues][forvalues]] : boucle sur une séquence régulière de nombres entiers
 - [[stata:foreach][foreach]] : boucle sur une séquence d’éléments pris dans une liste (nombres, texte ou variable)
@@ -127,6 +127,20 @@ foreach v of varlist weightc1-weightc4 {
 #+END_SRC
 
 Dans la même veine, on peut imaginer : le recodage en masse des niveaux d’une liste de variable ([[stata:recode][recode]]), la gestion des données manquantes ([[stata:mvdecode][mvdecode]]), etc. Un autre exemple consiste à [[http://www.stata.com/support/faqs/data-management/using-while-loops/][générer des graphiques avec des instructions non "byable"]] ou annoter une [[http://www.stata.com/statalist/archive/2010-06/msg01581.html][liste de variables]]. 
+
+** Structures de contrôle
+
+Les structures de branchement conditionnels telles qu'une instruction if/else peuvent être utilisées directement à l'intérieur d'une boucle [[stata:foreach][foreach]], par exemple, ou dans un script /do/ de contrôle de qualité, en conjonction avec [[stata:assert][assert]]. Dans la majorité des cas, il convient toutefois de garder en tête la façon dont Stata facilite le travail sur les variables sans avoir à gérer soi-même les boucles d'itération sur les observations ([[stata:by][by]], [[stata:recode][recode]], [[stata:egen][egen]], etc.).
+
+Attention à [[https://www.stata.com/support/faqs/data-management/multiple-operations/][ne pas confondre]] le qualificateur [[stata:if][if]] avec l'instruction de test Stata ou Mata correspondante. L'expression =sum foreign if price > 10000= ne fournira pas le même résultat que :
+
+#+BEGIN_SRC stata :session :results output :exports both
+if price > 10000 { 
+  sum foreign 
+} 
+#+END_SRC
+ 
+Usage de [[stata:cond][cond]] cite:kantor-2005-depen 
 
 * Automatisation
 
