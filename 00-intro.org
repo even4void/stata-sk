@@ -369,10 +369,10 @@ r2_a             .2087437     .3212682
 #+end_example
 
 Comme on peut le constater, moyennant le formatage des nombres, il s'agit à peu près du même résultat que celui produit par =estimates table=. Voici notre commande finale, avec quelques améliorations de mise en page et de formatage des nombres :
-#+BEGIN_SRC stata :session :results output :exports code
+#+BEGIN_EXAMPLE
 estout m*, cells("b(fmt(3) label(Coef.)) p(label(P-value))" "se(label(SE)) t(par fmt(2))") ///
   stats(N r2_a, labels("Sample size" R-squared) fmt(0 3))
-#+END_SRC
+#+END_EXAMPLE
 
 Et voici le résultat produit par la dernière commande :
 #+BEGIN_EXAMPLE

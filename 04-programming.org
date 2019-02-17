@@ -62,9 +62,10 @@ estimates table m*
 
 ** Compteurs et boucles
 
-On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur [[stata:if][if e]]st l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
+On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur [[stata:if][if]] est l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
 
 #+BEGIN_SRC stata :session :results output :exports both
+sysuse auto, clear
 list price if mpg <= 13
 list price if inrange(mpg, 12, 13)
 list price if inlist(mpg, 13, 16, 18, 19) & foreign == 1
@@ -124,6 +125,7 @@ foreach v of varlist weightc1-weightc4 {
   local i = `i' + 1
   rename `v' w`i'
 }
+list w* in 1/5
 #+END_SRC
 
 Dans la même veine, on peut imaginer : le recodage en masse des niveaux d’une liste de variable ([[stata:recode][recode]]), la gestion des données manquantes ([[stata:mvdecode][mvdecode]]), etc. Un autre exemple consiste à [[http://www.stata.com/support/faqs/data-management/using-while-loops/][générer des graphiques avec des instructions non "byable"]] ou annoter une [[http://www.stata.com/statalist/archive/2010-06/msg01581.html][liste de variables]]. 
