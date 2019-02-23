@@ -19,7 +19,7 @@ $(OUT_DIR)/%.html: %.html
 	mv $< $(OUT_DIR)
 
 clean:
-	rm fig-*.pdf
+	rm fig-*.eps
 
 veryclean:
 	rm dist/*.html dist/fig-*.png

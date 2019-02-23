@@ -34,6 +34,7 @@
 - [ ] Fix auto-resize for logo + TOC CSS for mobile display
 - [X] Add Makefile + manage GitHub links
 - [ ] Tangle Stata code
+- [ ] Remove graphical =fontface()=
 - [ ] Split 03-glm in two parts
 - [ ] Update README (cite only)
 - [ ] Review Stata books

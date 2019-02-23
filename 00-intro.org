@@ -177,7 +177,7 @@ Voici donc pour le diagramme de dispersion et la droite de régression. L'ordre 
 #+BEGIN_SRC stata :session :results output :exports code
 set scheme plotplain
 graph twoway scatter price mpg || lfit price mpg 
-graph export "fig-00-scatter-price-mpg.pdf", fontface(DroidSans) replace
+graph export "fig-00-scatter-price-mpg.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (ajustement linéaire)
@@ -219,7 +219,7 @@ Comme on le voit, la génération d'une nouvelle variable ne pose pas de difficu
 Pour construire un graphique incluant la courbe d'ajustement quadratique, on remplace simplement [[stata:lfit][lfit]] par [[stata:qfit][qfit]] comme illustré ci-après :
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter price mpg || qfit price mpg
-graph export "fig-00-scatter-price-mpg2.pdf", fontface(DroidSans) replace
+graph export "fig-00-scatter-price-mpg2.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (ajustement quadratique)
@@ -255,7 +255,7 @@ predict double ei, rstandard
 Un simple diagramme de dispersion permettra ensuite d'évaluer graphiquement la stabilité de la variance et l'absence de pattern spécifique d'évolution des résidus selon les valeurs ajustées. Comme les résidus calculés sont des résidus standardisés, on s'attend à ce que 95 % des observations soit situées dans l'intervalle $[-2,2]$. 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter ei yhat, yline(0)
-graph export "fig-00-rvfplot-price-mpg2.pdf", fontface(DroidSans) replace
+graph export "fig-00-rvfplot-price-mpg2.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Prix et vitesse des automobiles (valeurs ajustées et résidus)
@@ -271,7 +271,7 @@ generate infl = _n if abs(ei) > 2
 tostring infl, replace
 replace infl = " " if infl == "."
 scatter ei yhat, yline(0) || scatter ei yhat, ms(none) mlab(infl) mlabpos(12) || lowess ei yhat, legend(off)
-graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
+graph export "fig-00-rvfplot-price-mpg2-b.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
@@ -282,7 +282,7 @@ graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
 : replace infl = " " if infl == "."
 : (71 real changes made)
 :  || lowess ei yhat, legend(off)
-: graph export "fig-00-rvfplot-price-mpg2-b.pdf", fontface(DroidSans) replace
+: graph export "fig-00-rvfplot-price-mpg2-b.eps", fontface(DroidSans) replace
 : (file fig-00-rvfplot-price-mpg2-b.pdf written in PDF format)
 
 #+CAPTION:   Prix et vitesse des automobiles (valeurs ajustées et résidus)
@@ -412,7 +412,7 @@ generate mpg2 = mpg*mpg
 
 /* EDA */
 graph twoway scatter price mpg || qfit price mpg
-graph export "fig-00-scatter-price-mpg2.pdf", eplace
+graph export "fig-00-scatter-price-mpg2.eps", eplace
 
 /* MOD */
 eststo: quietly regress price mpg

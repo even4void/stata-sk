@@ -1,0 +1,6 @@
+.auctex-auto/
+dist/
+fig-*.pdf
+deploy.sh
+history.txt
+references.html

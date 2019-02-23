@@ -519,14 +519,14 @@ On pourra vérifier que la transformation logarithmique a contribué à stabilis
 set scheme plotplain
 label variable lincome "Annual income in euros (log)"
 graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
-graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
+graph export "fig-01-histogram-lincome.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 : set scheme plotplain
 : label variable lincome "Annual income in euros (log)"
 : graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
-: graph export "fig-01-histogram-lincome.pdf", fontface(DroidSans) replace
+: graph export "fig-01-histogram-lincome.eps", fontface(DroidSans) replace
 : (file fig-01-histogram-lincome.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros)
@@ -768,7 +768,6 @@ summarize agediff
 : -------------+---------------------------------------------------------
 :      agediff |      1,672    1.358852    5.168304        -27         33
 
-
 ** Optimisation de la taille mémoire
 
 La commande [[stata:compress][compress]] permet d'optimiser le mode de stockage des variables. Cette commande n'altère pas le contenu de la base de données et n'induit aucune perte de précision.
@@ -893,12 +892,12 @@ bysort sex: summarize income
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
-graph export "fig-01-histogram-lincome-sex.pdf", fontface(DroidSans) replace
+graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 : graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
-: graph export "fig-01-histogram-lincome-sex.pdf", fontface(DroidSans) replace
+: graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
 : (file fig-01-histogram-lincome-sex.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
@@ -933,12 +932,12 @@ Un diagramme en points cite:cleveland-1985-elemen-graph-data, qui reste préfér
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
-graph export "fig-01-bar-lincome-sex.pdf", fontface(DroidSans) replace
+graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 :  e("Log income")
-: graph export "fig-01-bar-lincome-sex.pdf", fontface(DroidSans) replace
+: graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
 : (file fig-01-bar-lincome-sex.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
@@ -976,12 +975,12 @@ En guise de représentation graphique, il existe les diagrammes en forme de boî
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph box lincome, over(sex)
-graph export "fig-01-box-lincome-sex.pdf", fontface(DroidSans) replace
+graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
 : graph box lincome, over(sex)
-: graph export "fig-01-box-lincome-sex.pdf", fontface(DroidSans) replace
+: graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
 : (file fig-01-box-lincome-sex.pdf written in PDF format)
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe

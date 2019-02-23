@@ -44,7 +44,7 @@ Ensuite, on utilise la commande [[stata:scatter][scatter]] pour construire le di
 #+BEGIN_SRC stata :session :results output :exports code
 set scheme plotplain
 graph twoway scatter bwt lwt
-graph export "fig-03-scatter-bwt-lwt.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-bwt-lwt.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre le poids des bébés et le poids des mères
@@ -60,7 +60,7 @@ La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][sc
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
-graph export "fig-03-lowess-bwt-lwt.pdf", fontface(DroidSans) replace
+graph export "fig-03-lowess-bwt-lwt.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre le poids des bébés et le poids des mères (courbe loess)
@@ -176,7 +176,7 @@ Dans le cas ci-dessus, ce sont les [[https://onlinecourses.science.psu.edu/stat4
 #+BEGIN_SRC stata :session :results output :exports code
 predict double r, resid
 qnorm r
-graph export "fig-03-qnorm-r.pdf", fontface(DroidSans) replace
+graph export "fig-03-qnorm-r.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Distribution des résidus simples 
@@ -190,7 +190,7 @@ Un histogramme ou une courbe de densité permet d'examiner rapidement la forme d
 
 #+BEGIN_SRC stata :session :results output :exports code
 kdensity rs, normal normopts(lpat(--))
-graph export "fig-03-kdensity-rs.pdf", fontface(DroidSans) replace
+graph export "fig-03-kdensity-rs.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Distribution des résidus studentisés
@@ -204,7 +204,7 @@ Le graphique suivant est plus informatif car il renseigne à la fois sur la dist
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway scatter rs yhat, yline(0)
-graph export "fig-03-scatter-rs-yhat.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-rs-yhat.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre valeurs ajustées et résidus
@@ -251,7 +251,7 @@ tabstat bwt, by(smoke) stat(mean sd n)
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph box bwt, over(smoke)
-graph export "fig-03-box-bwt-smoke.pdf", fontface(DroidSans) replace
+graph export "fig-03-box-bwt-smoke.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et statut fumeur
@@ -438,7 +438,7 @@ On peut d'ailleurs visualiser très facilement ce différentiel de moyennes à l
 
 #+BEGIN_SRC stata :session :results output :exports code
 stripplot bwt, over(smoke) vertical jitter(1 0) addplot(lfit bwt smoke)
-graph export "fig-03-stripplot-bwt-smoke.pdf", fontface(DroidSans) replace
+graph export "fig-03-stripplot-bwt-smoke.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et statut fumeur
@@ -488,7 +488,7 @@ keep id treat temp0-temp6
 reshape long temp, i(id) j(hour)
 replace temp = (temp-32) / 1.8
 graph twoway (scatter temp hour, ms(none) lcol(gs15) connect(l)) (scatter temp hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time unit (x2 hours)) ytitle (Temperature (°C))
-graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-temp-hour.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+RESULTS:
@@ -508,7 +508,7 @@ graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
 : (2970 real changes made)
 :  p hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time 
 : > unit (x2 hours)) ytitle (Temperature (°C))
-: graph export "fig-03-scatter-temp-hour.pdf", fontface(DroidSans) replace
+: graph export "fig-03-scatter-temp-hour.eps", fontface(DroidSans) replace
 : translator Graph2pdf not found
 : r(111);
 
@@ -682,7 +682,7 @@ webuse lbw
 
 #+BEGIN_SRC stata :session :results output :exports code
 scatter bwt age || qfitci bwt age, legend(off)
-graph export "fig-03-scatter-bwt-age.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-bwt-age.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et âge de la mère
@@ -787,7 +787,7 @@ fp <age> : regress bwt <age>
 
 #+BEGIN_SRC stata :session :results output :exports code
 fp plot, residuals(none)
-graph export "fig-03-fpplot-bwt-age.pdf", fontface(DroidSans) replace
+graph export "fig-03-fpplot-bwt-age.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Utilisation de polynômes fractionnaires pour la relation entre poids des bébés et âge de la mère
@@ -804,7 +804,7 @@ Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et
 
 #+BEGIN_SRC stata :session :results output :exports code
 twoway (scatter bwt lwt) (lfit bwt lwt) if race == 3
-graph export "fig-03-scatter-bwt-lwt-race3.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-bwt-lwt-race3.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et taille de la mère
@@ -834,7 +834,7 @@ On peut superposer les prédictions de ces deux modèles sur le diagramme de dis
 
 #+BEGIN_SRC stata :session :results output :exports code
 twoway (scatter bwt lwt if race == 3) (line yhols yhm lwt, lwidth(*2 *2)), legend(order(2 "OLS" 3 "Huber"))
-graph export "fig-03-scatter-bwt-lwt-race3-2.pdf", fontface(DroidSans) replace
+graph export "fig-03-scatter-bwt-lwt-race3-2.eps", fontface(DroidSans) replace
 #+END_SRC
 
 #+CAPTION:   Estimation MCO versus M-estimateur
