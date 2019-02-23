@@ -24,64 +24,25 @@ Les données d'illustration sont tirées de cite:kohler-2012-data-analy et sont 
 
 Voici les instructions permettant de charger les données en mémoire, en supposant que le répertoire de travail contienne bien un répertoire =data/= dans lequel se trouve le fichier =gsoep09.dta= :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 clear all
 use data/gsoep09
 describe, short
-#+END_SRC
-
-#+RESULTS:
-: clear all
-: use data/gsoep09
-: (SOEP 2009 (Kohler/Kreuter))
-: describe, short
-: 
-: Contains data from data/gsoep09.dta
-:   obs:         5,411                          SOEP 2009 (Kohler/Kreuter)
-:  vars:            65                          13 Feb 2012 17:08
-:  size:       568,155                          
-: Sorted by: persnr
+#+end_src
 
 La commande [[stata:describe][describe]] permet de décrire le tableau de données. Parmi ses différentes options, =short= permet de limiter la description à l'en-tête du tableau, c'est-à-dire les informations relatives au nombre d'observations et de variables et aux éventuelles annotations du tableau, tandis que =simple= permet de n'afficher que la liste des variables.
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 describe, simple
-#+END_SRC
-
-#+RESULTS:
-: describe, simple
-: persnr       income       rooms        eqplif       pic          wor10
-: hhnr2009     hhinc        renttype     eqpnrj       lsat         wor11
-: state        hhsize       rent         hhtyp        wor01        wor12
-: ybirth       hhsize0to14  reval        area1        wor02        sample
-: sex          rel2head     eqphea       area2        wor03        intnr
-: mar          ymove        eqpter       dvisits      wor04        hhnr
-: edu          ybuild       eqpbas       heval        wor05        strata
-: yedu         condit       eqpgar       hsat         wor06        psu
-: voc          dsat         eqpalm       polint       wor07        dweight
-: emp          size         eqpsol       pia          wor08        xweights
-: egp          seval        eqpair       pib          wor09
+#+end_src
 
 Notons qu'il s'agit de données d'enquête, même si nous n'exploiterons pas vraiment les poids de sondage dans les illustrations de ce chapitre. Les dernières variables du tableau sont spécifiques à Stata et permettent d'identifier les unités de sondage (=strata= et =psu=) et les poids analytiques (=dweight= et =xweights=). 
 
 Pour obtenir un aperçu des premières lignes du tableau, et en restreignant la liste des variables affichées, voici comment l'on procéderait avec [[stata:list][list]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list persnr-sex in 1/5
-#+END_SRC
-
-#+RESULTS:
-: list persnr-sex in 1/5
-: 
-:      +-------------------------------------------------------+
-:      | persnr   hhnr2009             state   ybirth      sex |
-:      |-------------------------------------------------------|
-:   1. |   8501         85   N-Rhein-Westfa.     1932     Male |
-:   2. |   8502         85   N-Rhein-Westfa.     1939   Female |
-:   3. |  15001        150   N-Rhein-Westfa.     1946     Male |
-:   4. |  15002        150   N-Rhein-Westfa.     1953   Female |
-:   5. |  18201     111373    Mecklenburg-V.     1969     Male |
-:      +-------------------------------------------------------+
+#+end_src
 
 On reviendra en détail sur les listes de variables et le qualifieur [[stata:if][if]] dans les sections suivantes. En attendant, il suffit de savoir que l'on peut indiquer une étendue de variables en indiquant le nom de la première variable séparé du nom de la dernière variable par un tiret et que l'instruction =in 1/5= permet de ne lister que les observations allant de la ligne 1 à 5. Les lignes correspondent à des unités statistiques mais une des particularités de Stata est l'usage extensif de procédures de tri du tableau de données, par exemple pour calculer des statistiques agrégées par groupes d'unités statistiques, de sorte qu'il n'est pas recommendé de raisonner selon l'hypothèse qu'un numéro de ligne désigne une seule et même unité statistique (immutabilité).
 
@@ -93,30 +54,30 @@ Par défaut, Stata cherche les fichiers dans le répertoire de travail courant
 
 Considérons le fichier CSV, =birthwt.csv=, dont les premières lignes sont affichées ci-dessous :
 
-#+BEGIN_EXAMPLE
+#+begin_example
 low,age,lwt,race,smoke,ptl,ht,ui,ftv,bwt 
 0,19,182,2,0,0,0,1,0,2523 
 0,33,155,3,0,0,0,0,3,2551 
 0,20,105,1,1,0,0,0,1,2557 
 0,21,108,1,1,0,0,1,2,2594 
 0,18,107,1,1,0,0,1,0,2600
-#+END_EXAMPLE
+#+end_example
 
 La commande [[stata:import delimited][import delimited]] de Stata 13 permet d'importer l'ensemble des données une fois que l'on a précisé le type de délimiteur de champs (ici, des virgules) et signalé la présence d'une ligne d'en-tête regroupant le nom des variables : =import delimited "birthwt.csv", clear delimiter(comma) varnames(1)=. Les guillemets autour du nom du fichier sont, comme dans les cas des fichiers au format Stata, facultatifs si le nom du fichier ne contient pas d'espaces. L'extension est obligatoire en revanche.
 
 Voici un autre cas de figure, =birthwt.dat=, dans lequel les données sont séparées par des espaces ou des taquets de tabulation, le fichier ne contenant pas de ligne d'en-tête :
 
-#+BEGIN_EXAMPLE
+#+begin_example
 0 19 182 2 0 0 0 1 0 2523 
 0 33 155 3 0 0 0 0 3 2551 
 0 20 105 1 1 0 0 0 1 2557 
 0 21 108 1 1 0 0 1 2 2594 
 0 18 107 1 1 0 0 1 0 2600
-#+END_EXAMPLE
+#+end_example
 
 La commande [[stata:infile][infile]] permet de gérer ce type de fichier, sachant que dans ce cas il est nécessaire de préciser le nom des variables : =infile low age lwt race smoke ptl ht ui ftv bwt using "birthwt.dat", clear=. Notons que Stata préfère généralement les extensions de type =raw= (utilisé par défaut par la commande [[stata:write][write]]) ou =txt=. La même commande [[stata:infile][infile]] permet également d'importer des données brutes accompagnées d'un dictionnaire de données ("codebook"). Voici un exemple de dictionnaire de données pour l'exemple précédent :
 
-#+BEGIN_EXAMPLE
+#+begin_example
 dictionary {
 _first (1)
 byte low "birthweight <2500g"
@@ -129,13 +90,13 @@ byte ht "has history of hypertension"
 byte ui "presence , uterine irritability"
 byte ftv "number of visits to physician during 1st trimester" int bwt "birthweight (grams)"
 }
-#+END_EXAMPLE
+#+end_example
 
 L'importation se réalise alors à l'aide de l'instruction =infile using "birthwt.dct", using(birthwt.dat) clear=. Encore une fois, les guillemets sont facultatifs si le nom de fichier est sans ambiguïté.
 
 Une autre commande, [[stata:infix][infix]], moins souple que [[stata:infile][infile]], permet de gérer le cas des dictionnaires de données et des données en format fixe, tel qu'on peut encore le trouver dans les fichiers de données des années 80-90. Un exemple est disponible dans le fichier =data/lowbwt.dat=. Le fichier dictionnaire =birthwt.dct= contient cette fois-ci les instructions de formatage et de nommage des variables, ainsi que le nom du fichier de données lui-même :
 
-#+BEGIN_EXAMPLE
+#+begin_example
 infix dictionary using lowbwt.dat {
 8 first
 1 lines
@@ -151,7 +112,7 @@ byte ui 60-61
 byte ftv 66-67
 int bwt 72-76
 }
-#+END_EXAMPLE
+#+end_example
 
 L'importation se réalise dans ce cas à l'aide de l'instruction =infix using lowbwt.dct, clear=.
 
@@ -165,100 +126,32 @@ Dans le visualisateur de données ([[stata:browse][browse]]), les variables num�
 
 Voici deux exemples de variables : le revenu (=income=), variable numérique stockée sous forme d'entiers, et le sexe (=sex=) des répondants, variable catégorielle à deux classes ou niveaux :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list income in 1/5
 list sex in 1/5
-#+END_SRC
-
-#+RESULTS:
-: list income in 1/5
-: 
-:      +--------+
-:      | income |
-:      |--------|
-:   1. |      . |
-:   2. |      . |
-:   3. |      0 |
-:   4. |  19955 |
-:   5. |  35498 |
-:      +--------+
-: list sex in 1/5
-: 
-:      +--------+
-:      |    sex |
-:      |--------|
-:   1. |   Male |
-:   2. | Female |
-:   3. |   Male |
-:   4. | Female |
-:   5. |   Male |
-:      +--------+
+#+end_src
 
 Les commandes [[stata:summarize][summarize]] et [[stata:tabulate][tabulate]] permettent respectivement de construire des résumés numériques appropriés pour ces deux types de variable :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 summarize income
-#+END_SRC
+#+end_src
 
-#+RESULTS:
-: summarize income
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:       income |      4,779     20540.6    37422.49          0     897756
-
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate sex
-#+END_SRC
-
-#+RESULTS:
-: tabulate sex
-: 
-:               Gender |      Freq.     Percent        Cum.
-: ---------------------+-----------------------------------
-:                 Male |      2,585       47.77       47.77
-:               Female |      2,826       52.23      100.00
-: ---------------------+-----------------------------------
-:                Total |      5,411      100.00
+#+end_src
 
 L'option =nolabel= de [[stata:tabulate][tabulate]] permet d'afficher les codes numériques au lieu des étiquettes associées à chacun des niveaux de la variable catégorielle.
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate sex, nolabel
-#+END_SRC
-
-#+RESULTS:
-: tabulate sex, nolabel
-: 
-:      Gender |      Freq.     Percent        Cum.
-: ------------+-----------------------------------
-:           1 |      2,585       47.77       47.77
-:           2 |      2,826       52.23      100.00
-: ------------+-----------------------------------
-:       Total |      5,411      100.00
+#+end_src
 
 Il est possible d'obtenir la même information en utilisant [[stata:codebook][codebook]], l'avantage de cette dernière commande étant qu'elle fonctionne avec une variable ou une liste de variables (voire le tableau en entier si l'on ne spécifie aucune variable) et qu'elle affiche beaucoup plus d'informations sur le mode de représentation et le contenu de la variable :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 codebook sex
-#+END_SRC
-
-#+RESULTS:
-: codebook sex
-: 
-: -------------------------------------------------------------------------------
-: sex                                                                      Gender
-: -------------------------------------------------------------------------------
-: 
-:                   type:  numeric (byte)
-:                  label:  sex
-: 
-:                  range:  [1,2]                        units:  1
-:          unique values:  2                        missing .:  0/5,411
-: 
-:             tabulation:  Freq.   Numeric  Label
-:                          2,585         1  Male
-:                          2,826         2  Female
+#+end_src
 
 ** Variables et liste de variables
 
@@ -266,99 +159,40 @@ Un concept clé dans Stata est la possibilité de travailler avec une seule vari
 
 Pour spécifier une liste de variables, il suffit d'indiquer les noms de variables en les séparant par un espace, comme dans l'illustration suivante :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list wor01 wor02 wor03 in 5
-#+END_SRC
-
-#+RESULTS:
-: list wor01 wor02 wor03 in 5
-: 
-:      +--------------------------------------------------------------+
-:      |              wor01                wor02                wor03 |
-:      |--------------------------------------------------------------|
-:   5. | Somewhat concerned   Somewhat concerned   Somewhat concerned |
-:      +--------------------------------------------------------------+
+#+end_src
 
 Il est également possible d'indiquer le nom de la première variable et le nom de la dernière variable d'une séquence de variables consécutives. Dans ce cas, le délimietur d'étendue est le tiret :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list wor01-wor03 in 5
-#+END_SRC
-
-#+RESULTS:
-: list wor01-wor03 in 5
-: 
-:      +--------------------------------------------------------------+
-:      |              wor01                wor02                wor03 |
-:      |--------------------------------------------------------------|
-:   5. | Somewhat concerned   Somewhat concerned   Somewhat concerned |
-:      +--------------------------------------------------------------+
+#+end_src
 
 Les noms de variable peuvent être interpolés par Stata à l'aide des symboles d'expressions rationelles =?= (un seul caractère, n'importe lequel parmi les caractères autorisés) et =*= (un ou plusieurs caractères). Voici deux exemples d'utilisation :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list wor0? in 5
 list wor* in 3
-#+END_SRC
-
-#+RESULTS:
-: list wor0? in 5
-: 
-:      +--------------------------------------------------------------+
-:   5. |              wor01 |              wor02 |              wor03 |
-:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
-:      |--------------------+--------------------+--------------------|
-:      |              wor04 |              wor05 |              wor06 |
-:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
-:      |--------------------------------------------------------------|
-:      |              wor07  |          wor08  |               wor09  |
-:      | Somewhat concerned  | Very concerned  |  Somewhat concerned  |
-:      +--------------------------------------------------------------+
-: list wor* in 3
-: 
-:      +--------------------------------------------------------------+
-:   3. |              wor01 |              wor02 |              wor03 |
-:      | Somewhat concerned | Somewhat concerned | Somewhat concerned |
-:      |--------------------------------------------------------------|
-:      |          wor04  |              wor05  |               wor06  |
-:      | Very concerned  | Somewhat concerned  |  Somewhat concerned  |
-:      |--------------------------------------------------------------|
-:      |              wor07  |              wor08  |           wor09  |
-:      | Somewhat concerned  | Somewhat concerned  |  Very concerned  |
-:      |---------------------+---------------------+------------------|
-:      |              wor10  |              wor11  |           wor12  |
-:      | Somewhat concerned  | Somewhat concerned  |  Does not apply  |
-:      +--------------------------------------------------------------+
+#+end_src
 
 Enfin, on peut combiner les différentes approches comme dans l'exemple suivant :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 list persnr sex wor01-wor03 in 1
-#+END_SRC
-
-#+RESULTS:
-: list persnr sex wor01-wor03 in 1
-: 
-:      +----------------------------------------------------------------------+
-:      | persnr    sex            wor01                wor02            wor03 |
-:      |----------------------------------------------------------------------|
-:   1. |   8501   Male   Very concerned   Somewhat concerned   Very concerned |
-:      +----------------------------------------------------------------------+
+#+end_src
 
 L'usage de listes de variables facilite beaucoup de tâches qui pourrait apparaître fastidieuses autrement (lister explicitement une dizaine de variables) ou nécessiter de programmer une boucle (renommer un ensemble de variables). Voici par exemple comment renommer des variables en bloc à l'aide de [[stata:rename][rename]] :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 rename wor* q*
-#+END_SRC
+#+end_src
 
 La variable =hhnr= s'apprente à =hhnr2009= puisqu'il s'agit d'un identifiant unique pour les foyers résidentiels. Cette variable peut être d'ores et déjà supprimée à l'aide de [[stata:drop][drop]] puisqu'elle ne sera pas exploitée :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 drop hhnr
-#+END_SRC
-
-#+RESULTS:
-: drop hhnr
+#+end_src
 
 
 * Manipulation de variables
@@ -367,104 +201,54 @@ drop hhnr
 
 De manière générale, les commandes Stata sont structurées de la manière suivante :
 
-#+BEGIN_EXAMPLE
+#+begin_example
 [by varlist:] command [varlist] [=exp] [if exp] [in range] [weight] [using filename] [,options]
-#+END_EXAMPLE
+#+end_example
 
 Tous les éléments entre crochets sont optionnels. On distingue les options principales, situées avec la virgule, et les options secondaires situées après celle-ci. Les éléments clés sont le nom de la commande (=command=), les qualifieurs =if= et =in= permettant de sélectionner des unités statistiques (lignes du tableau) et le préfixe =by= qui autorise la répétition d'une même instruction pour chaque valeur prise par une variable ou par le croisement des valeurs d'une liste de variables ([[stata:varlist][varlist]]). L'argument ==exp= est réservé au cas particulier où l'on construit une variable à partir d'une expression. L'option [[stata:weight][weight]] est utilisée pour appliquer des poids d'analyse aux observations ; il peut s'agir de poids de fréquence ("fweight"), de poids de probabilité ("pweight") et de poids analytiques ("aweight"). L'argument =using filename= permet de spécifier un fichier d'entrée ou de sortie pour certaines commandes.
 
 Voici quelques illustrations de ces différentes options. Considérons le revenu annuel (en euros) et son résumé numérique produit avec [[stata:summarize][summarize]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 summarize income
-#+END_SRC
-
-#+RESULTS:
-: summarize income
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:       income |      4,779     20540.6    37422.49          0     897756
+#+end_src
 
 Le nombre total d'observations affiché par [[stata:summarize][summarize]] diffère du nombre total de lignes présentes dans la tableau, comme on peut le vérifier avec [[stata:describe][describe]] ou avec la commande [[stata:count][count]]. Il est possible de dénombrer les valeurs manquantes avec la même commande et la fonction [[stata:missing][missing]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 count
 count if missing(income)
-#+END_SRC
-
-#+RESULTS:
-: count
-:   5,411
-: count if missing(income)
-:   632
+#+end_src
 
 La sélection des observations manquantes est réalisée avec le qualifieur [[stata:if][if]]. Il est possible de raffiner le filtre de sélection en utilisant les opérateurs logiques habituels : le symbole =&= désigne la conjonction ("et" logique), =|= la disjonction ("ou"), =!= la négation. On dispose également des opérateurs de comparaison unaire =>=, =>==, =<= et =<==. Il est également possible d'utiliser les fonctions [[stata:inlist][inlist]] et [[stata:inrange][inrange]] que l'on détaillera plus loin. Seules les observations vérifiant la condition logique spécifiée après le [[stata:if][if]] seront sélectionnées. Voici un exemple où l'on dénombre les revenus non manquants parmi les femmes :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 count if missing(income) & sex == 2
-#+END_SRC
-
-#+RESULTS:
-: count if missing(income) & sex == 2
-:   367
+#+end_src
 
 Il est important de bien spécifier le code numérique et non l'étiquette associée à un niveau dans le cas d'une variable catégorielle.
 
 Considérons à présent l'âge des répondants, que l'on peut reconstruire à partir de l'année de réalisation de l'enquête (2009) et de l'année de naissance des individus :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 generate age = 2009 - ybirth
 order age, after(ybirth)
 summarize age
-#+END_SRC
-
-#+RESULTS:
-: generate age = 2009 - ybirth
-: order age, after(ybirth)
-: summarize age
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:          age |      5,411    49.50712    18.12642         17        100
+#+end_src
 
 La commande [[stata:order][order]] permet de déplacer la position d'une variables, ou plus généralement d'une [[stata:varlist][varlist]], en spécifiant en option la position relative par rapport à une variable déjà présente dans le tableau. Il est également possible d'utiliser les options =first= ou =last= pour placer la ou les variables en première ou dernière position du tableau, respectivement.
 
 Voici comment résumer numériquement cette variable pour les seuls individus pour lesquels l'information concernant le revenu est connue :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 summarize age if !missing(income)
-#+END_SRC
-
-#+RESULTS:
-: summarize age if !missing(income)
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:          age |      4,779    48.15694    17.32985         17        100
+#+end_src
 
 Enfin, il est également possible de stratifier l'analyse selon le sexe à l'aide du préfixe [[stata:by][by]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 by sex, sort : summarize age if !missing(income)
-#+END_SRC
-
-#+RESULTS:
-: by sex, sort : summarize age if !missing(income)
-: 
-: -------------------------------------------------------------------------------
-: -> sex = Male
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:          age |      2,320     47.9431    17.17362         17        100
-: 
-: -------------------------------------------------------------------------------
-: -> sex = Female
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:          age |      2,459    48.35868    17.47705         17         97
+#+end_src
 
 Comme on peut le constater, il est impératif de trier les données selon la variable de classification avant de calculer les statistiques de groupe. Le tri peut être réalisé à l'aide de [[stata:sort][sort]] avant d'appeler la commande [[stata:summarize][summarize]], ou directement via le préfixe [[stata:by][by]] ; il s'agit alors d'une option à placer après la virgule. Il est également possible d'utiliser [[stata:bysort][bysort]], qui est strictement équivalent à [[stata:by][by]] avec l'option =sort=.
 
@@ -472,62 +256,32 @@ Comme on peut le constater, il est impératif de trier les données selon la var
 
 On a déjà vu un exemple de création de variable dans les illustrations précédentes avec la commande [[stata:generate][generate]]. Voici une utilisation plus avancée où l'on construit une nouvelle variable à partir d'une expression mathématique, le logarithme du revenu :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 generate lincome = log(income)
-#+END_SRC
-
-#+RESULTS:
-: generate lincome = log(income)
-: (2,001 missing values generated)
+#+end_src
 
 L'expression ci-dessus correspond bien à la syntaxe discutée dans la [[*Syntaxe élémentaire des commandes Stata][section précédente]], =command [varlist] [=exp]=. Le résultat de cette instruction a généré de nombreuses valeurs manquantes, ce qui s'explique par la présence de revenus annuels valant 0, valeur pour laquelle le logarithme n'est pas défini, en plus des valeurs manquantes d'origine pour lesquelles le logarithme n'est pas non plus défini. Il y a au moins deux manières de pallier à ce problème : on peut remplacer l'expression =log(income)= par =log(income+1)= (l'ajout d'une unité ne devrait pas modifier foncièrement les analyses de cette variable étant donnée l'étendue des valeurs observées et la valeur de tendance centrale) ou alors on peut traiter les valeurs nulles de =income= comme des valeurs manquantes. Dans le second cas de figure, pour être à même de distinguer les valeurs manquantes d'origine des valeurs imputées, il convient d'utiliser un code de valeur manquante différent. Voici comment procéder :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 cap drop lincome
 mvdecode income, mv(0=.c)
 generate lincome = log(income)
-#+END_SRC
-
-#+RESULTS:
-: cap drop lincome
-: mvdecode income, mv(0=.c)
-:       income: 1369 missing values generated
-: generate lincome = log(income)
-: (2,001 missing values generated)
+#+end_src
 
 Voici un résumé des valeurs manquantes présentes dans ces deux variables :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 misstable summarize *income
-#+END_SRC
-
-#+RESULTS:
-: misstable summarize *income
-:                                                                Obs<.
-:                                                 +------------------------------
-:                |                                | Unique
-:       Variable |     Obs=.     Obs>.     Obs<.  | values        Min         Max
-:   -------------+--------------------------------+------------------------------
-:         income |       632     1,369     3,410  |   >500         46      897756
-:        lincome |     2,001               3,410  |   >500   3.828641    13.70765
-:   -----------------------------------------------------------------------------
-
+#+end_src
 
 On pourra vérifier que la transformation logarithmique a contribué à stabiliser quelque peu la variance et à symétriser la distribution, même si celle-ci reste loin d'une distribution normale.
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 set scheme plotplain
 label variable lincome "Annual income in euros (log)"
 graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
 graph export "fig-01-histogram-lincome.eps", fontface(DroidSans) replace
-#+END_SRC
-
-#+RESULTS:
-: set scheme plotplain
-: label variable lincome "Annual income in euros (log)"
-: graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
-: graph export "fig-01-histogram-lincome.eps", fontface(DroidSans) replace
-: (file fig-01-histogram-lincome.pdf written in PDF format)
+#+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros)
 #+NAME:      fig:01-histogram-lincome
@@ -542,79 +296,33 @@ Il est préférable de travailler avec des noms de variables court, en minuscule
 
 La commande =label= est une méta commande qui comporte plusieurs sous commandes. Ainsi, avec [[stata:label+variable][label variable]] il est possible de donner un intitulé bref à la variable elle-même. Prenons le cas de la variable =lincome= créée à l'étape précédente. 
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 label variable lincome "Annual income in euros (log)"
-#+END_SRC
-
-#+RESULTS:
-: label variable lincome "Annual income in euros (log)"
+#+end_src
 
 Une fois étiquetté, le libellé des variables apparaîtra dans les sorties de [[stata:describe][describe]], [[stata:codebook][codebook]], les graphiques et les tableaux :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 codebook lincome
-#+END_SRC
-
-#+RESULTS:
-: codebook lincome
-: 
-: -------------------------------------------------------------------------------
-: lincome                                            Annual income in euros (log)
-: -------------------------------------------------------------------------------
-: 
-:                   type:  numeric (float)
-: 
-:                  range:  [3.8286414,13.707654]        units:  1.000e-07
-:          unique values:  3,286                    missing .:  2,001/5,411
-: 
-:                   mean:   9.77026
-:               std. dev:   1.12441
-: 
-:            percentiles:        10%       25%       50%       75%       90%
-:                            8.25946   9.21433   10.0363   10.5168   10.8828
+#+end_src
 
 Quant aux variables catégorielles, on a vu qu'il s'agit essentiellement de variables représentées sous forme d'entiers consécutifs, $\{1,2,\dots,k\}$, ou de valeurs 0/1 dans le cas des variables binaires, auxquels on associe des étiquettes. Ceci est réalisé avec les commandes [[stata:label+define][label define]] et [[stata:label+values][label values]], comme illustré dans l'exemple suivant :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 generate insample = !missing(lincome)
 label define insample 0 "Not analyzed (income = .)" 1 "In sample (income > .)"
 label values insample insample
-#+END_SRC
+#+end_src
 
-#+RESULTS:
-: generate insample = !missing(lincome)
-:  "
-: label values insample insample
-
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate insample
-#+END_SRC
-
-#+RESULTS:
-: tabulate insample
-: 
-:                  insample |      Freq.     Percent        Cum.
-: --------------------------+-----------------------------------
-: Not analyzed (income = .) |      2,001       36.98       36.98
-:    In sample (income > .) |      3,410       63.02      100.00
-: --------------------------+-----------------------------------
-:                     Total |      5,411      100.00
+#+end_src
 
 Notons que l'on utilise souvent le même nom d'étiquette que le nom de la variable lorsque ce jeu d'étiquette de niveaux est réellement spécifique de cette variable. Le cas échéant, un même jeu d'étiquettes peut être appliqué à une liste de variables. C'est le cas par exemple pour les variables =wor*= :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 label list concern3
-#+END_SRC
-
-#+RESULTS:
-: label list concern3
-: concern3:
-:            1 Very concerned
-:            2 Somewhat concerned
-:            3 Not concerned at all
-:           .a Refusal
-:           .b Does not apply
-:           .c Inconsistent
+#+end_src
 
 Enfin, il est possible d'annoter un tableau ou une variable à l'aide de la commande [[stata:note][note]]. Un usage courant consiste à indiquer pour le tableau sa date de création et la source des données, et pour les variables les éventuelles transformations ou révisions qu'elles ont subi.
 
@@ -622,18 +330,10 @@ Enfin, il est possible d'annoter un tableau ou une variable à l'aide de la comm
 
 Si la précision automatiquement choisie par Stata n'est pas indispensable à l'interprétation des résultats ou si l'on souhaite simplement appliquer automatiquement un arrondi des valeurs, la commande [[stata:format][format]] permet de modifier le format d'affichage global d'une ou plusieurs variables. Notons que les formats d'affichage peuvent également s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 format age %5.2f
 summarize age, format
-#+END_SRC
-
-#+RESULTS:
-: format age %5.2f
-: summarize age, format
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:          age |      5,411       49.51       18.13      17.00     100.00
+#+end_src
 
 ** Gestion des dates
 
@@ -647,77 +347,25 @@ Pour la conversion de dates gérées sous d’autres logiciels statistiques (S
 
 Par recodage, on entend la discrétisation d'une variable numérique en variable catégorielle à plusieurs classes ou niveaux, ainsi que la transformation d'une variable catégorielle (création ou agrégation de niveaux).
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 xtile age4 = age, nq(4)
 tabulate age4
-#+END_SRC
-
-#+RESULTS:
-: xtile age4 = age, nq(4)
-: tabulate age4
-: 
-: 4 quantiles |
-:      of age |      Freq.     Percent        Cum.
-: ------------+-----------------------------------
-:           1 |      1,410       26.06       26.06
-:           2 |      1,395       25.78       51.84
-:           3 |      1,255       23.19       75.03
-:           4 |      1,351       24.97      100.00
-: ------------+-----------------------------------
-:       Total |      5,411      100.00
-
+#+end_src
 
 La variable =egp= représente la classe socio-économique (selon la nomenclature allemande) des répondants et elle est composée de 9 classes, en omettant les valeurs traitées comme manquantes (étiquettées "Refusal" et "Does not apply"). On peut construire très facilement le tableau d'effectifs associés à l'aide de [[stata:tabulate][tabulate]], l'option =missing= permettant de dénombrer les valeurs manquantes :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate egp, missing
-#+END_SRC
-
-#+RESULTS:
-: tabulate egp, missing
-: 
-:                 Social Class (EGP) |      Freq.     Percent        Cum.
-: -----------------------------------+-----------------------------------
-:                    Service class 1 |        354        6.54        6.54
-:                    Service class 2 |        739       13.66       20.20
-:         Higher routine non-manuals |        296        5.47       25.67
-:          Lower routine non-manuals |        373        6.89       32.56
-:                      Self-Employed |        213        3.94       36.50
-:             Skilled manual workers |        486        8.98       45.48
-: Semi- and unskilled manual workers |        627       11.59       57.07
-:                         unemployed |        312        5.77       62.83
-:                            Retired |      1,389       25.67       88.50
-:                            Refusal |         24        0.44       88.95
-:                     Does not apply |        598       11.05      100.00
-: -----------------------------------+-----------------------------------
-:                              Total |      5,411      100.00
-
+#+end_src
 
 Supposons que l'on souhaite recoder cette variable en 3 classes, en ignorant les classes "unemployed" et "Retired", ainsi que les valeurs manquantes. Pour cela, on utilisera la commande [[stata:recode][recode]] en indiquant le schéma d'aggrégation des classes dans une liste de clauses et le nom de la nouvelle variable à générer puisque le cas échéant [[stata:recode][recode]] agit comme une commande [[stata:replace][replace]]. Voici un exemple d'utilisation :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
 label define egp3 1 "Service class 1/2" 2 "Non-manuals" 3 "Manuals"
 label values egp3 egp3
 tabulate egp3
-#+END_SRC
-
-#+RESULTS:
-: recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
-: (4435 differences between egp and egp3)
-: label define egp3 1 "Service class 1/2" 2 "Non-manuals" 3 "Manuals"
-: label values egp3 egp3
-: tabulate egp3
-: 
-:     RECODE of egp |
-:     (Social Class |
-:            (EGP)) |      Freq.     Percent        Cum.
-: ------------------+-----------------------------------
-: Service class 1/2 |      1,093       35.40       35.40
-:       Non-manuals |        882       28.56       63.96
-:           Manuals |      1,113       36.04      100.00
-: ------------------+-----------------------------------
-:             Total |      3,088      100.00
+#+end_src
 
 
 * Transformation d'un tableau
@@ -726,47 +374,25 @@ tabulate egp3
 
 On a vu que la commande [[stata:drop][drop]] permet de supprimer une ou plusieurs variables dans un tableau de données. En réalité cette commande fonctionne également pour filtrer des observations, de même que [[stata:keep][keep]] qui permet, au contraire, de conserver des variables ou des observations. Dans l'enquête socio-économique, supposons que l'on souhaite ne conserver pour les analyses que les personnes majeures (=age > 17=), il suffirait d'utiliser l'une de ces deux commandes. Par exemple :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 keep if age > 17 & !missing(age)
 count
-#+END_SRC
-
-#+RESULTS:
-: keep if age > 17 & !missing(age)
-: (0 observations deleted)
-: count
-:   5,345
+#+end_src
 
 Les procédures de tri, comme on l'a déjà dit, sont essentielles pour travailler efficacement avec Stata. Stata dispose de deux commandes pour réaliser des tri croissants (=sort=) ou dans les deux directions (=gsort=), bien que dans la commande générique reste la commande [[stata:sort][sort]]. Celle-ci agit également comme option dans le cas du préfixe [[stata:by][by]]. Si un tableau est trié sur une ou plusieurs variables, la commande [[stata:describe][describe]] l'indique à la suite de la liste des variables. Dasn le cas de l'enquête socio-économique, les données sont triées selon la variable =persnr=.
 
 Voici un exemple plus élaboré, tiré directement de l'ouvrage de Kohler & Kreuter cite:kohler-2012-data-analy :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 by hhnr2009 (rel2head), sort: generate agediff = ybirth - ybirth[_n-1] if rel2head == 2
-#+END_SRC
+#+end_src
 
 Cette instruction permet de calculer la différence d'âge entre le père de famille (=head=) et sa partenaire (=partner=) dans chacun des foyers. La subtilité vient du tri primaire sur la variable =hhnr2009= (foyer) puis du tri secondaire sur la variable =rel2head= (situation familiale des répondants) sans que ce dernier ne soit utilisé pour grouper les opérations sous le préfixe [[stata:by][by]]. La condition =if rel2head==2= permet de s'assurer que l'on effectue bien le calcule dans le cas où il existe au moins deux personnes dans le foyer.
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate rel2head if rel2head < 3
 summarize agediff
-#+END_SRC
-
-#+RESULTS:
-: tabulate rel2head if rel2head < 3
-: 
-:   Relationship |
-:     to HH Head |      Freq.     Percent        Cum.
-: ---------------+-----------------------------------
-:           Head |      3,045       64.50       64.50
-:        Partner |      1,676       35.50      100.00
-: ---------------+-----------------------------------
-:          Total |      4,721      100.00
-: summarize agediff
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:      agediff |      1,672    1.358852    5.168304        -27         33
+#+end_src
 
 ** Optimisation de la taille mémoire
 
@@ -778,19 +404,9 @@ La taille d'un tableau de données peut être approximée de la manière suivant
 
 Dans le cas de l'enquête socio-économique, la taille en mémoire du tableau est d'environ 568 Ko :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 describe, short
-#+END_SRC
-
-#+RESULTS:
-: describe, short
-: 
-: Contains data from data/gsoep09.dta
-:   obs:         5,411                          SOEP 2009 (Kohler/Kreuter)
-:  vars:            65                          13 Feb 2012 17:08
-:  size:       568,155                          
-: Sorted by: persnr
-
+#+end_src
 
 On ne gagnera rien à compresser ce tableau dans la mesure où il est déjà optimisé mais cela vaut souvent la peine de vérifier si le gain de taille est substantiel ou non avant de sauvegarder la version finale d'une base de données.
 
@@ -798,68 +414,28 @@ On ne gagnera rien à compresser ce tableau dans la mesure où il est déjà opt
 
 Par agrégation on entend le procédé qui consiste à réduire un ensemble d'observations à une valeur unique, typiquement un indicateur de tendance centrale ou l'effectif total, selon différentes variables de classification. Par exemple, dans cette enquête socio-économique, on pourrait vouloir calculer le revenu médian par "lander" (=state=) selon le sexe et la classe d'âge. Voici une manière de procéder avec la commande [[stata:collapse][collapse]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 preserve
 collapse (p50) income, by(sex age4)
 list
-#+END_SRC
-
-#+RESULTS:
-: collapse (p50) income, by(sex age4)
-: list
-: 
-:      +--------------------------+
-:      |    sex   age4     income |
-:      |--------------------------|
-:   1. |   Male      1      12588 |
-:   2. |   Male      2   36248.25 |
-:   3. |   Male      3   28620.75 |
-:   4. |   Male      4          0 |
-:   5. | Female      1     7327.5 |
-:      |--------------------------|
-:   6. | Female      2    16974.5 |
-:   7. | Female      3    13534.5 |
-:   8. | Female      4          0 |
-:      +--------------------------+
-
+#+end_src
 
 Pour revenir au tableau d'origine, on utilisera [[stata:restore][restore]] :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 restore
 list sex age4 income in 1/5
-#+END_SRC
-
-#+RESULTS:
-: restore
-: nothing to restore
-: r(622);
-: list sex age4 income in 1/5
-: 
-:      +--------------------------+
-:      |    sex   age4     income |
-:      |--------------------------|
-:   1. |   Male      1      12588 |
-:   2. |   Male      2   36248.25 |
-:   3. |   Male      3   28620.75 |
-:   4. |   Male      4          0 |
-:   5. | Female      1     7327.5 |
-:      +--------------------------+
-
+#+end_src
 
 La commande [[stata:contract][contract]] permet de construire un tableau de données agrégées selon le même procédé mais en travaillant avec des effectifs ou des fréquences.
 
 ** Fusion de sources de données
 
-merge
-
-append
+[[stata:merge][merge]] et [[stata:append][append]]
 
 ** Mode de représentation rectangulaire
 
-fillin
-
-reshape
+[[stata:fillin][fillin]] et [[stata:reshape][reshape]]
 
 
 * Tableaux de description avancés
@@ -868,37 +444,14 @@ reshape
 
 Comme discuté précédemment, le préfixe [[stata:by][by]] permet de répéter une même opération selon les valeurs prises par une ou plusieurs variables, de sorte que l'instruction suivante permet de construire très rapidement des résumés descriptifs : (c'est même en réalité la manière la plus rapide de calculer des statistiques simples)
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 bysort sex: summarize income
-#+END_SRC
+#+end_src
 
-#+RESULTS:
-: bysort sex: summarize income
-: 
-: -------------------------------------------------------------------------------
-: -> sex = Male
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:       income |      2,320    28190.75    47868.24          0     897756
-: 
-: -------------------------------------------------------------------------------
-: -> sex = Female
-: 
-:     Variable |        Obs        Mean    Std. Dev.       Min        Max
-: -------------+---------------------------------------------------------
-:       income |      2,459    13322.89    21286.44          0     612757
-
-
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
 graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
-#+END_SRC
-
-#+RESULTS:
-: graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
-: graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
-: (file fig-01-histogram-lincome-sex.pdf written in PDF format)
+#+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
 #+NAME:      fig:02-bar-lincome-sex
@@ -907,38 +460,18 @@ graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-01-histogram-lincome-sex.png]]
 
-
 Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabulate egp3, summarize(income)
-#+END_SRC
-
-#+RESULTS:
-: tabulate egp3, summarize(income)
-: 
-:   RECODE of |
-: egp (Social |     Summary of Individual Labor
-:       Class |              Earnings
-:      (EGP)) |        Mean   Std. Dev.       Freq.
-: ------------+------------------------------------
-:   Service c |   43173.777   59488.269       1,085
-:   Non-manua |   26257.868   29320.051         868
-:     Manuals |   21393.534   14701.953       1,102
-: ------------+------------------------------------
-:       Total |   30510.983   40867.757       3,055
+#+end_src
 
 Un diagramme en points cite:cleveland-1985-elemen-graph-data, qui reste préférable à un diagramme en barres, pour le même indicateur de tendance centrale que ci-dessus peut être construit à l'aide de ces instructions :[fn:3]
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
 graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
-#+END_SRC
-
-#+RESULTS:
-:  e("Log income")
-: graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
-: (file fig-01-bar-lincome-sex.pdf written in PDF format)
+#+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
 #+NAME:      fig:02-bar-lincome-sex
@@ -951,37 +484,18 @@ graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
 
 La commande [[stata:tabstat][tabstat]] permet au contraire de spécifier la liste des statistiques d'intérêt via l'option =stats=. La variable de stratification est indiquée dans l'option =by= (il ne peut y en avoir qu'une seule). Pour reproduire le résumé en 5 points de Tukey disponible sous R, on peut formuler la commande de la manière suivante :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 tabstat lincome, by(sex) stats(min q max)
-#+END_SRC
-
-#+RESULTS:
-: tabstat lincome, by(sex) stats(min q max)
-: 
-: Summary for variables: lincome
-:      by categories of: sex (Gender)
-: 
-:              sex |       min       p25       p50       p75       max
-: -----------------+--------------------------------------------------
-:             Male |  3.828641  9.719625  10.34229  10.73068  13.70765
-:           Female |   5.09375  8.738494  9.701647  10.22274  13.32572
-: -----------------+--------------------------------------------------
-:            Total |  3.828641  9.214333  10.03631  10.51678  13.70765
-: --------------------------------------------------------------------
+#+end_src
 
 Le symbole =q= est équivalent à utiliser =p25 p50 p75= pour reporter les trois quartiles.
 
 En guise de représentation graphique, il existe les diagrammes en forme de boîtes à moustaches que l'on peut conditionner sur une variable de classification comme dans l'exemple suivant :
 
-#+BEGIN_SRC stata :session :results output :exports code
+#+begin_src stata :session :results output :exports code
 graph box lincome, over(sex)
 graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
-#+END_SRC
-
-#+RESULTS:
-: graph box lincome, over(sex)
-: graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
-: (file fig-01-box-lincome-sex.pdf written in PDF format)
+#+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe
 #+NAME:      fig:03-box-lincome-sex
@@ -994,53 +508,30 @@ graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
 
 La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. En l'absence de contenu à résumer, [[stata:table][table]] se comporte comme [[stata:tabulate+twoway][tabulate twoway]].
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 table egp3 sex, column
-#+END_SRC
-
-#+RESULTS:
-: table egp3 sex, column
-: 
-: ------------------------------------------
-: RECODE of egp     |
-: (Social Class     |         Gender        
-: (EGP))            |   Male  Female   Total
-: ------------------+-----------------------
-: Service class 1/2 |    569     524   1,093
-:       Non-manuals |    290     592     882
-:           Manuals |    717     396   1,113
-:                .a |     11      13      24
-:                .b |    185     413     598
-: ------------------------------------------
+#+end_src
 
 Attention, contrairement à [[stata:tabstat][tabstat]], dans le cas où l'on spécifie l'option =content= le symbole =q= ne se substitue pas à =p25 p50 p75=. Concernant les critères de classification, on distingue les variables définissant les lignes et les colonnes, ainsi qu'une variable "super-colonne" en troisième position, indiquées juste avant le séparateur d'options, et une variable "super-ligne" indiquée dans une option =by=. Qui plus est, la commande [[stata:table][table]] est "byable", ce qui signifie que l'on peut inclure jusqu'à cinq variables de stratification. Voici un exemple de tableau croisant les niveaux de deux variables catégorielles pour chacun desquels on calcule la médiane du revenu. Le formatage des résultats numériques, ici arrondi à l'entier le plus proche, se fait directement via l'option =format= :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+begin_src stata :session :results output :exports both
 table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
-#+END_SRC
-
-#+RESULTS:
-: table egp3 sex if !missing(egp3), content(p50 income) format(%5.0f)
-: 
-: ----------------------------------
-: RECODE of egp     |
-: (Social Class     |     Gender    
-: (EGP))            |   Male  Female
-: ------------------+---------------
-: Service class 1/2 |  45799   25122
-:       Non-manuals |  31134   16928
-:           Manuals |  26963   10066
-: ----------------------------------
+#+end_src
 
 ** Analyses pondérées
 
+#TODO
+
 ** Commandes additionnelles
+
+#TODO
 
 ** Exportation des tableaux
 
-
+#TODO
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
+
 
 * Footnotes
 
