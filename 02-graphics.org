@@ -14,6 +14,9 @@ Les données qui serviront de base à la plupart des illustrations de ce chapitr
 
 #+BEGIN_SRC stata :session :results output :exports both
 set scheme plotplain
+// translator set gph2eps fontface "Droid Sans"
+// Stata 13 does not know how to deal with Graph2pdf from a terminal... 
+// Switching to EPS like in the 80s
 use data/gsoep09
 describe, short
 describe, simple
@@ -25,10 +28,7 @@ Voici un aperçu des données sous forme de listing des premières observations 
 list persnr-sex in 1/5
 #+END_SRC
 
-
-
 * Graphiques univariés de base
-
 
 ** Fonction de répartition et fractiles
 
@@ -50,7 +50,7 @@ Dans un premier temps, examinons la courbe des quantiles produite par la command
 
 #+BEGIN_SRC stata :session :results output :exports code
 quantile age
-graph export "fig-02-quantile-age.pdf", fontface(DroidSans) replace
+graph export "fig-02-quantile-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution des fractiles d'âge
@@ -66,7 +66,7 @@ Pour la fonction de répartition, si l'on ne souhaite pas passer par des package
 cumul age, gen(agecum)
 sort agecum
 graph twoway line agecum age, ytitle(F(x)) yline(.25 .75, lwidth(thin))
-graph export "fig-02-cumul-age.pdf", fontface(DroidSans) replace
+graph export "fig-02-cumul-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Fonction de répartition empirique de l'âge
@@ -80,7 +80,7 @@ Un graphique tout aussi intéressant consiste à afficher les fractiles d'une va
 
 #+BEGIN_SRC stata :session :results output :exports code
 qnorm age, grid
-graph export "fig-02-qnorm-age.pdf", fontface(DroidSans) replace
+graph export "fig-02-qnorm-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Diagramme quantile-quantile pour l'âge
@@ -90,15 +90,13 @@ graph export "fig-02-qnorm-age.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-02-qnorm-age.png]]
 
-
 ** Histogrammes et courbes de densité
 
-
-Pour construire un histogramme de cette variable, on utilisera la commande [[stata:histogram][histogram]], en précisant l'option =freq= si l'on souhaite afficher les effectifs ("fréquences" en anglais) plutôt que la densité :
+Pour construire un histogramme de cette même variable (=age=), on utilisera la commande [[stata:histogram][histogram]], en précisant l'option =freq= si l'on souhaite afficher les effectifs ("fréquences" en anglais) plutôt que la densité :
 
 #+BEGIN_SRC stata :session :results output :exports code
 histogram age, xtitle("Age des participants")
-graph export "fig-02-histogram-age.pdf", fontface(DroidSans) replace
+graph export "fig-02-histogram-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants
@@ -113,7 +111,7 @@ Notons que cette commande dispose de l'option =by()= des commandes [[stata:twowa
 #+BEGIN_SRC stata :session :results output :exports code
 label variable age "Age des participants"
 histogram age, bin(15) by(sex)
-graph export "fig-02-histogram-age-sex.pdf", fontface(DroidSans) replace
+graph export "fig-02-histogram-age-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
@@ -123,14 +121,13 @@ graph export "fig-02-histogram-age-sex.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-02-histogram-age-sex.png]]
 
-
-Une courbe de densité empirique
+# FIXME Une courbe de densité empirique
 
 Rappelons que la fonction de densité, $f_X$, et la fonction de répartition, $F_X(x)$, discutée plus haut sont liées par une relation simple. Dans le cas continu, $F_X(x) = \int_{-\infty}^x f_X(t)\, \mathrm{d}t$.
 
 #+BEGIN_SRC stata :session :results output :exports code
 kdensity age, normal bw(5) lwidth(0.8)
-graph export "fig-02-kdensity-age.pdf", fontface(DroidSans) replace
+graph export "fig-02-kdensity-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
@@ -142,7 +139,7 @@ graph export "fig-02-kdensity-age.pdf", fontface(DroidSans) replace
 
 #+BEGIN_SRC stata :session :results output :exports code
 graph twoway kdensity age, by(sex)
-graph export "fig-02-kdensity-age-sex.pdf", fontface(DroidSans) replace
+graph export "fig-02-kdensity-age-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
@@ -152,6 +149,22 @@ graph export "fig-02-kdensity-age-sex.pdf", fontface(DroidSans) replace
 #+ATTR_ORG:  :width 100
 [[./fig-02-kdensity-age-sex.png]]
 
+Notons qu'une alternative aux histogrammes consiste à utiliser un diagramme en points à l'aide de [[stata:dotplot][dotplot]]. Dans ce cas, chaque point représente une observation (idéal pour les petits échantillons), mais cette commande se prête mieux aux cas où l'on souhaite 2 ou plusieurs distributions, grâce à son option =over()=. Voici une illustration, avec un petit échantillon aléatoire de la base de données (la commande =gsample= doit être installée au préalable) :
+
+#+BEGIN_SRC stata :session :results output :exports code
+preserve
+gsample 5, percent strata(sex)
+dotplot age, over(sex) center median
+graph export "fig-02-dotplot-age.eps", replace
+restore
+#+END_SRC
+
+#+CAPTION:   Distribution de l'âge selon le sexe
+#+NAME:      fig:02-dotplot-age
+#+LABEL:     fig:02-dotplot-age
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-dotplot-age.png]]
 
 ** Diagrammes en barres et en points
 
@@ -159,7 +172,7 @@ Bien qu'il existe une commande graphique pour tracer des diagrammes en barres, [
 
 #+BEGIN_SRC stata :session :results output :exports code
 histogram edu, discrete freq addlabels
-graph export "fig-02-histogram-edu.pdf", fontface(DroidSans) replace
+graph export "fig-02-histogram-edu.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
@@ -173,7 +186,7 @@ Comme on peut le voir, la figure [[fig:02-histogram-edu]] est loin d'être parfa
 
 #+BEGIN_SRC stata :session :results output :exports code
 histogram edu, discrete freq addlabels gap(10) xla(1/5, valuelabel noticks ang(45))
-graph export "fig-02-histogram-edu-v2.pdf", fontface(DroidSans) replace
+graph export "fig-02-histogram-edu-v2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
@@ -189,7 +202,53 @@ Pour réaliser un tel diagramme en utilisant [[stata:graph bar][graph bar]], il 
 graph bar (count) persnr, over(edu) asyvars percent showyvars bargap(10) ytitle("Proportion") legend(off)
 #+END_SRC
 
+Les diagrammes en points, encore appelé "dotplot" ou "dotchart" de Cleveland cite:cleveland-1985-elemen-graph-data, suivent le même principe que les diagrammes en barres. La commande [[stata:graph dot][graph dot]] peut être utilisée en lieu et place de [[stata:graph bar][graph bar]] ci-dessus, mais il est également possible et recommendé d'installer le package [[https://ideas.repec.org/c/boc/bocode/s431501.html][catplot]]. Celui-ci permet de représenter la distribution simple ou jointe de variables catégorielles, entre autres :
 
+#+BEGIN_SRC stata :session :results output :exports code
+catplot edu
+graph export "fig-02-catplot-edu.eps", replace
+#+END_SRC
+
+#+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
+#+NAME:      fig:02-catplot-edu
+#+LABEL:     fig:02-catplot-edu
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-catplot-edu.png]]
+
+Et voici dans le cas où l'on croise deux variables, grâce à l'option =by()= (il est également possible d'indiquer deux variables après le nom de la commande) :
+
+#+BEGIN_SRC stata :session :results output :exports code
+catplot edu, by(sex) percent
+graph export "fig-02-catplot-edu-v2.eps", replace
+#+END_SRC
+
+#+CAPTION:   Distribution selon les niveaux d'éducation et le sexe (%)
+#+NAME:      fig:02-catplot-edu-v2
+#+LABEL:     fig:02-catplot-edu-v2
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-catplot-edu-v2.png]]
+
+** Diagramme de dispersion
+
+Un diagramme e dispersion permet de représenter sous forme d'un nuage de points la covariation entre deux séries numériques. 
+
+#+BEGIN_SRC stata :session :results output :exports code
+generate lincome = log(income) if income > 0
+scatter lincome age, ms(oh)
+graph export "fig-02-scatter-income.eps", replace
+#+END_SRC
+
+#+CAPTION:   Distribution jointe du revenu (log) et de l'âge
+#+NAME:      fig:02-scatter-income
+#+LABEL:     fig:02-scatter-income
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-scatter-income.png]]
+
+À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, le cas échéant il est possible de modifier le type de symbole qui est utilisé dans le cas où le nombre de points est assez grand ou que ces derniers se retrouvent superposés. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
+
+* Commandes de post-estimation
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
-
