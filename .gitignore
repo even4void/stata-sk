@@ -1,6 +1,6 @@
 .auctex-auto/
 dist/
-fig-*.pdf
+fig-*.eps
 deploy.sh
 history.txt
 references.html

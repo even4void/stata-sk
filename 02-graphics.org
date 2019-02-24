@@ -132,24 +132,12 @@ kdensity age, normal bw(5) lwidth(0.8)
 graph export "fig-02-kdensity-age.eps", replace
 #+end_src
 
-#+CAPTION:   Distribution de l'âge des répondants selon le sexe
+#+CAPTION:   Distribution de l'âge des répondants
 #+NAME:      fig:02-kdensity-age
 #+LABEL:     fig:02-kdensity-age
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-02-kdensity-age.png]]
-
-#+begin_src stata :session :results output :exports code
-graph twoway kdensity age, by(sex)
-graph export "fig-02-kdensity-age-sex.eps", replace
-#+end_src
-
-#+CAPTION:   Distribution de l'âge des répondants selon le sexe
-#+NAME:      fig:02-kdensity-age-sex
-#+LABEL:     fig:02-kdensity-age-sex
-#+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
-[[./fig-02-kdensity-age-sex.png]]
 
 Notons qu'une alternative aux histogrammes consiste à utiliser un diagramme en points à l'aide de [[stata:dotplot][dotplot]]. Dans ce cas, chaque point représente une observation (idéal pour les petits échantillons), mais cette commande se prête mieux aux cas où l'on souhaite 2 ou plusieurs distributions, grâce à son option =over()=. Voici une illustration, avec un petit échantillon aléatoire de la base de données (la commande =gsample= doit être installée au préalable) :
 
@@ -234,7 +222,7 @@ graph export "fig-02-catplot-edu-v2.eps", replace
 
 ** Diagramme de dispersion
 
-Un diagramme e dispersion permet de représenter sous forme d'un nuage de points la covariation entre deux séries numériques. 
+Un diagramme de dispersion permet de représenter sous forme d'un nuage de points la covariation entre deux séries numériques. 
 
 #+begin_src stata :session :results output :exports code
 generate lincome = log(income) if income > 0
@@ -250,6 +238,145 @@ graph export "fig-02-scatter-income.eps", replace
 [[./fig-02-scatter-income.png]]
 
 À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, le cas échéant il est possible de modifier le type de symbole qui est utilisé dans le cas où le nombre de points est assez grand ou que ces derniers se retrouvent superposés. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
+
+* Graphiques composites
+
+** Représentations graphiques conditionnelles
+
+On entend par représentation graphique conditionnelle 
+
+Voici un exemple d'une courbe de densité de l'âge calculée séparément chez les hommes et chez les femmes dans cet échantillon :
+
+#+begin_src stata :session :results output :exports code
+graph twoway kdensity age, by(sex)
+graph export "fig-02-kdensity-age-sex.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge des répondants selon le sexe
+#+NAME:      fig:02-kdensity-age-sex
+#+LABEL:     fig:02-kdensity-age-sex
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-kdensity-age-sex.png]]
+
+Il n'est pas possible de superposer les deux courbes à l'aide de =over()= mais l'on peut toujours combiner les deux commandes graphiques grâce à [[stata:twoway][twoway]]. Dans ce cas, il ne faudra pas oublier de préciser dans une légende à quel niveau de =sex= les deux courbes correspondent :
+
+#+begin_src stata :session :results output :exports code
+graph twoway (kdensity age if sex == 1, bw(5)) (kdensity age if sex == 2, bw(5)), xtitle("Age") ytitle("Density") legend(label(1 "Male") label(2 "Female"))
+graph export "fig-02-kdensity-age-sex-v2.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge des répondants selon le sexe
+#+NAME:      fig:02-kdensity-age-sex-v2
+#+LABEL:     fig:02-kdensity-age-sex-v2
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-kdensity-age-sex-v2.png]]
+
+
+Les représentations graphiques sous forme de "boîtes à moustaches" constituent un bon exemple d'application des graphiques conditionnnels dans la mesure où l'aspect compact de ce résumé numérique mis en forme visuellement permet de juxtaposer de nombreuses distributions. Considérons la variable =egp= qui représente la classe socio-économique des répondants, recodée en 3 classes après exclusion des personnes sans revenu ou inactives :
+
+#+begin_src stata :session :results output :exports both
+recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
+label define egp3 1 "Service class 1/2" 2 "Non-manuals & self-employed" 3 "Manuals"
+label values egp3 egp3
+tabstat age, by(egp3) stat(min q max)
+#+end_src
+
+Voici la même représentation des quartiles de la distribution de =age=, mais sous forme graphique cette fois :
+
+#+begin_src stata :session :results output :exports code
+graph box age, over(egp3) ytitle("Age")
+graph export "fig-02-box-age-egp.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
+#+NAME:      fig:02-box-age-egp
+#+LABEL:     fig:02-box-age-egp
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-box-age-egp.png]]
+
+
+#+begin_src stata :session :results output :exports code
+dotplot age, over(egp3) xtitle("") ytitle("Age") ms(S)
+graph export "fig-02-dotplot-age-egp.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
+#+NAME:      fig:02-dotplot-age-egp
+#+LABEL:     fig:02-dotplot-age-egp
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-dotplot-age-egp.png]]
+
+Le package [[https://ideas.repec.org/c/boc/bocode/s433401.html][stripplot]] peut également être utilisé afin de représenter les distributions conditionnelles sous forme de diagrammes en points, à l'image de [[stata:dotplot][dotplot]]. On utiliserait, par exemple, =stripplot age, over(egp3)=.
+
+** Combinaison de sous-graphiques
+
+Il n'est parfois pas toujours possible de reposer sur les options =by()= ou =over()= afin de combiner des sous-graphiques comme on le souhaiterait. La commande [[stata:graph combine][graph combine]] permet d'assembler n'importe quel graphique sauvegardé en mémoire ou sur le disque (en format =gph=). Voici un exemple d'utilisation avec une série chronologique disponible sur internet. Il s'agit d'un ensemble de 144 observations sur le volume mensuel de passagers sur les vols internationataux
+
+#+begin_src stata :session :results output :exports both
+webuse air2, clear
+list in 1/5
+#+end_src
+
+L'évolution du nombre de passagers au cours du temps est relativement simple à visualiser à l'aide de [[stata:scatter][scatter]] :
+
+#+begin_src stata :session :results output :exports code
+scatter air time, m(o) c(l)
+graph export "fig-02-scatter-air-time.eps", replace
+#+end_src
+
+#+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
+#+NAME:      fig:02-scatter-air-time
+#+LABEL:     fig:02-scatter-air-time
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-scatter-air-time.png]]
+
+Supposons que l'on souhaite afficher la même évolution du volume de passagers entre 1949 et 1961 mais, cette fois-ci, conditionnellement au mois de l'année. Pour cela, il est nécessaire de créer deux nouvelles variables :
+
+#+begin_src stata :session :results output :exports both
+generate y = floor(time)
+generate m = mod(t, 12)
+replace m = 12 if m == 0
+label define m 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+label values m m
+#+end_src
+
+Et voici ce que donnerait une telle représentation graphique en utilisant [[stata:scatter][scatter]]. Notons que l'on pourrait grandement simplifier cette commande en utilisant les commandes graphiques spécifiques des données de panel ou des séries chronologiques ([[stata:tsline][tsline]]) :
+
+#+begin_src stata :session :results output :exports code
+scatter air y, by(m, note("")) c(l) m(none) xtitle("")
+graph export "fig-02-scatter-air-time-v2.eps", replace
+#+end_src
+
+#+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
+#+NAME:      fig:02-scatter-air-time-v2
+#+LABEL:     fig:02-scatter-air-time-v2
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-scatter-air-time-v2.png]]
+
+À présent, on souhaiterait afficher dans chaque sous-graphique la distribution des autres mois, afin de servir de référence. Or il n'est pas possible d'utiliser d'option =over()= dans ce cas-là. En revanche, on peut générer les 12 graphiques et les assembler à l'aide de [[stata:graph combine][graph combine]]. Dans un premier temps, il est nécessaire de séparer les différents sous-groupes de données :
+
+#+begin_src stata :session :results output :exports code
+quietly separate air, by(m) gen(mm)
+forvalues j = 1/12 {
+  scatter mm* y, recast(line) lc(gs12 ...) lp(solid ...) xla(1949(2)1960) legend(off) title(mmonth) || line air y if m == `j', lp(solid) lw(medthick) xtitle("") title("`: label m `j''") name(p`j')
+}
+graph combine p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12, rows(3) cols(4)
+graph export "fig-02-scatter-air-time-v3.eps", replace
+graph drop _all
+#+end_src
+
+#+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
+#+NAME:      fig:02-scatter-air-time-v3
+#+LABEL:     fig:02-scatter-air-time-v3
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-scatter-air-time-v3.png]]
 
 
 * Commandes de post-estimation

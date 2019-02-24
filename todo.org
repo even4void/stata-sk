@@ -40,6 +40,7 @@
 - [ ] Update README (cite only)
 - [ ] Review Stata books
 - [ ] More examples (econometrics, social sciences) + overview page
+- [ ] Cache the results for "fig-02-scatter-air-time-v3"
 
 * Notes
 
