@@ -1,5 +1,6 @@
 .auctex-auto/
 dist/
+tmp/
 scratch
 fig-*.eps
 deploy.sh

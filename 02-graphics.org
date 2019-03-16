@@ -227,17 +227,54 @@ Un diagramme de dispersion permet de représenter sous forme d'un nuage de point
 #+begin_src stata :session :results output :exports code
 generate lincome = log(income) if income > 0
 scatter lincome age, ms(oh)
-graph export "fig-02-scatter-income.eps", replace
+graph export "fig-02-scatter-age-income.eps", replace
 #+end_src
 
 #+CAPTION:   Distribution jointe du revenu (log) et de l'âge
-#+NAME:      fig:02-scatter-income
-#+LABEL:     fig:02-scatter-income
+#+NAME:      fig:02-scatter-age-income
+#+LABEL:     fig:02-scatter-age-income
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
-[[./fig-02-scatter-income.png]]
+[[./fig-02-scatter-age-income.png]]
 
-À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, le cas échéant il est possible de modifier le type de symbole qui est utilisé dans le cas où le nombre de points est assez grand ou que ces derniers se retrouvent superposés. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
+À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, ce qui se révèle plutôt pratique lorsque le nombre de points est grand et que le risque de chevauchement de ces derniers est critique. Le cas échéant il est possible de modifier le type de symbole qui est utilisé. Les symboles graphiques (=graph query symbolstyle=) sont généralement désignés par leur synonymes lettrés : =O= (cercle), =D= (losange), =T= (triangle), =S= (carré), leur variantes de petite taille (les mêmes lettres mais en minuscules), suffixé éventuellement de la lettre =h= ("hollow") pour indiquer que le symbole est rempli avec la couleur par défaut. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
+
+Une courbe "loess" cite:cleveland-1979-robus-local peut être superposée sur le diagramme de dispersion afin d'aider à visualiser la tendance globale de covariation entre les deux séries de mesure ainsi que les déviations locales à la linéarité (qui reste une des hypothèses fondamentales du modèle de régression linéaire, par exemple). Le [[./03-glm.html][chapitre 3]] explique plus en détails la construction de ce type de courbe de [[https://en.wikipedia.org/wiki/Local_regression][régression locale]]. Pour ce faire, il suffit de combiner la commande précédente avec l'instruction [[stata:lowess][lowess]] :
+
+#+begin_src stata :session :results output :exports code
+twoway (scatter lincome age, ms(oh)) (lowess lincome age, lwidth(medthick))
+graph export "fig-02-loess-age-income.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution jointe du revenu (log) et de l'âge
+#+NAME:      fig:02-loess-age-income
+#+LABEL:     fig:02-loess-age-income
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-loess-age-income.png]]
+
+Notons qu'il n'est pas forcément nécessaire de combiner les deux commandes graphiques dans la mesure où [[stata:lowess][lowess]] permet également d'afficher le diagramme de dispersion. Un paramètre qu'il est souvent bon d'explorer est la largeur de la fenêtre de lissage, =bwidth=, qui par défaut vaut 0.8 ce qui consiste à utiliser 80 % de l'échantillon pour calculer une valeur lissée pour chaque observation. En conséquence, plus la valeur de =bwidth= est élevée plus le degré de lissage est important. En voici une illustration sur 100 observations choisies aléatoirement dans l'échantillon :
+
+#+begin_src stata :session :results no :exports code
+preserve
+sample 100, count
+twoway lowess dvisits age, lw(medthick) bw(0.05) ylab(0(20)80) xtitle(Age of respondent)
+graph export tmp/graph_001.png, width(600) height(400) replace
+forvalues w = 0.1(0.1)2 {
+    local j = string(`w'*10+1, "%03.0f")
+    twoway lowess dvisits age, ms(none) lw(medthick) bw(`w') ylab(0(20)80) xtitle(Age of respondent)
+    graph export tmp/graph_`j'.png, width(600) height(400) replace
+}
+shell convert -loop 0 tmp/graph_0*.png dist/fig-02-loess-age-dvisits.gif
+restore
+#+end_src
+
+#+CAPTION:   Influence du paramètre de lissage
+#+NAME:      fig:02-loess-age-dvisits
+#+LABEL:     fig:02-loess-age-dvisits
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-02-loess-age-dvisits.gif]]
 
 * Graphiques composites
 
