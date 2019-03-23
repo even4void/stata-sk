@@ -257,14 +257,16 @@ Notons qu'il n'est pas forcément nécessaire de combiner les deux commandes gra
 
 #+begin_src stata :session :results no :exports code
 preserve
+drop missing(lincome)
 sample 100, count
-twoway lowess dvisits age, lw(medthick) bw(0.05) ylab(0(20)80) xtitle(Age of respondent)
+twoway lowess lincome age, lw(medthick) bw(0.05) xlab(15(10)85) ylab(0(5)20) xtitle(Age of respondent) ytitle(Log(income))
 graph export tmp/graph_001.png, width(600) height(400) replace
 forvalues w = 0.1(0.1)2 {
     local j = string(`w'*10+1, "%03.0f")
-    twoway lowess dvisits age, ms(none) lw(medthick) bw(`w') ylab(0(20)80) xtitle(Age of respondent)
+    twoway lowess lincome age, ms(none) lw(medthick) bw(`w') xlab(15(10)85) ylab(0(5)20) xtitle(Age of respondent) ytitle(Log(income))
     graph export tmp/graph_`j'.png, width(600) height(400) replace
 }
+// This used to work unless there's a problem with getting $PATH variable from within Stata
 shell convert -loop 0 tmp/graph_0*.png dist/fig-02-loess-age-dvisits.gif
 restore
 #+end_src
