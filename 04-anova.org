@@ -1,0 +1,47 @@
+#+TITLE: Stata : analyse de la variance
+#+LANGUAGE: fr
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
+#+HTML_MATHJAX: scale: 90
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+
+L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au chapitre 3 (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
+
+* Analyse de variance à un facteur
+
+Dans l'exemple suivant, tiré de cite:dupont-2009-statis-model, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
+
+#+begin_src stata :session :results output :exports both
+use data/polymorphism
+list in 1/5
+#+end_src
+
+Un résumé descriptif des données de groupe (ici défini par le type de polymorphisme) peut être obtenu très rapidement à l'aide de [[stata:tabstat][tabstat]] :
+
+#+begin_src stata :session :results output :exports both
+tabstat age, by(genotype) stat(mean sd n)
+#+end_src
+
+Un résumé graphique de la distribution conditionnelle de l'âge dans les trois groupes s'obtient tout aussi simplement à l'aide de [[stata:graph box][graph box]] :
+
+#+begin_src stata :session :results output :exports code
+set scheme plotplain
+graph box age, over(genotype)
+graph export "fig-04-boxplot-age-genotype.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
+#+NAME:      fig:04-boxplot-age-genotype
+#+LABEL:     fig:02-boxplot-age-genotype
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-04-boxplot-age-genotype.png]]
+
+
+
+* Analyse de variance à deux facteurs
+* Analyse d'un plan factoriel
+
+
+
+
+#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource

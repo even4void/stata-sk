@@ -1,4 +1,4 @@
-* Structure [1/13] 
+* Structure [1/14] 
 
 ** DONE 00-intro 
    CLOSED: [2018-11-15 Thu 20:17]
@@ -15,15 +15,16 @@
 
 ** STAR 02-graphics
 ** STAR 03-glm
-** STAR 04-programming
-** TODO 05-epidemiology
-** TODO 06-time-series
-** TODO 07-time-to-event
-** TODO 08-correlated-data
-** TODO 09-mixed-models
-** TODO 10-meta-analysis
-** TODO 11-survey
-** TODO 12-bayesian-analysis
+** STAR 04-anova
+** STAR 05-programming
+** TODO 06-epidemiology
+** TODO 07-time-series
+** TODO 08-time-to-event
+** TODO 09-correlated-data
+** TODO 10-mixed-models
+** TODO 11-meta-analysis
+** TODO 12-survey
+** TODO 13-bayesian-analysis
 
 * Checklist [4/7]
 
