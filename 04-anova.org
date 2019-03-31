@@ -4,11 +4,11 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
-L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au chapitre 3 (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
+L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au [[./03-glm.html][chapitre 3]] (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
 
 * Analyse de variance à un facteur
 
-Dans l'exemple suivant, tiré de cite:dupont-2009-statis-model, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
+Dans l'[[http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/index.html][exemple suivant]], tiré de cite:dupont-2009-statis-model, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
 
 #+begin_src stata :session :results output :exports both
 use data/polymorphism
@@ -31,17 +31,101 @@ graph export "fig-04-boxplot-age-genotype.eps", replace
 
 #+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-boxplot-age-genotype
-#+LABEL:     fig:02-boxplot-age-genotype
+#+LABEL:     fig:04-boxplot-age-genotype
 #+ATTR_HTML: :width 640px
 #+ATTR_ORG:  :width 100
 [[./fig-04-boxplot-age-genotype.png]]
 
+Il est également possible d'afficher ces distributions sous forme d'histogrammes d'effectifs ou de fréquences, par exemple :
+
+#+begin_src stata :session :results output :exports code
+histogram age, by(genotype, col(3)) freq
+graph export "fig-04-hist-age-genotype.eps", replace
+#+end_src
+
+#+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
+#+NAME:      fig:04-hist-age-genotype
+#+LABEL:     fig:04-hist-age-genotype
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-04-hist-age-genotype.png]]
+
+Le tableau d'ANOVA peut être constuit à l'aide de [[stata:oneway][oneway]] dans le cas où il n'y a qu'une seule avriable explicative. L'option =tabulate= fournit exactement le même résumé numérique que la commande [[stata:tabstat][tabstat]] ci-dessus, tandis que l'option =bonferonni= ajoute la comparaison de l'ensemble des paires de moyennes avec une correction de Bonferroni pour les tests multiples. Si l'on ne souhiate que ces derniers, il suffit d'ajouter l'option =noanova=, mais en règle générale il est préférable de réaliser le test d'ensemble avant d'examiner les tests spécifiques, sauf si l'on a une hypothèse de recherche très particulière.
+
+#+begin_src stata :session :results output :exports both
+oneway age genotype
+#+end_src
+
+Voici le résultat des tests multiples:
+
+#+begin_src stata :session :results output :exports both
+oneway age genotype, bonferroni noanova
+#+end_src
+
+On arriverait naturellement aux mêmes conclusions en construisant manuellement les tests de Student correspondants :
+
+#+begin_src stata :session :results output :exports both
+quietly ttest age if genotype != 1, by(genotype)
+display r(p)*3
+#+end_src
+
+Il est généralement recommendé de vérifier les hypothèses du modèle, en particulier celle portant sur l'égalité des variances parentes, de manière graphique. Notons que [[stata:oneway][oneway]] propose d'office un test formel d'égalité des variances (test de Bartlett). Le test de Levenne est disponible via la commande [[stata:robvar][robvar]] (statistique =W50=) :
+
+#+begin_src stata :session :results output :exports both
+robvar age, by(genotype)
+#+end_src
+
+* Analyse de variance à plusieurs facteurs
+
+La commande [[stata:oneway][oneway]] est limité au cas à un facteur explicatif. La commande [[stata:anova][anova]] est plus générale et couvre : les plans factoriels et emboîtés, les plans équilibrés ou non (cf. calcul des sommes de carrés), les mesures répétées, l’analyse de covariance. Dans le cas à un facteur à effet fixe, on retrouvera évidemment les mêmes résultats que plus haut :
+
+#+begin_src stata :session :results output :exports both
+anova age genotype
+#+end_src
+
+Les comparaisons par paires de moyennes s’obtiennent à l’aide de [[stata:pwcompare][pwcompare]], commande plus générale que [[stata:pwmean][pwmean]]. Les options de correction (=mcompare()=) incluent en plus : =tukey=, =snk=, =duncan= et =dunnett=.
+
+#+begin_src stata :session :results output :exports both
+pwcompare genotype, cformat(%3.2f)
+#+end_src
+
+Voici un exemple de plan d'expérience tiré de cite:montgomery-2001-desig-analy-exper. On s'intéresse à la fabrication d'une batterie capable de fonctionner dans des conditions extrêmes de température. Cette étude comprend deux facteurs expérimentaux ayant trois niveaux chacun : la température (°F) et un paramètre lié au design de la batterie elle-même. Il s'agit donc d'un plan factoriel $3^2$. Les données sont disponibles dans le fichier =battery.txt=.
+
+#+begin_src stata :session :results output :exports both
+import delimited "data/battery.txt", delimiter("", collapse) varnames(1) clear
+list in 1/3
+#+end_src
+
+Voici les résultats pour le modèle avec interaction :
+
+#+begin_src stata :session :results output :exports both
+anova life material##temperature
+#+end_src
+
+Un graphique d'interaction peut être constuit à l'aide de [[stata:scatter][scatter]] comme suit la commande [[stata:marginplot][marginplot]] simplifierait grandement la tâche) :
+
+#+begin_src stata :session :results output :exports code
+preserve
+collapse (mean) mean=life (sd) sd=life, by(material temperature)
+list in 1/3
+drop sd
+reshape wide mean, i(temperature) j(material)
+twoway connected mean* temperature, legend(label(1 "#1") label(2 "#2") label(3 "#3")) ytitle(Mean life)
+graph export "fig-04-scatter-life-battery.eps", replace
+restore
+#+end_src
+
+#+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
+#+NAME:      fig:04-scatter-life-battery
+#+LABEL:     fig:04-scatter-life-battery
+#+ATTR_HTML: :width 640px
+#+ATTR_ORG:  :width 100
+[[./fig-04-scatter-life-battery.png]]
 
 
-* Analyse de variance à deux facteurs
-* Analyse d'un plan factoriel
+rcap et serrbar
 
-
+Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-analyses-for-factorial-anova-stata-11/][simulations de Monte Carlo]] permettent évaluer la puissance statistique d'un plan factoriel, en spécifiant les valeurs attendues pour les moyennes et variances dans chacune des conditions expérimentales. Il ne s'agit donc pas d'un calcul de puissance /a posteriori/.
 
 
 #+BIBLIOGRAPHY: references nil limit:t option:-nobibsource

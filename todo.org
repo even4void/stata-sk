@@ -59,3 +59,8 @@ ESS R package: https://github.com/ropensci/essurvey
 twoway (function y = normalden(x), range(-4 4) lw(*2) lp(dash)) (function y = tden(2,x), range(-4 4) lw(*2)), ytitle(Density) xtitle(””) ysize(3) legend(order(2 ”t(2)” 1 ”normal”) col(1) ring(0) pos(11))
 
 See also https://stats.idre.ucla.edu/stata/faq/graph/njc-stata-plots/
+
+Mixed-effect chapter : use data from https://www.lib.uoguelph.ca/sites/default/files/sas_5_workshop_notes.pdf
+Variance components : https://www.stata-journal.com/sjpdf.html?articlenum=st0095
+
+ANOVA : https://newonlinecourses.science.psu.edu/stat502/
