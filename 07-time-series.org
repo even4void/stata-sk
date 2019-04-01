@@ -1,0 +1,6 @@
+#+TITLE: Stata : séries chronologiques
+#+LANGUAGE: fr
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
+#+HTML_MATHJAX: scale: 90
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+
