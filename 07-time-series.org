@@ -4,3 +4,4 @@
 #+HTML_MATHJAX: scale: 90
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
 
+Les séries chronologiques constituent un type de données à part entière dans la mesure où il s'agit de données collectées sur une même unité statistique à différents points dans le temps. A titre d'exemple, on peut citer le nombre de cigarettes consommées chaque jour après une prise en charge thérapeutique ou le revenu national brut par pays relevé tous les trimestres pendant les dix dernières années.
