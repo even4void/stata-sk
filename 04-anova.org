@@ -54,7 +54,7 @@ graph export "fig-04-hist-age-genotype.eps", replace
 #+ATTR_ORG:  :width 100
 [[./fig-04-hist-age-genotype.png]]
 
-Le tableau d'ANOVA peut être constuit à l'aide de [[stata:oneway][oneway]] dans le cas où il n'y a qu'une seule avriable explicative. L'option =tabulate= fournit exactement le même résumé numérique que la commande [[stata:tabstat][tabstat]] ci-dessus, tandis que l'option =bonferonni= ajoute la comparaison de l'ensemble des paires de moyennes avec une correction de Bonferroni pour les tests multiples. Si l'on ne souhiate que ces derniers, il suffit d'ajouter l'option =noanova=, mais en règle générale il est préférable de réaliser le test d'ensemble avant d'examiner les tests spécifiques, sauf si l'on a une hypothèse de recherche très particulière.
+Le tableau d'ANOVA peut être constuit à l'aide de [[stata:oneway][oneway]] dans le cas où il n'y a qu'une seule variable explicative. L'option =tabulate= fournit exactement le même résumé numérique que la commande [[stata:tabstat][tabstat]] ci-dessus, tandis que l'option =bonferonni= ajoute la comparaison de l'ensemble des paires de moyennes avec une correction de Bonferroni pour les tests multiples. Si l'on ne souhaite que ces derniers, il suffit d'ajouter l'option =noanova=, mais en règle générale il est préférable de réaliser le test d'ensemble avant d'examiner les tests spécifiques, sauf si l'on a une hypothèse de recherche très particulière.
 
 #+begin_src stata :session :results output :exports both
 oneway age genotype
@@ -112,6 +112,8 @@ display r(p)*3
 
 * Analyse de variance à plusieurs facteurs
 
+** Utilisation de la commande anova
+
 La commande [[stata:oneway][oneway]] est limité au cas à un facteur explicatif. La commande [[stata:anova][anova]] est plus générale et couvre : les plans factoriels et emboîtés, les plans équilibrés ou non (cf. calcul des sommes de carrés), les mesures répétées, l’analyse de covariance. Dans le cas à un facteur à effet fixe, on retrouvera évidemment les mêmes résultats que plus haut :
 
 #+begin_src stata :session :results output :exports both
@@ -159,16 +161,19 @@ restore
 
 La commande [[stata:marginplot][marginplot]] simplifierait grandement la tâche. Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur.
 
+** Définition et analyse de contrastes
+
 Voyons ce que l'on peut réaliser en termes de tests de contrastes à l'aide de [[stata:pwcompare][pwcompare]]. Dans un premier temps, la comparaison de l'ensemble des paires de moyennes peut être réalisée en décomposant le terme d'interaction, et en utilisant la méthode de Tukey comme correction pour les tests multiples :
 
 #+begin_src stata :session :results output :exports both
 pwcompare material#temperature, mcompare(tukey)
 #+end_src
 
-Le test d'un contraste spécifique peut être réalisé tout aussi simplement, en indiquant le niveau du ou des facteurs qui nous intéressent :
+Le test d'un contraste spécifique peut être réalisé tout aussi simplement, en indiquant le niveau du ou des facteurs qui nous intéressent, ainsi que les degrés de liberté associés :
 
-
-
+#+begin_src stata :session :results output :exports both
+pwcompare i2.material#i150.temperature, mcompare(tukey) df(34)
+#+end_src
 
 
 Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-analyses-for-factorial-anova-stata-11/][simulations de Monte Carlo]] permettent évaluer la puissance statistique d'un plan factoriel, en spécifiant les valeurs attendues pour les moyennes et variances dans chacune des conditions expérimentales. Il ne s'agit donc pas d'un calcul de puissance /a posteriori/.
