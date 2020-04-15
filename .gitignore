@@ -6,3 +6,4 @@ fig-*.eps
 deploy.sh
 history.txt
 *.html
+*.pdf
