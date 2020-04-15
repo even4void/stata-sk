@@ -284,7 +284,7 @@ On pourra vérifier que la transformation logarithmique a contribué à stabilis
 set scheme plotplain
 label variable lincome "Annual income in euros (log)"
 graph twoway histogram lincome, fraction bfcolor(dknavy) blcolor(none)
-graph export "fig-01-histogram-lincome.eps", fontface(DroidSans) replace
+graph export "fig-01-histogram-lincome.eps", replace
 #+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros)
@@ -453,7 +453,7 @@ bysort sex: summarize income
 
 #+begin_src stata :session :results output :exports code
 graph twoway histogram lincome, by(sex) bfcolor(dknavy) blcolor(none)
-graph export "fig-01-histogram-lincome-sex.eps", fontface(DroidSans) replace
+graph export "fig-01-histogram-lincome-sex.eps", replace
 #+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
@@ -473,7 +473,7 @@ Un diagramme en points [@cleveland-1985-elemen-graph-data], qui reste préférab
 
 #+begin_src stata :session :results output :exports code
 graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
-graph export "fig-01-bar-lincome-sex.eps", fontface(DroidSans) replace
+graph export "fig-01-bar-lincome-sex.eps", replace
 #+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
@@ -497,7 +497,7 @@ En guise de représentation graphique, il existe les diagrammes en forme de boî
 
 #+begin_src stata :session :results output :exports code
 graph box lincome, over(sex)
-graph export "fig-01-box-lincome-sex.eps", fontface(DroidSans) replace
+graph export "fig-01-box-lincome-sex.eps", replace
 #+end_src
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe
@@ -523,12 +523,9 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 
 ** Analyses pondérées
 
-#TODO
+
 
 ** Commandes additionnelles
-
-#TODO
-
 ** Exportation des tableaux
 
 * Références
