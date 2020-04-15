@@ -5,4 +5,4 @@ scratch
 fig-*.eps
 deploy.sh
 history.txt
-references.html
+*.html
