@@ -1,6 +1,7 @@
 #+TITLE: Stata : un rapide tour d'horizon
 #+LANGUAGE: fr
 #+HTML_MATHJAX: scale: 90
+#+LATEX_HEADER: \newenvironment{cslreferences}{}{\par}
 #+LINK: stata  https://www.stata.com/help.cgi?
 #+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t d:nil tasks:nil
 
