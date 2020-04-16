@@ -1,10 +1,10 @@
 #+TITLE: Stata : modélisation statistique (1)
 #+LANGUAGE: fr
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
 #+HTML_MATHJAX: scale: 90
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+#+LINK: stata  https://www.stata.com/help.cgi?
+#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t d:nil tasks:nil
 
-Dans ce chapitre, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle linéaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. cite:vittinghoff-2005-regres-method-biost et Dupont cite:dupont-2009-statis-model couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de Harrell cite:harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical. Bien que reposant sur le logiciel R, la plupart des techniques discutées dans cet ouvrage sont disponibles sous Stata.
+Dans ce chapitre, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle linéaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. [@vittinghoff-2005-regres-method-biost] et Dupont [@dupont-2009-statis-model] couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de @harrell-2015-regres-model-strat demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical. Bien que reposant sur le logiciel R, la plupart des techniques discutées dans cet ouvrage sont disponibles sous Stata.
 
 La mise en oeuvre d'un modèle de régression a déjà été discutée brièvement dans le [[./00-intro.html][tutoriel d'introduction à Stata]]. Dans ce chapitre, on va s'intéresser à l'estimation des paramètres d'un modèle de régression linéaire, à la sélection du "meilleur" modèle dans un cadre explicatif, au diagnostic du modèle, et à la prédiction ponctuelle ou par intervalles. On prendra pour base des données observationnelles issues d'enquêtes ou d'études cliniques transversales. Les séries chronologiques et les données longitudinales seront traitées dans des chapitres séparés.
 
@@ -12,7 +12,7 @@ La mise en oeuvre d'un modèle de régression a déjà été discutée brièveme
 
 ** Un exemple de régression linéaire simple
 
-Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement. 
+Dans un premier temps, procédons à quelques rappels concernant la régression linéaire simple, la corrélation linéaire et le test de Student. Les notions connexes telles que les associations non linéaires ou les approches non paramétriques seront traitées ultérieurement.
 
 Les données d'illustration peuvent être chargées directement depuis internet à l'aide de la commande [[stata:webuse][webuse]]. Il s'agit d'une enquête épidémiologique rétrospective dans laquelle on s'intéresse aux facteurs de risque d'un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l'ouvrage de Hosmer & Lemeshow cite:hosmer-2000-applied-logis-regres. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (=bwt=) :
 
@@ -99,10 +99,10 @@ L'instruction =_b[lwt]= est une variable dite variable "système" stockées en m
 matrix b = e(b)
 display b[1,1]
 #+end_src
- 
+
 ** Diagnostic du modèle
 
-La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($e_i = \tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression. 
+La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($e_i = \tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression.
 
 #+begin_src stata :session :results output :exports both
 predict double yhat
@@ -118,7 +118,7 @@ qnorm r
 graph export "fig-03-qnorm-r.eps", fontface(DroidSans) replace
 #+end_src
 
-#+CAPTION:   Distribution des résidus simples 
+#+CAPTION:   Distribution des résidus simples
 #+NAME:      fig:03-qnorm-r
 #+LABEL:     fig:03-qnorm-r
 #+ATTR_HTML: :width 640px
@@ -245,7 +245,7 @@ pwmean bwt, over(race) effects
 
 L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Dunnett, ...), mais dans le cas du modèle de régression précédent il n'y a pas lieu d'appliquer de correction pour les tests multiples ou de modifier la statistique de test. La commande [[stata:pwmean][pwmean]] fournit les mêmes résultats et accepte les mêmes options que [[stata:pwcompare][pwcompare]]. La seule différence est que cette dernière s'utilise en tant que commande de post-estimation et sa syntaxe est plus souple dans le cas des modèles à plusieurs prédicteurs, incluant d'éventuels termes d'interaction.
 
-Voici une autre illustration, cette fois-ci avec les données d'un essai clinique randomisé visant à évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère cite:bernard-1997-effec-ibupr. Les données, disponibles dans le fichier =sepsis.dta=, sont largement exploitées dans l'ouvrage de William Dupont cite:dupont-2009-statis-model. Au total, le tableau de données est composé 22 variables dont 16 variables représentant une mesure de la température entre $T_0$ et $T_0 + 15 \times 2$ h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE). 
+Voici une autre illustration, cette fois-ci avec les données d'un essai clinique randomisé visant à évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère cite:bernard-1997-effec-ibupr. Les données, disponibles dans le fichier =sepsis.dta=, sont largement exploitées dans l'ouvrage de William Dupont cite:dupont-2009-statis-model. Au total, le tableau de données est composé 22 variables dont 16 variables représentant une mesure de la température entre $T_0$ et $T_0 + 15 \times 2$ h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE).
 
 #+begin_src stata :session :results output :exports both
 use "data/sepsis.dta", replace
@@ -396,7 +396,7 @@ regress bwt lwt if race == 3
 predict yhols
 #+end_src
 
-La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. Dans le cas d'une approche par M-estimation, les estimés des paramètres du modèle de régression sont obtenus en minimisant une fonction de coût, $\rho$, reposant sur la valeur des résidus sur l'ensemble des valeurs de $X$. Spécifiquement, on recherche une fonction $\rho(e) \ge 0$, symétrique et monotone, 
+La commande =robreg= disponible dans le package du même nom (=ssc install moremata robreg=) permet d'estimer les paramètres d'un modèle linéaire en utilisant des M-estimateurs (Huber ou bisquare) cite:jann-2010-robreg. Dans le cas d'une approche par M-estimation, les estimés des paramètres du modèle de régression sont obtenus en minimisant une fonction de coût, $\rho$, reposant sur la valeur des résidus sur l'ensemble des valeurs de $X$. Spécifiquement, on recherche une fonction $\rho(e) \ge 0$, symétrique et monotone,
 
 La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut faut préciser le type d'estimateur après le nom de la commande : =robreg m= signifie par exemple une régression avec un estimateur de Huber tandis que =robreg s= indique à Stata d'utiliser un S-estimateur. Un exemple d'application est disponible dans cite:vittinghoff-2005-regres-method-biost (*FIXME* check the reference carefully). Dans le cas présent, on utilisera l'instruction suivante :
 
@@ -438,8 +438,7 @@ graph export "fig-03-scatter-bwt-lwt-race3-2.eps", fontface(DroidSans) replace
 
 
 * Modèle linéaire et applications
-
-#TODO
-
-#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
-
+* Références
+# Local Variables:
+# ispell-dictionary: "french"
+# end:
