@@ -262,4 +262,5 @@ On trouve de [[https://www.stata.com/links/resources-for-learning-stata/][nombre
 
 # Local Variables:
 # ispell-dictionary: "french"
+# org-export-use-babel: nil
 # end:
