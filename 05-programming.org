@@ -1,10 +1,11 @@
 #+TITLE: Stata : programmation
+#+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="worg.css" />
-#+HTML_MATHJAX: scale: 90
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t skip:nil d:nil html-style:nil html-postamble:nil tags:not-in-toc
+#+LINK: stata  https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :results output
+#+OPTIONS: H:3 toc:t tasks:nil
 
-Ce chapitre est consacré aux techniques de programmation avec le langage Stata, et dans une moindre mesure Mata. L'ouvrage de référence demeure l'ouvrage de Mitchell cite:mitchell-2010-data-manag pour tout ce qui relève de l'automatisation à l'aide de commandes Stata pour la gestion de données, ainsi que l'ouvrage de Baum sur la programmation en elle-même cite:baum-2009-introd-stata-progr. Germán Rodríguez propose également un [[http://data.princeton.edu/stata/programming.html][excellent tutoriel]] sur son site internet. Concernant la création de commande et l'usage de Mata, l'ouvrage de Bill Gould cite:gould-2018-mata-book. 
+Ce chapitre est consacré aux techniques de programmation avec le langage Stata, et dans une moindre mesure Mata. L'ouvrage de référence demeure l'ouvrage de Mitchell \cite{mitchell-2010-data-manag} pour tout ce qui relève de l'automatisation à l'aide de commandes Stata pour la gestion de données, ainsi que l'ouvrage de Baum sur la programmation en elle-même \cite{baum-2009-introd-stata-progr}. Germán Rodríguez propose également un [[http://data.princeton.edu/stata/programming.html][excellent tutoriel]] sur son site internet. Concernant la création de commande et l'usage de Mata, l'ouvrage de Bill Gould \cite{gould-2018-mata-book}.
 
 * Programmation avec Stata
 
@@ -14,7 +15,7 @@ Ce que l'on appelle "variable" dans la plupart des langages de programmation cor
 
 Stata permet de stocker temporairement ou définitivement des valeurs calculées ou retournées par une procédure d’estimation. On parlera de macros au sens large. En voici une illustration avec le jeu de données sur les automobiles :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 sysuse auto, clear
 quietly summarize mpg, meanonly
 display r(mean)
@@ -27,7 +28,7 @@ La command [[stata:summarize][summarize]] stocke temporairement la moyenne (=mea
 
 Une macro locale se définit comme une expression : =local name [=] text=. Une macro locale permet de stocker sous forme de chaîne de caractères une expression (ou son résultat après évaluation dans le cas ou on utilise le signe =). Voici un exemple d'utilisation :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 quietly summarize mpg, meanonly
 local m1 r(mean)
 display `m1'
@@ -37,20 +38,20 @@ Attention, l'utilisation de =m= comme nom de macro pourrait dans le cas de ce je
 
 L'ajout du symbole = dans l'expression ci-dessus permet de stocker la valeur de retour après évaluation :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 quietly regress mpg weight
-local r2 = r(r2)
+local r2 = e(r2)
 display `r2'
 #+END_SRC
 
 L’omission du signe = aurait pour conséquence de produire des résultats variable après l’estimation d’un nouveau modèle de régression. Après une instruction telle que =local r2 e(r2)=, c’est la formule =e(r2)= qui est stockée et non son résultat.
 
 Il existe également une autre manière de définir des macros locales : [[stata:scalar][scalar]]. Essentiellement, les deux macros permettent de stocker des
-valeurs pour une utilisation future. Elles se distinguent sur les points suivants : (1) les scalars sont enregistrés globalement, et non localement, d’où un risque potentiel de conflit de nom cite:kolev-2006-scalar-variab ; (2) Stata stocke des valeurs sans perte de précision dans les scalars et non une représentation sous forme de chaîne de caractères (environ 8 chiffres significatifs).
+valeurs pour une utilisation future. Elles se distinguent sur les points suivants : (1) les scalars sont enregistrés globalement, et non localement, d’où un risque potentiel de conflit de nom \cite{kolev-2006-scalar-variab} ; (2) Stata stocke des valeurs sans perte de précision dans les scalars et non une représentation sous forme de chaîne de caractères (environ 8 chiffres significatifs).
 
 Un usage classique des macros locales consiste à enregistrer une liste de cofacteurs présents dans tous les modèles de régression dont on souhaite estimer les paramètres. Plutôt que de répéter systématiquement dans les modèles une même série de variables explicatives, il est souvent plus judicieux et plus économique de les stocker dans une macro, comme illustré ci-après :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 webuse lbw
 local cofactors age smoke
 quietly : regress bwt `cofactors' ht
@@ -64,7 +65,7 @@ estimates table m*
 
 On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur [[stata:if][if]] est l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 sysuse auto, clear
 list price if mpg <= 13
 list price if inrange(mpg, 12, 13)
@@ -80,7 +81,7 @@ En dehors des utilitaires classiques de branchement conditionnel (if/else) ou d�
 - [[stata:forvalues][forvalues]] : boucle sur une séquence régulière de nombres entiers
 - [[stata:foreach][foreach]] : boucle sur une séquence d’éléments pris dans une liste (nombres, texte ou variable)
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 forvalues index = 1/3 {
   display `index'
 }
@@ -90,7 +91,7 @@ Le principe de la syntaxe est simple bien qu'il fasse faire bien attention aux a
 
 Voici une application simple qui consiste à discrétiser une variable numérique. La commande [[stata:tabulate][tabulate]] dispose de l’option =generate= qui per- met de générer des variables indicatrices (à utiliser après [[stata:xtile][xtile]], [[stata:egen cut][egen cut]] ou [[stata:autocode()][autocode()]]). Pour créer des indicatrices, on peut utiliser une boucle comme suit :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 forvalues low = 12(8)42 {
   local high = `low' + 7
   gen mpg`low'to`high' = mpg >= `low' & mpg <= `high'
@@ -100,7 +101,7 @@ list mpg* in 1/3
 
 La syntaxe générique est dans ce cas =foreach macro locale in liste {=. Les élements de la liste peuvent être du texte (ne pas oublier les quotes) ou des nombres :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 foreach v in one two three {
   display "`v'"
 }
@@ -116,7 +117,7 @@ L'instruction [[stata:foreach][foreach]] fonctionne également avec des listes e
 
 Voici un autre exemple d'application dans lequel on cherche à renommer un ensemble de variables :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 xtile weightc = weight, nq(4)
 quietly tabulate weightc, gen(weightc)
 drop weightc
@@ -136,14 +137,18 @@ Les structures de branchement conditionnels telles qu'une instruction if/else pe
 
 Attention à [[https://www.stata.com/support/faqs/data-management/multiple-operations/][ne pas confondre]] le qualificateur [[stata:if][if]] avec l'instruction de test Stata ou Mata correspondante. L'expression =sum foreign if price > 10000= ne fournira pas le même résultat que :
 
-#+BEGIN_SRC stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 if price > 10000 { 
   sum foreign 
 } 
 #+END_SRC
  
-Usage de [[stata:cond][cond]] cite:kantor-2005-depen 
+Usage de [[stata:cond][cond]] \cite{kantor-2005-depen}
 
 * Automatisation
 
 * Gestion d'un package
+
+#+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource
+
+* Footnotes
