@@ -1,7 +1,7 @@
 OUT_DIR=dist
 HTMLFILES=$(patsubst %.org,$(OUT_DIR)/%.html,$(wildcard *.org))
 
-.PHONY: all clean dist
+.PHONY: all clean veryclean dist
 
 all: dist
 
@@ -15,4 +15,7 @@ $(OUT_DIR)/%.html: %.html
 	mv *.svg $(OUT_DIR)
 
 clean:
-	rm dist/*.html dist/fig-*.svg .ob-jupyter/
+	rm .ob-jupyter/ bib2html* references.html
+
+veryclean:
+	rm dist/*.html dist/fig-*.svg .ob-jupyter/ bib2html*
