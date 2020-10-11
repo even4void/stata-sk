@@ -1,161 +1,158 @@
 #+TITLE: Stata : analyse de la variance
+#+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+HTML_MATHJAX: scale: 90
 #+LINK: stata  https://www.stata.com/help.cgi?
-#+OPTIONS: H:3 num:nil toc:t \n:nil ':t @:t ::t |:t ^:nil -:t f:t *:t TeX:t d:nil tasks:nil
+#+PROPERTY: header-args :session *sta* :results output
+#+OPTIONS: H:3 toc:t tasks:nil
 
-L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au [[./03-glm.html][chapitre 3]] (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
+L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au [[file:03-glm.html][chapitre 3]] (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
 
-@dupont-2009-statis-model consacre plusieurs chapitres de son excellent ouvrage à l'analyse de variance, incluant le cas des mesures répétées.
+Dupont consacre plusieurs chapitres de son excellent ouvrage à l'analyse de variance, incluant le cas des mesures répétées \cite{dupont-2009-statis-model}.
 
 * Analyse de variance à un facteur
 ** Modèle d'ANOVA
 
-Dans l'[[http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/index.html][exemple suivant]], tiré de @dupont-2009-statis-model, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
+Dans l'[[http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/index.html][exemple suivant]], tiré de \cite{dupont-2009-statis-model}, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 use data/polymorphism
 list in 1/5
-#+end_src
+#+END_SRC
 
 Un résumé descriptif des données de groupe (ici défini par le type de polymorphisme) peut être obtenu très rapidement à l'aide de [[stata:tabstat][tabstat]] :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 tabstat age, by(genotype) stat(mean sd n)
-#+end_src
+#+END_SRC
 
 Un résumé graphique de la distribution conditionnelle de l'âge dans les trois groupes s'obtient tout aussi simplement à l'aide de [[stata:graph box][graph box]] :
 
-#+begin_src stata :session :results output :exports code
+#+BEGIN_SRC jupyter-stata :exports code
 set scheme plotplain
 graph box age, over(genotype)
-graph export "fig-04-boxplot-age-genotype.eps", replace
-#+end_src
+graph export "fig-04-boxplot-age-genotype.svg", replace
+#+END_SRC
 
 #+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-boxplot-age-genotype
 #+LABEL:     fig:04-boxplot-age-genotype
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
-[[./fig-04-boxplot-age-genotype.png]]
+[[./fig-04-boxplot-age-genotype.svg]]
 
 Il est également possible d'afficher ces distributions sous forme d'histogrammes d'effectifs ou de fréquences, par exemple :
 
-#+begin_src stata :session :results output :exports code
+#+BEGIN_SRC jupyter-stata :exports code
 histogram age, by(genotype, col(3)) freq
-graph export "fig-04-hist-age-genotype.eps", replace
-#+end_src
+graph export "fig-04-hist-age-genotype.svg", replace
+#+END_SRC
 
 #+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-hist-age-genotype
 #+LABEL:     fig:04-hist-age-genotype
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
-[[./fig-04-hist-age-genotype.png]]
+[[./fig-04-hist-age-genotype.svg]]
 
 Le tableau d'ANOVA peut être constuit à l'aide de [[stata:oneway][oneway]] dans le cas où il n'y a qu'une seule variable explicative. L'option =tabulate= fournit exactement le même résumé numérique que la commande [[stata:tabstat][tabstat]] ci-dessus, tandis que l'option =bonferonni= ajoute la comparaison de l'ensemble des paires de moyennes avec une correction de Bonferroni pour les tests multiples. Si l'on ne souhaite que ces derniers, il suffit d'ajouter l'option =noanova=, mais en règle générale il est préférable de réaliser le test d'ensemble avant d'examiner les tests spécifiques, sauf si l'on a une hypothèse de recherche très particulière.
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 oneway age genotype
-#+end_src
+#+END_SRC
 
 ** Conditions d'application du test
 
 Il est généralement recommendé de vérifier les hypothèses du modèle, en particulier celle portant sur l'égalité des variances parentes, de manière graphique. Notons que [[stata:oneway][oneway]] propose d'office un test formel d'égalité des variances (test de Bartlett). Le test de Levenne est disponible via la commande [[stata:robvar][robvar]] (statistique =W50=) :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 robvar age, by(genotype)
-#+end_src
+#+END_SRC
 
 Concernant la normalité des distributions (parentes), à partir de l'échantillon il est toujours possible de tracer la fonction de répartition des observations, un histogramme ou un diagramme de type boîte à moustaches (cf. section suivante). La commande [[stata:swilk][swilk]] fournit le test de Shapiro-Wilks, mais comme les méthodes graphiques restent à privilégier, voici une façon de vérifier la normalité des résidus du modèle (dans le cas de l'ANOVA à un facteur, cela ne change pas grand-chose par rapport au fait de travailler sur les observations directement, mais dans le cas à plus d'un facteur en interaction c'est la méthode recommendée) :
 
-#+begin_src stata :session :results output :exports code
+#+BEGIN_SRC jupyter-stata :exports code
 quietly anova age genotype
 predict r, resid
 qnorm r
-graph export "fig-04-qnorm-age-genotype-resid.eps", replace
-#+end_src
+graph export "fig-04-qnorm-age-genotype-resid.svg", replace
+#+END_SRC
 
 #+CAPTION:   Distribution des résidus du modèle d'ANOVA
 #+NAME:      fig-04-qnorm-age-genotype-resid
 #+LABEL:     fig-04-qnorm-age-genotype-resid
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
-[[./fig-04-qnorm-age-genotype-resid.png]]
+[[./fig-04-qnorm-age-genotype-resid.svg]]
 
 ** Commandes graphiques
 
 Stata n'offre pas vraiment de commandes graphiques de post-estimation à l'exception de celles applicables au cas du modèle linéaire, telles que les graphiques de résidus en fonction des valeurs prédites ou observées. Il existe toutefois de nombreux packages disponibles sur le site SSC, en particulier la commande =anovaplot= (une approche manuelle pour construire un graphique d'interaction est présentée dans la section suivante).
 
-Une référence intéressante concernant les approches graphiques pour le diagnostique des modèles de régression, au sens large, est l'article de @cox-2004-speakin-stata.
+Une référence intéressante concernant les approches graphiques pour le diagnostique des modèles de régression, au sens large, est l'article de \cite{cox-2004-speakin-stata}.
 
 ** Comparaisons multiples
 
-Lorsque le résultat du test d'ANOVA est significatif, il est souvent intéressant, voire nécessaire d'aller inspecter le résultat des comparaisons de chaque paire de moyennes. Comme indiqué plus haut, il est déconseillé de procéder à de telles comparaisons multiples lorsque l'ANOVA n'est en elle-même pas significative puisque dans ce cas il s'agit un peu de ce que l'on appelle du /data fishing/. Cela dit, dans certains cas de figure, il est possible de pré-spécifier les comparaisons d'intérêt et de n'analyser que ces contrastes d'intérêt. Dans ce cas, le modèle d'ANOVA est même facultatif.
+Lorsque le résultat du test d'ANOVA est significatif, il est souvent intéressant, voire nécessaire d'aller inspecter le résultat des comparaisons de chaque paire de moyennes. Comme indiqué plus haut, il est déconseillé de procéder à de telles comparaisons multiples lorsque l'ANOVA n'est en elle-même pas significative puisque dans ce cas il s'agit un peu de ce que l'on appelle du "data fishing". Cela dit, dans certains cas de figure, il est possible de pré-spécifier les comparaisons d'intérêt et de n'analyser que ces contrastes d'intérêt. Dans ce cas, le modèle d'ANOVA est même facultatif.
 
 Il y a deux manières de procéder pour réaliser des comparaisons de paires de moyennes sous Stata (outre la comparaison manuelle à l'aide de [[stata:ttest][ttest]]): (1) la commande [[stata:oneway][oneway]] offre une option permettant de tester les paires de moyennes et d'appliquer une correction pour borner le risque d'erreur d'ensemble (/FWER/) ; (2) les commandes [[stata:pwcompare][pwcompare]], [[stata:contrast][contrast]] ou [[stata:lincome][lincome]] (ou [[stata:test][test]]). La commande [[stata:margins][margins]] fournit plus de souplesse dans l’estimation conditionnelle ou marginale des effets et permet en outre la représentation graphique des résultats grâce à [[stata:marginsplot][marginsplot]]. En dehors de [[stata:pwcompare][pwcompare]], les autres commandes restent applicables dans le cas du modèle linéaire dans son ensemble.
 
 
 Voici le résultat des tests multiples à partir de [[stata:oneway][oneway]] :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 oneway age genotype, bonferroni noanova
-#+end_src
+#+END_SRC
 
 On arriverait naturellement aux mêmes conclusions en construisant manuellement les tests de Student correspondants, moyennant la prise en compte de la bonne somme de carrés (variance "poolée") :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 quietly ttest age if genotype != 1, by(genotype)
 display r(p)*3
-#+end_src
+#+END_SRC
 
 * Analyse de variance à plusieurs facteurs
 ** Utilisation de la commande anova
 
 La commande [[stata:oneway][oneway]] est limité au cas à un facteur explicatif. La commande [[stata:anova][anova]] est plus générale et couvre : les plans factoriels et emboîtés, les plans équilibrés ou non (cf. calcul des sommes de carrés), les mesures répétées, l’analyse de covariance. Dans le cas à un facteur à effet fixe, on retrouvera évidemment les mêmes résultats que plus haut :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 anova age genotype
-#+end_src
+#+END_SRC
 
 Les comparaisons par paires de moyennes s’obtiennent à l’aide de [[stata:pwcompare][pwcompare]], commande plus générale que [[stata:pwmean][pwmean]]. Les options de correction (=mcompare()=) incluent en plus : =tukey=, =snk=, =duncan= et =dunnett=.
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 pwcompare genotype, cformat(%3.2f)
-#+end_src
+#+END_SRC
 
-Voici un exemple de plan d'expérience dans lequel on s'intéresse à la fabrication d'une batterie capable de fonctionner dans des conditions extrêmes de température [@montgomery-2001-desig-analy-exper]. Cette étude comprend deux facteurs expérimentaux ayant trois niveaux chacun : la température (°F) et un paramètre lié au design de la batterie elle-même. Il s'agit donc d'un plan factoriel $3^2$. Les données sont disponibles dans le fichier =battery.txt=.
+Voici un exemple de plan d'expérience dans lequel on s'intéresse à la fabrication d'une batterie capable de fonctionner dans des conditions extrêmes de température \cite{montgomery-2001-desig-analy-exper}. Cette étude comprend deux facteurs expérimentaux ayant trois niveaux chacun : la température (°F) et un paramètre lié au design de la batterie elle-même. Il s'agit donc d'un plan factoriel $3^2$. Les données sont disponibles dans le fichier =battery.txt=.
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 import delimited "data/battery.txt", delimiter("", collapse) varnames(1) clear
 list in 1/3
-#+end_src
+#+END_SRC
 
 Voici les résultats pour le modèle avec interaction :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 anova life material##temperature
-#+end_src
+#+END_SRC
 
 Un graphique d'interaction peut être constuit à l'aide de [[stata:scatter][scatter]] comme suit :
 
-#+begin_src stata :session :results output :exports code
+#+BEGIN_SRC jupyter-stata :exports code
 preserve
 collapse (mean) mean=life (sd) sd=life, by(material temperature)
 list in 1/3
 drop sd
 reshape wide mean, i(temperature) j(material)
 twoway connected mean* temperature, legend(label(1 "#1") label(2 "#2") label(3 "#3")) ytitle(Mean life)
-graph export "fig-04-scatter-life-battery.eps", replace
+graph export "fig-04-scatter-life-battery.svg", replace
 restore
-#+end_src
+#+END_SRC
 
 #+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-scatter-life-battery
 #+LABEL:     fig:04-scatter-life-battery
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
-[[./fig-04-scatter-life-battery.png]]
+[[./fig-04-scatter-life-battery.svg]]
 
 La commande [[stata:marginplot][marginplot]] simplifierait grandement la tâche. Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur.
 
@@ -163,22 +160,23 @@ La commande [[stata:marginplot][marginplot]] simplifierait grandement la tâche.
 
 Voyons ce que l'on peut réaliser en termes de tests de contrastes à l'aide de [[stata:pwcompare][pwcompare]]. Dans un premier temps, la comparaison de l'ensemble des paires de moyennes peut être réalisée en décomposant le terme d'interaction, et en utilisant la méthode de Tukey comme correction pour les tests multiples :
 
-#+begin_src stata :session :results output :exports both
+#+BEGIN_SRC jupyter-stata :exports both
 pwcompare material#temperature, mcompare(tukey)
-#+end_src
+#+END_SRC
 
 Le test d'un contraste spécifique peut être réalisé tout aussi simplement, en indiquant le niveau du ou des facteurs qui nous intéressent, ainsi que les degrés de liberté associés :
 
-#+begin_src stata :session :results output :exports both
-pwcompare i2.material#i150.temperature, mcompare(tukey) df(34)
-#+end_src
+#+BEGIN_SRC jupyter-stata :exports both
+pwcompare i2.material#i70.temperature, mcompare(tukey) df(34)
+#+END_SRC
 
 
 Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-analyses-for-factorial-anova-stata-11/][simulations de Monte Carlo]] permettent évaluer la puissance statistique d'un plan factoriel, en spécifiant les valeurs attendues pour les moyennes et variances dans chacune des conditions expérimentales. Il ne s'agit donc pas d'un calcul de puissance /a posteriori/.
 
+#+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource
 
-#+BIBLIOGRAPHY: references nil limit:t option:-nobibsource
+* Footnotes
 
-# Local Variables:
-# ispell-dictionary: "french"
-# end:
+* TODO [0/2]
+- [ ] margins pour les contrastes
+- [ ] marginsplot pour les graphiques d'interaction
