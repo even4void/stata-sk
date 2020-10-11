@@ -1,4 +1,3 @@
-# Modified from https://stackoverflow.com/a/22091045
 OUT_DIR=dist
 HTMLFILES=$(patsubst %.org,$(OUT_DIR)/%.html,$(wildcard *.org))
 
@@ -6,10 +5,14 @@ HTMLFILES=$(patsubst %.org,$(OUT_DIR)/%.html,$(wildcard *.org))
 
 all: dist
 
-dist: $(HTMLFILES)
+dist: $(OUT_DIR) $(HTMLFILES)
 
 %.html: %.org
 	emacs --batch -l setup.el $< -f org-html-export-to-html --kill
 
+$(OUT_DIR)/%.html: %.html
+	mv $< $(OUT_DIR)
+	mv *.svg $(OUT_DIR)
+
 clean:
-	rm dist/*.html dist/fig-*
+	rm dist/*.html dist/fig-* .ob-jupyter/
