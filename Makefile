@@ -15,4 +15,4 @@ $(OUT_DIR)/%.html: %.html
 	mv *.svg $(OUT_DIR)
 
 clean:
-	rm dist/*.html dist/fig-* .ob-jupyter/
+	rm dist/*.html dist/fig-*.svg .ob-jupyter/

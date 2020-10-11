@@ -5,17 +5,13 @@
 #+PROPERTY: header-args :session *sta* :results output
 #+OPTIONS: H:3 toc:t tasks:nil
 
-* TODO [0/2]
-    - [ ] Section tableaux à compléter
-    - [ ] Sections fusion et représentation rectangulaire
-
-Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme, et non au sens informatique : Stata dispose de "macros" pour tout ce qui relève de la programmation, mais ceci fera l'objet d'un [[05-programming.html][autre chapitre]].
+Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme, et non au sens informatique : Stata dispose de "macros" pour tout ce qui relève de la programmation, mais ceci fera l'objet d'un [[file:05-programming.html][autre chapitre]].
 
 * Gestion d'un tableau de données
 
 ** Le format DTA
 
-On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:./00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, le package =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser le package [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande. Attention, dans ce cas, moins d'options sont disponibles (à la date de rédaction de ce chapitre), en particulier en ce qui concerne la gestion des dates et des formats de variable. Une autre solution consiste à utiliser le package [[https://cran.r-project.org/web/packages/readstata13/][readstata13]]. Pour les utilisateurs de Python, le package [[https://pandas.pydata.org][Pandas]] inclut un utilitaire pour la lecture de fichiers Stata (=from pandas.io.stata import StataReader=).
+On a déjà vu un exemple de format natif Stata avec les données [[stata:auto][auto]] utilisées dans le [[file:00-intro.html][chapitre précédent]] pour illustrer les principes de base de Stata : il s'agit des fichiers =DTA=. La spécification de ce type de fichier peut être consultée dans le manuel en ligne pour le mot clé [[stata:dta][dta]]. Il s'agit d'un format binaire qui a quelque peu évolué entre les versions 12, 13 et 14 de Stata. Si [[https://stattransfer.com][Stat/Transfer]] permet de passer d'un format à l'autre sans problème, le package =foreign= de R (=read.dta=) ne permet de lire que les fichiers Stata 12 ou inférieurs et il est préférable d'utiliser le package [[http://haven.tidyverse.org][haven]] (=read_dta=) pour les versions 13 et plus. Cette librairie repose sur la librairie [[https://github.com/WizardMac/ReadStat][ReadStat]], également utilisable en ligne de commande. Attention, dans ce cas, moins d'options sont disponibles (à la date de rédaction de ce chapitre), en particulier en ce qui concerne la gestion des dates et des formats de variable. Une autre solution consiste à utiliser le package [[https://cran.r-project.org/web/packages/readstata13/][readstata13]]. Pour les utilisateurs de Python, le package [[https://pandas.pydata.org][Pandas]] inclut un utilitaire pour la lecture de fichiers Stata (=from pandas.io.stata import StataReader=).
 
 Les changements notables entre les formats DTA 12 (juillet 2011), 13 (juin 2013, =help dta_117=) et 14 (avril 2015, =help dta= ou =help dta_119= car il s'agit de la même version que pour Stata 15) portent sur l'utilisation de chaînes de caratères longues, la gestion des facteurs et l'encodage UTF-8 des chaînes de caractères (incluant les noms de variable). Les versions DTA pour Stata 14 et 15 sont identiques, sauf dans le cas de Stata 15/MP qui autorise plus de 32767 variables et possède une structure légèrement différente. En pratique, c'est le support des caratères accentués pour les utilisateurs concernés qui est vraiment appréciable dans la version 15.
 
@@ -292,7 +288,6 @@ graph export "fig-01-histogram-lincome.svg", replace
 #+NAME:      fig:01-histogram-lincome
 #+LABEL:     fig:01-histogram-lincome
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
 [[./fig-01-histogram-lincome.svg]]
 
 ** Étiquette et annotation
@@ -461,7 +456,6 @@ graph export "fig-01-histogram-lincome-sex.svg", replace
 #+NAME:      fig:02-bar-lincome-sex
 #+LABEL:     fig:02-bar-lincome-sex
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
 [[./fig-01-histogram-lincome-sex.svg]]
 
 Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
@@ -481,7 +475,6 @@ graph export "fig-01-bar-lincome-sex.svg", replace
 #+NAME:      fig:02-bar-lincome-sex
 #+LABEL:     fig:02-bar-lincome-sex
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
 [[./fig-01-bar-lincome-sex.svg]]
 
 ** La commande tabstat
@@ -505,7 +498,6 @@ graph export "fig-01-box-lincome-sex.svg", replace
 #+NAME:      fig:03-box-lincome-sex
 #+LABEL:     fig:03-box-lincome-sex
 #+ATTR_HTML: :width 640px
-#+ATTR_ORG:  :width 100
 [[./fig-01-box-lincome-sex.svg]]
 
 ** La commande table
@@ -534,8 +526,12 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 
 [fn:4] Voir [[https://www.stata.com/support/faqs/data-management/approximating-dataset-size/][How big will my dataset be?]]
 
-[fn:3] Par défaut, l'échelle pour ce type de graphique inclut le 0, voir le [[][chapitre sur les graphiques]].
+[fn:3] Par défaut, l'échelle pour ce type de graphique inclut le 0, voir le chapitre sur les graphiques.
 
 [fn:2] Le fait que le type =byte= ne s'étende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
 
 [fn:1] Il existe également d'anciens utilitaires, comme [[http://radyakin.org/transfer/use13/use13.htm][use13]], permettant de lire des fichiers version 13 sous Stata 10.
+
+* TODO [0/2]
+- [ ] Section tableaux à compléter
+- [ ] Sections fusion et représentation rectangulaire
