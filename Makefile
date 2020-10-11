@@ -15,7 +15,7 @@ $(OUT_DIR)/%.html: %.html
 	mv *.svg $(OUT_DIR)
 
 clean:
-	rm .ob-jupyter/ bib2html* references.html
+	rm -rf .ob-jupyter/ bib2html* references.html
 
 veryclean:
-	rm dist/*.html dist/fig-*.svg .ob-jupyter/ bib2html*
+	rm dist/*.html dist/fig-*.svg .ob-jupyter/* bib2html*
