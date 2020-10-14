@@ -93,7 +93,6 @@ Lorsque le résultat du test d'ANOVA est significatif, il est souvent intéressa
 
 Il y a deux manières de procéder pour réaliser des comparaisons de paires de moyennes sous Stata (outre la comparaison manuelle à l'aide de [[stata:ttest][ttest]]): (1) la commande [[stata:oneway][oneway]] offre une option permettant de tester les paires de moyennes et d'appliquer une correction pour borner le risque d'erreur d'ensemble (/FWER/) ; (2) les commandes [[stata:pwcompare][pwcompare]], [[stata:contrast][contrast]] ou [[stata:lincome][lincome]] (ou [[stata:test][test]]). La commande [[stata:margins][margins]] fournit plus de souplesse dans l’estimation conditionnelle ou marginale des effets et permet en outre la représentation graphique des résultats grâce à [[stata:marginsplot][marginsplot]]. En dehors de [[stata:pwcompare][pwcompare]], les autres commandes restent applicables dans le cas du modèle linéaire dans son ensemble.
 
-
 Voici le résultat des tests multiples à partir de [[stata:oneway][oneway]] :
 
 #+BEGIN_SRC jupyter-stata :exports both
@@ -105,6 +104,39 @@ On arriverait naturellement aux mêmes conclusions en construisant manuellement 
 #+BEGIN_SRC jupyter-stata :exports both
 quietly ttest age if genotype != 1, by(genotype)
 display r(p)*3
+#+END_SRC
+
+** Cas des variances non égales
+
+Plusieurs généralisations du test de Welch dans le cas où les variances ne sont pas égales ont été proposées \cite{welch-1951-compar-sever}. Sous Stata, les procédures =wtest= et =fstar= peuvent être téléchargées. Voici un exemple d'application avec =wtest,= dont les auteurs ont montré que cette statistique de test convient dans le cas où les échantillons sont de même taille (ce n'est pas vraiment le cas ici) mais de variance différente \cite{wilcox-1986-new-monte} :
+
+#+BEGIN_SRC jupyter-stata :exports both
+wtest age genotype
+#+END_SRC
+
+** Approche non paramétrique
+
+L'ANOVA de Kruskal-Wallis, qui généralise la commande [[stata:ranksum][ranksum]] au cas à plus de deux échantillons, est disponible via la commande [[stata:kwallis][kwallis]] :
+
+#+BEGIN_SRC jupyter-stata :exports both
+kwallis age, by(genotype)
+#+END_SRC
+
+Cette commande ne dispose pas d'option. On peut retrouvera simplement les sommes des rangs (voire les moyennes) utilisées dans ce test statistique à l'aide des instructions suivantes :
+
+#+BEGIN_SRC jupyter-stata :exports both
+egen rr = rank(age)
+bysort genotype : egen rs = sum(rr)
+tabdisp genotype, cellvar(rs) format(%3.1f)
+#+END_SRC
+
+Il est également possible de coupler cette instruction avec une série de tests post-hoc de Mann-Whitney, comme illustré ci-dessous :
+
+#+BEGIN_SRC jupyter-stata :exports both
+foreach k of numlist 1/3 {
+  quietly: ranksum age if genotype != `k', by(genotype)
+  display r(z), "(p=" 2*(1-normal(r(z))) ")"
+}
 #+END_SRC
 
 * Analyse de variance à plusieurs facteurs
@@ -148,13 +180,25 @@ graph export "fig-04-scatter-life-battery.svg", replace
 restore
 #+END_SRC
 
-#+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
+#+CAPTION:   Durée de vie moyenne des batteries en fonction des valeurs des facteurs expérimentaux
 #+NAME:      fig:04-scatter-life-battery
 #+LABEL:     fig:04-scatter-life-battery
 #+ATTR_HTML: :width 640px
 [[./fig-04-scatter-life-battery.svg]]
 
-La commande [[stata:marginplot][marginplot]] simplifierait grandement la tâche. Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur.
+Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur. Toutefois la commande [[stata:marginplot][marginplot]] est beaucoup plus souple d'utilisation et elle s'interface directement avec les modèles statistiques les plus courants. Voici une exemple de son utilisation avec le modèle précédent :
+
+#+BEGIN_SRC jupyter-stata :exports code
+margins temperature#material
+marginsplot, name(p)
+graph export "fig-04-margins-life-battery.svg", replace name(p)
+#+END_SRC
+
+#+CAPTION:   Graphique d'interaction avec la commande marginsplot
+#+NAME:      fig:04-margins-life-battery
+#+LABEL:     fig:04-margins-life-battery
+#+ATTR_HTML: :width 640px
+[[./fig-04-margins-life-battery.svg]]
 
 ** Définition et analyse de contrastes
 
@@ -177,6 +221,10 @@ Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-an
 
 * Footnotes
 
-* TODO [0/2]
+* TODO [2/6]
 - [ ] margins pour les contrastes
-- [ ] marginsplot pour les graphiques d'interaction
+- [X] marginsplot pour les graphiques d'interaction
+- [ ] exemple "battery life" de dae-biostats : ajouter tabstat  & co.
+- [X] anova à un facteur non paramétrique
+- [ ] anova à deux facteurs non paramétrique
+- [ ] méthode des blocs
