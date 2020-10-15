@@ -134,7 +134,7 @@ Il est également possible de coupler cette instruction avec une série de tests
 
 #+BEGIN_SRC jupyter-stata :exports both
 foreach k of numlist 1/3 {
-  quietly: ranksum age if genotype != `k', by(genotype)
+  quietly ranksum age if genotype != `k', by(genotype)
   display r(z), "(p=" 2*(1-normal(r(z))) ")"
 }
 #+END_SRC
@@ -167,29 +167,55 @@ Voici les résultats pour le modèle avec interaction :
 anova life material##temperature
 #+END_SRC
 
-Un graphique d'interaction peut être constuit à l'aide de [[stata:scatter][scatter]] comme suit :
+On rappelle que le modèle à effets pour ce type d'ANOVA s'écrit :
 
-#+BEGIN_SRC jupyter-stata :exports code
+$$ y_{ijk}=\mu+\tau_i+\beta_j+(\tau\beta)_{ij}+\varepsilon_{ijk}, $$
+
+où $i$, $j$ ($i=1\dots a$, $j=1\dots b$) décrivent les niveaux des facteurs $A$ et $B$, et $k$ représente le numéro d'observation ($k=1\dots n$). L'ordre dans lequel les observations sont choisies est tiré au sort, de sorte que l'on parle d'un plan complètement randomisé. On distingue $a+b+1$ dépendances linéaires dans ce système d'équations, et par conséquent les paramètres ne peuvent être identifiés sans imposer certaines contraintes. En règle générale, on impose $\sum_{i=1}^a\hat{\tau}_i=0$, $\sum_{j=1}^b\hat{\beta}_j=0$, $\sum_{i=1}^a\widehat{\tau\beta}_{ij}=0$ ($j=1,2,\dots,b$) et $\sum_{j=1}^b\widehat{\tau\beta}_{ij}=0$ ($i=1,2,\dots,a$). On montre avec un peu d'algèbre que l'équation ci-dessus peut être exprimée sous la forme d'une somme corrigée de sommes de carrés :
+
+$$ \begin{split}
+  \sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^n(y_{ijk}-\bar{y}_{\cdot\cdot\cdot})^2
+  &= \sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^n[
+    (\bar{y}_{i\cdot\cdot}-\bar{y}_{\cdot\cdot\cdot})+(\bar{y}_{\cdot
+      j\cdot}-\bar{y}_{\cdot\cdot\cdot}) \\
+  & \quad  + (\bar{y}_{ij\cdot}-\bar{y}_{i\cdot\cdot}-\bar{y}_{\cdot
+      j\cdot}+\bar{y}_{\cdot\cdot\cdot})+(y_{ijk}-\bar{y}_{ij\cdot})]^2\\
+  &=
+  bn\sum_{i=1}^a(\bar{y}_{i\cdot\cdot}-\bar{y}_{\cdot\cdot\cdot})^2+an\sum_{j=1}^b(\bar{y}_{\cdot
+    j\cdot}-\bar{y}_{\cdot\cdot\cdot})^2 \\
+  & \quad + n\sum_{i=1}^a\sum_{j=1}^b(\bar{y}_{ij\cdot}-\bar{y}_{i\cdot\cdot}-\bar{y}_{\cdot
+      j\cdot}+\bar{y}_{\cdot\cdot\cdot})^2\\
+  & \quad + \sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^n(y_{ijk}-\bar{y}_{ij\cdot})^2
+\end{split} $$
+
+Sous forme symbolique, et on retrouve la formule passée en arguments de [[stata:anova][anova]] (sans la résiduelle), on a bien $SS_T=SS_A+SS_B+SS_{AB}+SS_E$. Les hypothèses associées à ce type de plan portent généralement sur les effets principaux et sur l'effet d'interaction :
+
+- égalité des effets du traitement en lignes, $H_0:\; \tau_1=\tau_2=\dots=\tau_a=0$ ;
+- égalité des effets du traitement en colonnes, $H_0:\; \beta_1=\beta_2=\dots=\beta_b=0$ ;
+- absence d'interaction entre les traitements en lignes et en colonnes,  $H_0:\; (\tau\beta)_{ij}=0\quad \textrm{for all}\; i,j$.
+
+Voici le tableau résumant les moyennes pour chaque traitement, ainsi que les écart-types et effectifs associés. On pourra vérifier que le plan est parfaitement équilibré :
+
+#+BEGIN_SRC jupyter-stata :exports both
+table material temperature, contents(mean life sd life n life) format(%4.1f)
+#+END_SRC
+
+Un graphique d'interaction permettant d'illustrer les variations de moyennes entre les conditions pourrait être constuit à l'aide de [[stata:scatter][scatter]] comme suit :
+
+#+BEGIN_EXAMPLE
 preserve
 collapse (mean) mean=life (sd) sd=life, by(material temperature)
 list in 1/3
 drop sd
 reshape wide mean, i(temperature) j(material)
 twoway connected mean* temperature, legend(label(1 "#1") label(2 "#2") label(3 "#3")) ytitle(Mean life)
-graph export "fig-04-scatter-life-battery.svg", replace
 restore
-#+END_SRC
-
-#+CAPTION:   Durée de vie moyenne des batteries en fonction des valeurs des facteurs expérimentaux
-#+NAME:      fig:04-scatter-life-battery
-#+LABEL:     fig:04-scatter-life-battery
-#+ATTR_HTML: :width 640px
-[[./fig-04-scatter-life-battery.svg]]
+#+END_EXAMPLE
 
 Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur. Toutefois la commande [[stata:marginplot][marginplot]] est beaucoup plus souple d'utilisation et elle s'interface directement avec les modèles statistiques les plus courants. Voici une exemple de son utilisation avec le modèle précédent :
 
 #+BEGIN_SRC jupyter-stata :exports code
-margins temperature#material
+quietly margins temperature#material
 marginsplot, name(p)
 graph export "fig-04-margins-life-battery.svg", replace name(p)
 #+END_SRC
@@ -211,15 +237,44 @@ pwcompare material#temperature, mcompare(tukey)
 Le test d'un contraste spécifique peut être réalisé tout aussi simplement, en indiquant le niveau du ou des facteurs qui nous intéressent, ainsi que les degrés de liberté associés :
 
 #+BEGIN_SRC jupyter-stata :exports both
-pwcompare i2.material#i70.temperature, mcompare(tukey) df(34)
+pwcompare i2.material#i3.temperature, mcompare(tukey) df(34)
 #+END_SRC
 
 
 Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-analyses-for-factorial-anova-stata-11/][simulations de Monte Carlo]] permettent évaluer la puissance statistique d'un plan factoriel, en spécifiant les valeurs attendues pour les moyennes et variances dans chacune des conditions expérimentales. Il ne s'agit donc pas d'un calcul de puissance /a posteriori/.
 
+* Autres plans d'expérience
+
+** Plan en carré latin
+
+** Plan en blocs incomplets équilibrés
+
+Les plans en blocs incomplets équilibrés (BIBD en anglais) font partie des plans en blocs aléatoires dans lesquels certains traitements ne sont pas observés pour certains blocs ou combinaisons de blocs. Si l'on note $a$ le nombre de traitements, et $k$ le nombre maximum de traitements dans chaque bloc ($k < a$), alors un plan BIBD se résume à un arrangement de $a \choose k$ combinaisons \cite{hinkelmann-2005-design}.
+
+Voici un exemple discuté par Montgomery, chapitre 4 \cite{montgomery-2001-desig-analy-exper} :
+
+#+NAME:      tab:bibd
+#+LABEL:     tab:bibd
+#+ATTR_HTML: :border 2 :rules all :frame border :width 100%
+#+CAPTION:   Résultats d'une expérience de catalyse (Tableau 4--21)
+|---------------+-----+-----+-----+-----+----------------------|
+|    Traitement |   1 |   2 |   3 |   4 |         $y_{i\cdot}$ |
+|---------------+-----+-----+-----+-----+----------------------|
+|             1 |  73 |  74 |  -- |  71 |                  218 |
+|             2 |  -- |  75 |  67 |  72 |                  214 |
+|             3 |  73 |  75 |  68 |  -- |                  216 |
+|             4 |  75 |  -- |  72 |  75 |                  222 |
+|---------------+-----+-----+-----+-----+----------------------|
+| $y_{\cdot j}$ | 221 | 224 | 207 | 218 | $870=y_{\cdot\cdot}$ |
+|---------------+-----+-----+-----+-----+----------------------|
+
+Si l'on considère qu'il y a $a$ traitements et $b$ blocs, et que chaque bloc consiste en $k$ traitements, avec $r$ répliques au total dans le plan, alors on a $N = ar = bk$ observations, et le nombre de fois où chaque paire de traitement apparaît dans le même bloc vaut $\lambda = \frac{r(k-1)}{a-1}$, $\lambda\in \{0,1,2,\dots\}$. Si $a = b$, le plan est dit symétrique. [fn:1]
+
 #+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource
 
 * Footnotes
+
+[fn:1] Comme $\lambda$ est forcément un entier, cela limite l'espace des solutions pour certains plans. Par exemple, les contraintes $r=4$, $t=4$, $b=8$ et $k=2$ ne sont pas admissibles dans un simple plan en blocs aléatoires, mais restent valides dans le cas un plan en blocs incomplets équilibrés.
 
 * TODO [2/6]
 - [ ] margins pour les contrastes
@@ -228,3 +283,5 @@ Des [[https://stats.idre.ucla.edu/stata/faq/how-can-i-do-power-and-robustness-an
 - [X] anova à un facteur non paramétrique
 - [ ] anova à deux facteurs non paramétrique
 - [ ] méthode des blocs
+- [-] écriture formelle des modèles à 1 et 2 facteurs
+- [ ] plan en carré latin
