@@ -343,7 +343,7 @@ L’affichage des dates se personnalise à l’aide des formats =%td= et =%tc=.
 
 Pour la conversion de dates gérées sous d’autres logiciels statistiques (SAS, SPSS, R), voir le manuel "[D] datetime" (=help datetime=). Les dates formatées sous MS Excel sont généralement traitées correctement (en utilisant [[stata:import excel][import excel]]).
 
-** Recodage de variables
+** Recodage de variables numériques
 
 Par recodage, on entend la discrétisation d'une variable numérique en variable catégorielle à plusieurs classes ou niveaux, ainsi que la transformation d'une variable catégorielle (création ou agrégation de niveaux).
 
@@ -352,7 +352,36 @@ xtile age4 = age, nq(4)
 tabulate age4
 #+END_SRC
 
-La variable =egp= représente la classe socio-économique (selon la nomenclature allemande) des répondants et elle est composée de 9 classes, en omettant les valeurs traitées comme manquantes (étiquettées "Refusal" et "Does not apply"). On peut construire très facilement le tableau d'effectifs associés à l'aide de [[stata:tabulate][tabulate]], l'option =missing= permettant de dénombrer les valeurs manquantes :
+Il existe d'autres façons d'aborder le même problème. Tout d'abord on peut procéder à un recodage "en ligne" à l'aide de [[stata:autocode][autocode]] :
+
+#+BEGIN_SRC jupyter-stata :exports both
+generate age5 = autocode(age, 5, 17, 100)
+tabulate age5
+#+END_SRC
+
+On peut également utiliser la commande =egen cut= qui permet de discrétiser une variable numérique en intervalles de classes réguliers ou irréguliers.
+
+Enfin, la création d'une variable binaire ne pose pas de souci particulier :
+
+#+BEGIN_SRC jupyter-stata :exports both
+quietly summarize age, detail
+generate byte ageb = age >= r(p50) if !missing(age)
+#+END_SRC
+
+Une formulation équivalente consisterait à utiliser les instructions suivantes :
+
+#+BEGIN_EXAMPLE
+generate byte ageb = 0 if !missing(age)
+replace ageb = 1 if age >= r(p50)
+#+END_EXAMPLE
+
+** Recodage de variables non-numériques
+
+La commande [[stata:encode][encode]] permet de convertir une variable contenant du texte (chaîne de caractères) en variable catégorielle (codes numériques débutant à 1) : les modalités uniques de la variable sont utilisées comme étiquettes ("label") de la nouvelle variable générée. Une alternative consiste à utiliser =egen group=. Lorsque l'on utilise [[stata:encode][encode]], l'option =gen()= permet de créer une nouvelle variable.
+
+La commande [[stata:decode][decode]] effectue l’opération inverse : elle permet de convertir les étiquettes d’une variable catégorielle en contenu texte (il n’y a donc plus de codes numériques associés à la nouvelle variable). Pour convertir des nombres en caractères, on utilise la commande [[stata:tostring][tostring]] (ou =generate newvar = string(oldvar)=). Enfin, la commande [[stata:destring][destring]] permet de convertir des nombres représentés sous forme de caractères par Stata (problème d’importation ou mauvaise manipulation).
+
+Dans le cas des variables catégorielles (avec ou sans étiquettes), il est possible d'utiliser la fonction [[stata:recode][recode]]. Considérons la variable =egp= qui représente la classe socio-économique (selon la nomenclature allemande) des répondants. Cette variable est composée de 9 classes, en omettant les valeurs traitées comme manquantes (étiquettées "Refusal" et "Does not apply"). On peut construire très facilement le tableau d'effectifs associés à l'aide de [[stata:tabulate][tabulate]], l'option =missing= permettant de dénombrer les valeurs manquantes :
 
 #+BEGIN_SRC jupyter-stata :exports both
 tabulate egp, missing
@@ -367,6 +396,54 @@ label values egp3 egp3
 tabulate egp3
 #+END_SRC
 
+** Utilisation d'expressions régulières
+
+Plutôt que de sélectionner des observations selon des valeurs ou des ensembles de valeurs logiques ou numériques, il est tout à fait possible de rechercher des observations répondant à certains critères en utilisant des expressions régulières.
+
+Stata dispose de trois commandes (des fonctions plus exactement) permettant d’effectuer des manipulations sur les chaînes de caractères à partir d’expressions régulières :
+
+- [[stata:regexm][regexm]] : (m)atch une expression (utile pour créer une variable binaire)
+- [[stata:regexr][regexr]] : (r)eplace une expression par une autre
+- [[stata:regexs][regexs]] : (s)ubexpression obtenue à partir de regexm
+
+Voir l’aide en ligne [D] functions pour les chaînes de caractères (=help string_functions=).
+
+Voici un exemple d'application :
+
+#+BEGIN_SRC jupyter-stata :exports both
+decode state, gen(state_)
+generate inberlin = regexm(state_, "^Berl")
+drop state_
+tabulate state inberlin if inlist(state, 0, 1, 2)
+#+END_SRC
+
+** Traitement des données manquantes
+
+Stata dispose de plusieurs codes de valeurs manquantes :
+
+- =.= est le codage par défaut (=missing(var)= ou =var >= .=) ;
+- =.a–.z= (valeurs manquantes étendues) peuvent être utilisés pour coder des valeurs manquantes ayant une signification différente (cas des sondages, par exemple).
+
+Il est possible d’associer des étiquettes aux valeurs manquantes étendues grâce à =label define= afin de les lister lors de tris simple ou croisé.
+La commande [[stata:misstable][misstable]] (sous-commande =summarize= ou =pattern=) fournit un résumé des données manquantes pour une ou plusieurs variables.
+
+#+BEGIN_SRC jupyter-stata :exports both
+misstable pattern q01-q03
+#+END_SRC
+
+Les deux principales commandes permettant de gérer les valeurs manquantes sont indiquées ci-dessous :
+
+- [[stata:mvdecode][mvdecode]] : permet de remplacer des valeurs existantes par un ou plusieurs codes de valeur manquante ; fonctionnement identique à recode
+- [[stata:mvencode][mvencode]] : permet de convertir des données manquantes en valeurs exploitables par Stata (texte ou nombre).
+
+Voici un exemple d'utilisation pour recoder automatiquement les revenus nuls à un code de valeur manquante spécifique (=.c=), ce qui permet de faire la distinction entre les revenus réellement non renseignés (=.=) et les revenus valant 0 et que l'on peut souhaiter analyser séparément ou à l'aide de modèles statistiques autres que le modèle linéaire classique. On a déjà vu un exemple d'application de [[stata:mvdecode][mvdecode]] plus haut. Voici un bref rappel de l'idée de base pour utiliser ces commandes :
+
+#+BEGIN_EXAMPLE
+mvdecode income, mv(0=.c)
+generate lincome = log(income)
+mvencode income, mv(.c=0)
+summarize *inc*
+#+END_EXAMPLE
 
 * Transformation d'un tableau
 
@@ -532,6 +609,8 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 
 [fn:1] Il existe également d'anciens utilitaires, comme [[http://radyakin.org/transfer/use13/use13.htm][use13]], permettant de lire des fichiers version 13 sous Stata 10.
 
-* TODO [0/2]
+* TODO [2/4]
 - [ ] Section tableaux à compléter
 - [ ] Sections fusion et représentation rectangulaire
+- [X] données manquantes
+- [X] recodage (recode, decode, encode, tostring)

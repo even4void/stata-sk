@@ -56,7 +56,6 @@ graph export "fig-02-quantile-age.svg", replace
 #+CAPTION:   Distribution des fractiles d'âge
 #+NAME:      fig:02-quantile-age
 #+LABEL:     fig:02-quantile-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-quantile-age.svg]]
 
 Pour la fonction de répartition, si l'on ne souhaite pas passer par des packages additionnels (p.ex., [[https://ideas.repec.org/c/boc/bocode/s456409.html][cdfplot]]), le plus simple consiste à calculer directement à calculer la fonction de répartition empirique à l'aide de [[stata:cumul][cumul]]. Il s'agit en réalité de la fonction réciproque de celle présentée plus haut. Dans l'exemple ci-après, on affiche cette variable auxiliaire en fonction de l'âge et on surligne le premier et le troisième quartile par des lignes horizontales :
@@ -71,7 +70,6 @@ graph export "fig-02-cumul-age.svg", replace
 #+CAPTION:   Fonction de répartition empirique de l'âge
 #+NAME:      fig:02-cumul-age
 #+LABEL:     fig:02-cumul-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-cumul-age.svg]]
 
 Un graphique tout aussi intéressant consiste à afficher les fractiles d'une variable en fonction des fractiles d'une loi normale, ce que l'on appelle communément un diagramme de type quantile-quantile. L'examen de la forme de la courbe permet d'évaluer rapidement si les données sont compatibles avec l'hypothèse selon laquelle elles se distribuent "à peu près normalement".
@@ -84,7 +82,6 @@ graph export "fig-02-qnorm-age.svg", replace
 #+CAPTION:   Diagramme quantile-quantile pour l'âge
 #+NAME:      fig:02-qnorm-age
 #+LABEL:     fig:02-qnorm-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-qnorm-age.svg]]
 
 ** Histogrammes et courbes de densité
@@ -99,7 +96,6 @@ graph export "fig-02-histogram-age.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants
 #+NAME:      fig:02-histogram-age
 #+LABEL:     fig:02-histogram-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-histogram-age.svg]]
 
 Notons que cette commande dispose de l'option =by()= des commandes [[stata:twoway][twoway]] de sorte qu'il est assez simple de tracer des histogrammes conditionnés sur les valeurs prise par une autre variable, comme illustré ci-après.
@@ -113,7 +109,6 @@ graph export "fig-02-histogram-age-sex.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-histogram-age-sex
 #+LABEL:     fig:02-histogram-age-sex
-#+ATTR_HTML: :width 640px
 [[./fig-02-histogram-age-sex.svg]]
 
 # FIXME Une courbe de densité empirique
@@ -128,7 +123,6 @@ graph export "fig-02-kdensity-age.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants
 #+NAME:      fig:02-kdensity-age
 #+LABEL:     fig:02-kdensity-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-kdensity-age.svg]]
 
 Notons qu'une alternative aux histogrammes consiste à utiliser un diagramme en points à l'aide de [[stata:dotplot][dotplot]]. Dans ce cas, chaque point représente une observation (idéal pour les petits échantillons), mais cette commande se prête mieux aux cas où l'on souhaite 2 ou plusieurs distributions, grâce à son option =over()=. Voici une illustration, avec un petit échantillon aléatoire de la base de données, la commande =gsample= devant être installée au préalable :
@@ -144,7 +138,6 @@ restore
 #+CAPTION:   Distribution de l'âge selon le sexe
 #+NAME:      fig:02-dotplot-age
 #+LABEL:     fig:02-dotplot-age
-#+ATTR_HTML: :width 640px
 [[./fig-02-dotplot-age.svg]]
 
 ** Diagrammes en barres et en points
@@ -159,7 +152,6 @@ graph export "fig-02-histogram-edu.svg", replace
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-histogram-edu
 #+LABEL:     fig:02-histogram-edu
-#+ATTR_HTML: :width 640px
 [[./fig-02-histogram-edu.svg]]
 
 Comme on peut le voir, la figure [[fig:02-histogram-edu]] est loin d'être parfaite. En particulier, les libellés de l'axe des abscisses sont peu lisibles (à moins d'ajouter une légende indiquant la correspondance entre les codes numériques et les étiquettes des niveaux de la variable =edu=), et les barres verticales sont juxtaposées de sorte qu'avec l'axe numérique il est facile de prendre ce diagramme pour un histogramme pour données continues. Voici une version qui corrige ces deux aspects, notamment grâce à l'usage de =gap()= et une spécification plus poussée des étiquettes de l'axe des x :
@@ -172,7 +164,6 @@ graph export "fig-02-histogram-edu-v2.svg", replace
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-histogram-edu-v2
 #+LABEL:     fig:02-histogram-edu-v2
-#+ATTR_HTML: :width 640px
 [[./fig-02-histogram-edu-v2.svg]]
 
 Pour réaliser un tel diagramme en utilisant [[stata:graph bar][graph bar]], il est nécessaire de travailler avec une variable auxiliaire dans laquelle on accumule les effectifs conditionnels.
@@ -191,7 +182,6 @@ graph export "fig-02-catplot-edu.svg", replace
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-catplot-edu
 #+LABEL:     fig:02-catplot-edu
-#+ATTR_HTML: :width 640px
 [[./fig-02-catplot-edu.svg]]
 
 Et voici dans le cas où l'on croise deux variables, grâce à l'option =by()= (il est également possible d'indiquer deux variables après le nom de la commande) :
@@ -204,7 +194,6 @@ graph export "fig-02-catplot-edu-v2.svg", replace
 #+CAPTION:   Distribution selon les niveaux d'éducation et le sexe (%)
 #+NAME:      fig:02-catplot-edu-v2
 #+LABEL:     fig:02-catplot-edu-v2
-#+ATTR_HTML: :width 640px
 [[./fig-02-catplot-edu-v2.svg]]
 
 ** Diagramme de dispersion
@@ -220,7 +209,6 @@ graph export "fig-02-scatter-age-income.svg", replace
 #+CAPTION:   Distribution jointe du revenu (log) et de l'âge
 #+NAME:      fig:02-scatter-age-income
 #+LABEL:     fig:02-scatter-age-income
-#+ATTR_HTML: :width 640px
 [[./fig-02-scatter-age-income.svg]]
 
 À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, ce qui se révèle plutôt pratique lorsque le nombre de points est grand et que le risque de chevauchement de ces derniers est critique. Le cas échéant il est possible de modifier le type de symbole qui est utilisé. Les symboles graphiques (=graph query symbolstyle=) sont généralement désignés par leur synonymes lettrés : =O= (cercle), =D= (losange), =T= (triangle), =S= (carré), leur variantes de petite taille (les mêmes lettres mais en minuscules), suffixé éventuellement de la lettre =h= ("hollow") pour indiquer que le symbole est rempli avec la couleur par défaut. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
@@ -235,7 +223,6 @@ graph export "fig-02-loess-age-income.svg", replace
 #+CAPTION:   Distribution jointe du revenu (log) et de l'âge
 #+NAME:      fig:02-loess-age-income
 #+LABEL:     fig:02-loess-age-income
-#+ATTR_HTML: :width 640px
 [[./fig-02-loess-age-income.svg]]
 
 Notons qu'il n'est pas forcément nécessaire de combiner les deux commandes graphiques dans la mesure où [[stata:lowess][lowess]] permet également d'afficher le diagramme de dispersion. Un paramètre qu'il est souvent bon d'explorer est la largeur de la fenêtre de lissage, =bwidth=, qui par défaut vaut 0.8 ce qui consiste à utiliser 80 % de l'échantillon pour calculer une valeur lissée pour chaque observation. En conséquence, plus la valeur de =bwidth= est élevée plus le degré de lissage est important. En voici une illustration sur 100 observations choisies aléatoirement dans l'échantillon :
@@ -259,8 +246,13 @@ restore
 #+CAPTION:   Influence du paramètre de lissage
 #+NAME:      fig:02-loess-age-dvisits
 #+LABEL:     fig:02-loess-age-dvisits
-#+ATTR_HTML: :width 640px
 [[./fig-02-loess-age-dvisits.gif]]
+
+** Séries chronologiques
+
+La particularité des séries chronologiques est qu'elles incorporent un index temporel prenant la forme soit d'une date, soit d'une durée. Dans les cas simples, on peut les assimiler à des représentations univariées dans la mesure où l'on se retrouve à ne manipuler qu'une seule variable lorsqu'elles sont correctement gérées via [[stata:tsset][tsset]]. Voici un exemple de données (=census-historic-population-borough.csv=) décrivant l'évolution de la population de Londres et ses alentours entre 1801 et 2001.
+# XXX
+
 
 * Graphiques composites
 
@@ -278,7 +270,6 @@ graph export "fig-02-kdensity-age-sex.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-kdensity-age-sex
 #+LABEL:     fig:02-kdensity-age-sex
-#+ATTR_HTML: :width 640px
 [[./fig-02-kdensity-age-sex.svg]]
 
 Il n'est pas possible de superposer les deux courbes à l'aide de =over()= mais l'on peut toujours combiner les deux commandes graphiques grâce à [[stata:twoway][twoway]]. Dans ce cas, il ne faudra pas oublier de préciser dans une légende à quel niveau de =sex= les deux courbes correspondent :
@@ -291,7 +282,6 @@ graph export "fig-02-kdensity-age-sex-v2.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-kdensity-age-sex-v2
 #+LABEL:     fig:02-kdensity-age-sex-v2
-#+ATTR_HTML: :width 640px
 [[./fig-02-kdensity-age-sex-v2.svg]]
 
 
@@ -314,7 +304,6 @@ graph export "fig-02-box-age-egp.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
 #+NAME:      fig:02-box-age-egp
 #+LABEL:     fig:02-box-age-egp
-#+ATTR_HTML: :width 640px
 [[./fig-02-box-age-egp.svg]]
 
 
@@ -326,7 +315,6 @@ graph export "fig-02-dotplot-age-egp.svg", replace
 #+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
 #+NAME:      fig:02-dotplot-age-egp
 #+LABEL:     fig:02-dotplot-age-egp
-#+ATTR_HTML: :width 640px
 [[./fig-02-dotplot-age-egp.svg]]
 
 Le package [[https://ideas.repec.org/c/boc/bocode/s433401.html][stripplot]] peut également être utilisé afin de représenter les distributions conditionnelles sous forme de diagrammes en points, à l'image de [[stata:dotplot][dotplot]]. On utiliserait, par exemple, =stripplot age, over(egp3)=.
@@ -350,7 +338,6 @@ graph export "fig-02-scatter-air-time.svg", replace
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time
 #+LABEL:     fig:02-scatter-air-time
-#+ATTR_HTML: :width 640px
 [[./fig-02-scatter-air-time.svg]]
 
 Supposons que l'on souhaite afficher la même évolution du volume de passagers entre 1949 et 1961 mais, cette fois-ci, conditionnellement au mois de l'année. Pour cela, il est nécessaire de créer deux nouvelles variables :
@@ -373,7 +360,6 @@ graph export "fig-02-scatter-air-time-v2.svg", replace
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time-v2
 #+LABEL:     fig:02-scatter-air-time-v2
-#+ATTR_HTML: :width 640px
 [[./fig-02-scatter-air-time-v2.svg]]
 
 À présent, on souhaiterait afficher dans chaque sous-graphique la distribution des autres mois, afin de servir de référence. Or il n'est pas possible d'utiliser d'option =over()= dans ce cas-là. En revanche, on peut générer les 12 graphiques et les assembler à l'aide de [[stata:graph combine][graph combine]]. Dans un premier temps, il est nécessaire de séparer les différents sous-groupes de données :
@@ -391,7 +377,6 @@ graph drop _all
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time-v3
 #+LABEL:     fig:02-scatter-air-time-v3
-#+ATTR_HTML: :width 640px
 [[./fig-02-scatter-air-time-v3.svg]]
 
 
