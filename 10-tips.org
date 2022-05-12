@@ -1,0 +1,56 @@
+#+TITLE: Stata : conseils et astuces
+#+EMAIL: chl@aliquote.org
+#+LANGUAGE: fr
+#+LINK: stata  https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :exports code :results none
+#+OPTIONS: H:3 toc:t tasks:nil
+
+
+Les ressources mémoire utilisées par Stata peuvent être contrôlées à l'aide de la commande [[stata:niceness][niceness]] :
+
+#+BEGIN_SRC stata
+set niceness 8
+#+END_SRC
+
+Par défault les graphiques anonymes sont affichés dans la même fenêtre. Il est toutefois possible d'afficher chaque graphique dans une fenêtre séparée en spécifiant l'option suivante :
+
+#+BEGIN_SRC stata
+set autotabgraphs on
+#+END_SRC
+
+Le cas échéant, il convient de nommer systématiquement les graphiques, en spécifiant l'option =name(gph1, replace)=, par exemple.
+
+Toutes les commandes ne sont pas documentées, et cela dépend des versions de Stata. Pour obtenir la liste des commandes non documentées ou des commandes supprimées ou archivées dans les anciennes versions, tapez les commandes :
+
+#+BEGIN_SRC stata
+help undocumented
+help prdocumented
+#+END_SRC
+
+En dehors des outils de contrôle de qualité classiques, il existe une commande qui permet de vérifier l'intégrité d'un fichier de données, comme une somme de contrôle : [[stata:datasig][datasig]].
+
+Il est possible de fournir des étiquettes localisées pour les variables, par exemple en Français et en Anglais. Dans ce cas, l'option de langue peut être spécifiée globalement à l'aide de [[stata:label language][label language]].
+
+Les commandes d'importation de fichiers de données texte ([[stata:inhseet][insheet]]) sur les anciennes versions de Stata ne permettent pas toutes de prendre en compte automatiquement une ligne d'en-tête. Il est toutefois possible de traiter séparément la première ligne d'un tel fichier et de générer les noms de variable correspondant :
+
+#+BEGIN_SRC stata
+foreach x of varlist _all {
+  local header = `x'[1]
+  rename `x' `header'
+}
+drop in 1
+destring _all, replace
+#+END_SRC
+
+Pour lire tous les fichiers CSV dans le répertoire courant, on peut utiliser les instructions suivantes :
+
+#+BEGIN_SRC stata
+local x: dir . files "*.csv"
+display "`x'"
+#+END_SRC
+
+Les expressions rationnelles sont souvent méconnues, pourtant elles permettent d'effectuer des tâches de nettoyage de données très puissantes. Par exemple, pour supprimer tous les espaces superflus dans le contenu d'une variable de type chaîne de caractères, on peut utiliser la commande [[stata:trim][trim]] de la manière suivante :
+
+#+BEGIN_SRC stata
+trim(ustrregexra(x,"/(\r\n\t)+|\r+|\n+|\t+/", ""))
+#+END_SRC

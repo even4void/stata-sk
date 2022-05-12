@@ -21,7 +21,7 @@ quietly summarize mpg, meanonly
 display r(mean)
 #+END_SRC
 
-La command [[stata:summarize][summarize]] stocke temporairement la moyenne (=mean=) de la variable (ou dans le cas d'une liste de variables, de la dernière variable de la liste) en mémoire et il est possible d'obtenir la valeur de retour stockée dans =r()=. Ce type de données peut être stocké globalement (accessible depuis l’espace de travail, les programmes, etc.) ou localement, ou, comme dans l'exemple ci-dessus, affiché à l'écran. 
+La command [[stata:summarize][summarize]] stocke temporairement la moyenne (=mean=) de la variable (ou dans le cas d'une liste de variables, de la dernière variable de la liste) en mémoire et il est possible d'obtenir la valeur de retour stockée dans =r()=. Ce type de données peut être stocké globalement (accessible depuis l’espace de travail, les programmes, etc.) ou localement, ou, comme dans l'exemple ci-dessus, affiché à l'écran.
 # FIXME voir [U] 18.8
 
 ** Macros locales
@@ -61,6 +61,38 @@ estimates store m2
 estimates table m*
 #+END_SRC
 
+** Variables catégorielles
+
+#+BEGIN_SRC stata
+levelsof country, local(lvls)
+local items =  `r(r)'
+#+END_SRC
+
+Consulter également les valeurs retournées par =return list=.
+
+** Gestion des dates
+
+#+BEGIN_SRC stata
+local date: display %tdd_m_yy date(c(current_date), "DMY")
+display "`date'"
+summ date
+local date: display %tdd_m_yy `r(max)'
+display "`date'"
+local date2 = subinstr(trim("`date'"), " ", "_", .)
+display "`date2'"
+#+END_SRC
+
+Voir aussi
+
+#+BEGIN_SRC stata
+local date = string(date(c(current_date), "DMY"), "%tdd!_m!_Y")
+local date = string(date(c(current_date), "DMY"), "%tdCCYYNNDD")
+local date = string(date(c(current_date), "DMY"), "%tdCYND")
+display "`date'"
+#+END_SRC
+
+[[https://medium.com/the-stata-guide/the-awesome-stata-tips-collection-6805afdedffa][The awesome Stata tips collection]].
+
 ** Compteurs et boucles
 
 On rappelle que pour la sélection critériée d'observation dans un tableau de données, le qualificateur [[stata:if][if]] est l'un des plus utiles. Voici par exemple une instruction typique : =list [varlist] [if] [in] [, options]=, ainsi que quelques illustrations :
@@ -87,7 +119,7 @@ forvalues index = 1/3 {
 }
 #+END_SRC
 
-Le principe de la syntaxe est simple bien qu'il fasse faire bien attention aux accolades, en particulier la dernière qui doit figurer seule sur une ligne : =forvalues macro locale = séquence {=. Pour construire une séquence régulière de nombres, on utilise l’une des formes suivantes : (1) =min/max= (comme dans le cas de =list in=) : =1/3= devient ainsi la séquence =1 2 3= ; (2) =first(step)last= : =10(5)25= devient =10 15 20 25=. 
+Le principe de la syntaxe est simple bien qu'il fasse faire bien attention aux accolades, en particulier la dernière qui doit figurer seule sur une ligne : =forvalues macro locale = séquence {=. Pour construire une séquence régulière de nombres, on utilise l’une des formes suivantes : (1) =min/max= (comme dans le cas de =list in=) : =1/3= devient ainsi la séquence =1 2 3= ; (2) =first(step)last= : =10(5)25= devient =10 15 20 25=.
 
 Voici une application simple qui consiste à discrétiser une variable numérique. La commande [[stata:tabulate][tabulate]] dispose de l’option =generate= qui per- met de générer des variables indicatrices (à utiliser après [[stata:xtile][xtile]], [[stata:egen cut][egen cut]] ou [[stata:autocode()][autocode()]]). Pour créer des indicatrices, on peut utiliser une boucle comme suit :
 
@@ -129,7 +161,14 @@ foreach v of varlist weightc1-weightc4 {
 list w* in 1/5
 #+END_SRC
 
-Dans la même veine, on peut imaginer : le recodage en masse des niveaux d’une liste de variable ([[stata:recode][recode]]), la gestion des données manquantes ([[stata:mvdecode][mvdecode]]), etc. Un autre exemple consiste à [[http://www.stata.com/support/faqs/data-management/using-while-loops/][générer des graphiques avec des instructions non "byable"]] ou annoter une [[http://www.stata.com/statalist/archive/2010-06/msg01581.html][liste de variables]]. 
+Dans la même veine, on peut imaginer : le recodage en masse des niveaux d’une liste de variable ([[stata:recode][recode]]), la gestion des données manquantes ([[stata:mvdecode][mvdecode]]), etc. Un autre exemple consiste à [[http://www.stata.com/support/faqs/data-management/using-while-loops/][générer des graphiques avec des instructions non "byable"]], l'annotation d'une [[http://www.stata.com/statalist/archive/2010-06/msg01581.html][liste de variables]], ou enfin le nommage automatique de graphiques :
+
+#+BEGIN_SRC stata
+foreach x of varlist var1-var5 {
+  local v : var label `x'
+  twoway line yvar xvar, title("`v'")
+}
+#+END_SRC
 
 ** Structures de contrôle
 
@@ -138,12 +177,21 @@ Les structures de branchement conditionnels telles qu'une instruction if/else pe
 Attention à [[https://www.stata.com/support/faqs/data-management/multiple-operations/][ne pas confondre]] le qualificateur [[stata:if][if]] avec l'instruction de test Stata ou Mata correspondante. L'expression =sum foreign if price > 10000= ne fournira pas le même résultat que :
 
 #+BEGIN_SRC jupyter-stata :exports both
-if price > 10000 { 
-  sum foreign 
-} 
+if price > 10000 {
+  sum foreign
+}
 #+END_SRC
- 
+
 Usage de [[stata:cond][cond]] \cite{kantor-2005-depen}
+
+#+BEGIN_SRC stata
+sysuse auto
+gen v1 = mpg > 20
+gen v2 = !inrange(mpg, 0, 20)
+gen v3 = cond(mpg > 20, 1, 0)
+recode mpg (0/20 = 0) (21/. = 1), gen(v4)
+gen v5 = irecode(mpg, 0, 20, .)
+#+END_SRC
 
 * Automatisation
 

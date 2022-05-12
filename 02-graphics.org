@@ -380,6 +380,13 @@ graph drop _all
 [[./fig-02-scatter-air-time-v3.svg]]
 
 
+* Mata
+
+#+BEGIN_SRC stata
+mata A = runiform(10,10)
+heatplot mata(A)
+#+END_SRC
+
 * Commandes de post-estimation
 
 #+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource

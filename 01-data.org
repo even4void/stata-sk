@@ -195,6 +195,12 @@ La variable =hhnr= s'apparente à =hhnr2009= puisqu'il s'agit d'un identifiant u
 drop hhnr
 #+END_SRC
 
+Il est possible de rechercher une variable par mot-clé à l'aide de la commande [[stata:lookfor][lookfor]]. Cette commande recherche également le mot-clé dans les étiquettes des variables. De plus, la commande [[stata:describe][describe]] dispose d'options utiles pour filtrer les variables d'intérêt, comme l'illustrent les commandes suivantes :
+
+#+BEGIN_SRC
+describe, has(type numeric)
+describe, not(type string)
+#+END_SRC
 
 * Manipulation de variables
 

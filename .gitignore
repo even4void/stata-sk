@@ -3,7 +3,6 @@ dist/
 tmp/
 scratch
 fig-*.eps
-deploy.sh
 history.txt
 *.html
 *.pdf
