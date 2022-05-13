@@ -1,9 +1,9 @@
 #+TITLE: Stata : gestion des données
 #+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+LINK: stata  https://www.stata.com/help.cgi?
-#+PROPERTY: header-args :session *sta* :results output
-#+OPTIONS: H:3 toc:t tasks:nil
+#+LINK: stata https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :exports both :results output
+#+OPTIONS: H:3 toc:t
 
 Stata est reconnu pour faciliter la gestion et le recodage des données ainsi que l'automatisation de tâches répétitives. Ce chapitre a pour but de discuter les commandes essentielles permettant de manipuler des variables contenues dans un tableau de données. Une caractéristique de Stata est que le concept de variable est à prendre au sens statistique du terme, et non au sens informatique : Stata dispose de "macros" pour tout ce qui relève de la programmation, mais ceci fera l'objet d'un [[file:05-programming.html][autre chapitre]].
 
@@ -25,7 +25,7 @@ Les données d'illustration sont tirées de \cite{kohler-2012-data-analy} et son
 
 Voici les instructions permettant de charger les données en mémoire, en supposant que le répertoire de travail contienne bien un répertoire =data/= dans lequel se trouve le fichier =gsoep09.dta= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 clear all
 use data/gsoep09
 describe, short
@@ -33,7 +33,7 @@ describe, short
 
 La commande [[stata:describe][describe]] permet de décrire le tableau de données. Parmi ses différentes options, =short= permet de limiter la description à l'en-tête du tableau, c'est-à-dire les informations relatives au nombre d'observations et de variables et aux éventuelles annotations du tableau, tandis que =simple= permet de n'afficher que la liste des variables.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 describe, simple
 #+END_SRC
 
@@ -41,7 +41,7 @@ Notons qu'il s'agit de données d'enquête, même si nous n'exploiterons pas vra
 
 Pour obtenir un aperçu des premières lignes du tableau, et en restreignant la liste des variables affichées, voici comment l'on procéderait avec [[stata:list][list]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list persnr-sex in 1/5
 #+END_SRC
 
@@ -127,30 +127,30 @@ Dans le visualisateur de données ([[stata:browse][browse]]), les variables num�
 
 Voici deux exemples de variables : le revenu (=income=), variable numérique stockée sous forme d'entiers, et le sexe (=sex=) des répondants, variable catégorielle à deux classes ou niveaux :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list income in 1/5
 list sex in 1/5
 #+END_SRC
 
 Les commandes [[stata:summarize][summarize]] et [[stata:tabulate][tabulate]] permettent respectivement de construire des résumés numériques appropriés pour ces deux types de variable :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 summarize income
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate sex
 #+END_SRC
 
 L'option =nolabel= de [[stata:tabulate][tabulate]] permet d'afficher les codes numériques au lieu des étiquettes associées à chacun des niveaux de la variable catégorielle.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate sex, nolabel
 #+END_SRC
 
 Il est possible d'obtenir la même information en utilisant [[stata:codebook][codebook]], l'avantage de cette dernière commande étant qu'elle fonctionne avec une variable ou une liste de variables (voire le tableau en entier si l'on ne spécifie aucune variable) et qu'elle affiche beaucoup plus d'informations sur le mode de représentation et le contenu de la variable :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 codebook sex
 #+END_SRC
 
@@ -160,38 +160,38 @@ Un concept clé dans Stata est la possibilité de travailler avec une seule vari
 
 Pour spécifier une liste de variables, il suffit d'indiquer les noms de variables en les séparant par un espace, comme dans l'illustration suivante :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list wor01 wor02 wor03 in 5
 #+END_SRC
 
 Il est également possible d'indiquer le nom de la première variable et le nom de la dernière variable d'une séquence de variables consécutives. Dans ce cas, le délimiteur d'étendue est le tiret :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list wor01-wor03 in 5
 #+END_SRC
 
 Les noms de variable peuvent être interpolés par Stata à l'aide des symboles d'expressions rationelles =?= (un seul caractère, n'importe lequel parmi les caractères autorisés) et =*= (un ou plusieurs caractères). Voici deux exemples d'utilisation :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list wor0? in 5
 list wor* in 3
 #+END_SRC
 
 Enfin, on peut combiner les différentes approches comme dans l'exemple suivant :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list persnr sex wor01-wor03 in 1
 #+END_SRC
 
 L'usage de listes de variables facilite beaucoup de tâches qui pourrait apparaître fastidieuses autrement (lister explicitement une dizaine de variables) ou nécessiter de programmer une boucle (renommer un ensemble de variables). Voici par exemple comment renommer des variables en bloc à l'aide de [[stata:rename][rename]] :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 rename wor* q*
 #+END_SRC
 
 La variable =hhnr= s'apparente à =hhnr2009= puisqu'il s'agit d'un identifiant unique pour les foyers résidentiels. Cette variable peut être d'ores et déjà supprimée à l'aide de [[stata:drop][drop]] puisqu'elle ne sera pas exploitée :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 drop hhnr
 #+END_SRC
 
@@ -216,20 +216,20 @@ Tous les éléments entre crochets sont optionnels. On distingue les options pri
 
 Voici quelques illustrations de ces différentes options. Considérons le revenu annuel (en euros) et son résumé numérique produit avec [[stata:summarize][summarize]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 summarize income
 #+END_SRC
 
 Le nombre total d'observations affiché par [[stata:summarize][summarize]] diffère du nombre total de lignes présentes dans la tableau, comme on peut le vérifier avec [[stata:describe][describe]] ou avec la commande [[stata:count][count]]. Il est possible de dénombrer les valeurs manquantes avec la même commande et la fonction [[stata:missing][missing]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 count
 count if missing(income)
 #+END_SRC
 
 La sélection des observations manquantes est réalisée avec le qualifieur [[stata:if][if]]. Il est possible de raffiner le filtre de sélection en utilisant les opérateurs logiques habituels : le symbole =&= désigne la conjonction ("et" logique), =|= la disjonction ("ou"), =!= la négation. On dispose également des opérateurs de comparaison unaire =>=, =>==, =<= et =<==. Il est également possible d'utiliser les fonctions [[stata:inlist][inlist]] et [[stata:inrange][inrange]] que l'on détaillera plus loin. Seules les observations vérifiant la condition logique spécifiée après le [[stata:if][if]] seront sélectionnées. Voici un exemple où l'on dénombre les revenus non manquants parmi les femmes :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 count if missing(income) & sex == 2
 #+END_SRC
 
@@ -237,7 +237,7 @@ Il est important de bien spécifier le code numérique et non l'étiquette assoc
 
 Considérons à présent l'âge des répondants, que l'on peut reconstruire à partir de l'année de réalisation de l'enquête (2009) et de l'année de naissance des individus :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate age = 2009 - ybirth
 order age, after(ybirth)
 summarize age
@@ -247,13 +247,13 @@ La commande [[stata:order][order]] permet de déplacer la position d'une variabl
 
 Voici comment résumer numériquement cette variable pour les seuls individus pour lesquels l'information concernant le revenu est connue :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 summarize age if !missing(income)
 #+END_SRC
 
 Enfin, il est également possible de stratifier l'analyse selon le sexe à l'aide du préfixe [[stata:by][by]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 by sex, sort : summarize age if !missing(income)
 #+END_SRC
 
@@ -263,13 +263,13 @@ Comme on peut le constater, il est impératif de trier les données selon la var
 
 On a déjà vu un exemple de création de variable dans les illustrations précédentes avec la commande [[stata:generate][generate]]. Voici une utilisation plus avancée où l'on construit une nouvelle variable à partir d'une expression mathématique, le logarithme du revenu :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate lincome = log(income)
 #+END_SRC
 
-L'expression ci-dessus correspond bien à la syntaxe discutée dans la [[*Syntaxe élémentaire des commandes Stata][section précédente]], =command [varlist] [=exp]=. Le résultat de cette instruction a généré de nombreuses valeurs manquantes, ce qui s'explique par la présence de revenus annuels valant 0, valeur pour laquelle le logarithme n'est pas défini, en plus des valeurs manquantes d'origine pour lesquelles le logarithme n'est pas non plus défini. Il y a au moins deux manières de pallier à ce problème : on peut remplacer l'expression =log(income)= par =log(income+1)= (l'ajout d'une unité ne devrait pas modifier foncièrement les analyses de cette variable étant donnée l'étendue des valeurs observées et la valeur de tendance centrale) ou alors on peut traiter les valeurs nulles de =income= comme des valeurs manquantes. Dans le second cas de figure, pour être à même de distinguer les valeurs manquantes d'origine des valeurs imputées, il convient d'utiliser un code de valeur manquante différent. Voici comment procéder :
+L'expression ci-dessus correspond bien à la syntaxe discutée dans la section précédente, =command [varlist] [=exp]=. Le résultat de cette instruction a généré de nombreuses valeurs manquantes, ce qui s'explique par la présence de revenus annuels valant 0, valeur pour laquelle le logarithme n'est pas défini, en plus des valeurs manquantes d'origine pour lesquelles le logarithme n'est pas non plus défini. Il y a au moins deux manières de pallier à ce problème : on peut remplacer l'expression =log(income)= par =log(income+1)= (l'ajout d'une unité ne devrait pas modifier foncièrement les analyses de cette variable étant donnée l'étendue des valeurs observées et la valeur de tendance centrale) ou alors on peut traiter les valeurs nulles de =income= comme des valeurs manquantes. Dans le second cas de figure, pour être à même de distinguer les valeurs manquantes d'origine des valeurs imputées, il convient d'utiliser un code de valeur manquante différent. Voici comment procéder :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 cap drop lincome
 mvdecode income, mv(0=.c)
 generate lincome = log(income)
@@ -277,24 +277,23 @@ generate lincome = log(income)
 
 Voici un résumé des valeurs manquantes présentes dans ces deux variables :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 misstable summarize *income
 #+END_SRC
 
 On pourra vérifier que la transformation logarithmique a contribué à stabiliser quelque peu la variance et à symétriser la distribution, même si celle-ci reste loin d'une distribution normale.
 
-#+BEGIN_SRC jupyter-stata :exports code
-set scheme plotplain
+#+BEGIN_SRC stata :exports code
 label variable lincome "Annual income in euros (log)"
 graph twoway histogram lincome, fraction bfcolor(gs3) blcolor(none)
-graph export "fig-01-histogram-lincome.svg", replace
+graph export "fig-01-histogram-lincome.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution du log du revenu annuel (euros)
 #+NAME:      fig:01-histogram-lincome
 #+LABEL:     fig:01-histogram-lincome
-#+ATTR_HTML: :width 640px
-[[./fig-01-histogram-lincome.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-01-histogram-lincome.png]]
 
 ** Étiquette et annotation
 
@@ -302,31 +301,31 @@ Il est préférable de travailler avec des noms de variables court, en minuscule
 
 La commande =label= est une méta commande qui comporte plusieurs sous commandes. Ainsi, avec [[stata:label+variable][label variable]] il est possible de donner un intitulé bref à la variable elle-même. Prenons le cas de la variable =lincome= créée à l'étape précédente.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 label variable lincome "Annual income in euros (log)"
 #+END_SRC
 
 Une fois étiquetté, le libellé des variables apparaîtra dans les sorties de [[stata:describe][describe]], [[stata:codebook][codebook]], les graphiques et les tableaux :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 codebook lincome
 #+END_SRC
 
 Quant aux variables catégorielles, on a vu qu'il s'agit essentiellement de variables représentées sous forme d'entiers consécutifs, $\{1,2,\dots,k\}$, ou de valeurs 0/1 dans le cas des variables binaires, auxquels on associe des étiquettes. Ceci est réalisé avec les commandes [[stata:label+define][label define]] et [[stata:label+values][label values]], comme illustré dans l'exemple suivant :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate insample = !missing(lincome)
 label define insample 0 "Not analyzed (income = .)" 1 "In sample (income > .)"
 label values insample insample
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate insample
 #+END_SRC
 
 Notons que l'on utilise souvent le même nom d'étiquette que le nom de la variable lorsque ce jeu d'étiquette de niveaux est réellement spécifique de cette variable. Le cas échéant, un même jeu d'étiquettes peut être appliqué à une liste de variables. C'est le cas par exemple pour les variables =wor*= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 label list concern3
 #+END_SRC
 
@@ -336,7 +335,7 @@ Enfin, il est possible d'annoter un tableau ou une variable à l'aide de la comm
 
 Si la précision automatiquement choisie par Stata n'est pas indispensable à l'interprétation des résultats ou si l'on souhaite simplement appliquer automatiquement un arrondi des valeurs, la commande [[stata:format][format]] permet de modifier le format d'affichage global d'une ou plusieurs variables. Notons que les formats d'affichage peuvent également s'appliquer localement lors de l'utilisation de certaines commandes telles que [[stata:summarize][summarize]]. Par exemple, en appliquant un format limitant l'affichage à 2 décimales, voici ce que la commande précédente donnerait :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 format age %5.2f
 summarize age, format
 #+END_SRC
@@ -353,14 +352,14 @@ Pour la conversion de dates gérées sous d’autres logiciels statistiques (S
 
 Par recodage, on entend la discrétisation d'une variable numérique en variable catégorielle à plusieurs classes ou niveaux, ainsi que la transformation d'une variable catégorielle (création ou agrégation de niveaux).
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 xtile age4 = age, nq(4)
 tabulate age4
 #+END_SRC
 
 Il existe d'autres façons d'aborder le même problème. Tout d'abord on peut procéder à un recodage "en ligne" à l'aide de [[stata:autocode][autocode]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate age5 = autocode(age, 5, 17, 100)
 tabulate age5
 #+END_SRC
@@ -369,7 +368,7 @@ On peut également utiliser la commande =egen cut= qui permet de discrétiser u
 
 Enfin, la création d'une variable binaire ne pose pas de souci particulier :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly summarize age, detail
 generate byte ageb = age >= r(p50) if !missing(age)
 #+END_SRC
@@ -389,13 +388,13 @@ La commande [[stata:decode][decode]] effectue l’opération inverse : elle per
 
 Dans le cas des variables catégorielles (avec ou sans étiquettes), il est possible d'utiliser la fonction [[stata:recode][recode]]. Considérons la variable =egp= qui représente la classe socio-économique (selon la nomenclature allemande) des répondants. Cette variable est composée de 9 classes, en omettant les valeurs traitées comme manquantes (étiquettées "Refusal" et "Does not apply"). On peut construire très facilement le tableau d'effectifs associés à l'aide de [[stata:tabulate][tabulate]], l'option =missing= permettant de dénombrer les valeurs manquantes :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate egp, missing
 #+END_SRC
 
 Supposons que l'on souhaite recoder cette variable en 3 classes, en ignorant les classes "unemployed" et "Retired", ainsi que les valeurs manquantes. Pour cela, on utilisera la commande [[stata:recode][recode]] en indiquant le schéma d'agrégation des classes dans une liste de clauses et le nom de la nouvelle variable à générer puisque le cas échéant [[stata:recode][recode]] agit comme une commande [[stata:replace][replace]]. Voici un exemple d'utilisation :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
 label define egp3 1 "Service class 1/2" 2 "Non-manuals" 3 "Manuals"
 label values egp3 egp3
@@ -416,7 +415,7 @@ Voir l’aide en ligne [D] functions pour les chaînes de caractères (=help s
 
 Voici un exemple d'application :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 decode state, gen(state_)
 generate inberlin = regexm(state_, "^Berl")
 drop state_
@@ -433,7 +432,7 @@ Stata dispose de plusieurs codes de valeurs manquantes :
 Il est possible d’associer des étiquettes aux valeurs manquantes étendues grâce à =label define= afin de les lister lors de tris simple ou croisé.
 La commande [[stata:misstable][misstable]] (sous-commande =summarize= ou =pattern=) fournit un résumé des données manquantes pour une ou plusieurs variables.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 misstable pattern q01-q03
 #+END_SRC
 
@@ -444,12 +443,12 @@ Les deux principales commandes permettant de gérer les valeurs manquantes sont 
 
 Voici un exemple d'utilisation pour recoder automatiquement les revenus nuls à un code de valeur manquante spécifique (=.c=), ce qui permet de faire la distinction entre les revenus réellement non renseignés (=.=) et les revenus valant 0 et que l'on peut souhaiter analyser séparément ou à l'aide de modèles statistiques autres que le modèle linéaire classique. On a déjà vu un exemple d'application de [[stata:mvdecode][mvdecode]] plus haut. Voici un bref rappel de l'idée de base pour utiliser ces commandes :
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC stata :exports code
 mvdecode income, mv(0=.c)
 generate lincome = log(income)
 mvencode income, mv(.c=0)
 summarize *inc*
-#+END_EXAMPLE
+#+END_SRC
 
 * Transformation d'un tableau
 
@@ -457,7 +456,7 @@ summarize *inc*
 
 On a vu que la commande [[stata:drop][drop]] permet de supprimer une ou plusieurs variables dans un tableau de données. En réalité cette commande fonctionne également pour filtrer des observations, de même que [[stata:keep][keep]] qui permet, au contraire, de conserver des variables ou des observations. Dans l'enquête socio-économique, supposons que l'on souhaite ne conserver pour les analyses que les personnes majeures (=age > 17=), il suffirait d'utiliser l'une de ces deux commandes. Par exemple :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 keep if age > 17 & !missing(age)
 count
 #+END_SRC
@@ -466,13 +465,13 @@ Les procédures de tri, comme on l'a déjà dit, sont essentielles pour travaill
 
 Voici un exemple plus élaboré, tiré directement de l'ouvrage de \cite{kohler-2012-data-analy} :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 by hhnr2009 (rel2head), sort: generate agediff = ybirth - ybirth[_n-1] if rel2head == 2
 #+END_SRC
 
 Cette instruction permet de calculer la différence d'âge entre le père de famille (=head=) et sa partenaire (=partner=) dans chacun des foyers. La subtilité vient du tri primaire sur la variable =hhnr2009= (foyer) puis du tri secondaire sur la variable =rel2head= (situation familiale des répondants) sans que ce dernier ne soit utilisé pour grouper les opérations sous le préfixe [[stata:by][by]]. La condition =if rel2head==2= permet de s'assurer que l'on effectue bien le calcule dans le cas où il existe au moins deux personnes dans le foyer.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate rel2head if rel2head < 3
 summarize agediff
 #+END_SRC
@@ -487,7 +486,7 @@ La taille d'un tableau de données peut être approximée de la manière suivant
 
 Dans le cas de l'enquête socio-économique, la taille en mémoire du tableau est d'environ 568 Ko :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 describe, short
 #+END_SRC
 
@@ -497,7 +496,7 @@ On ne gagnera rien à compresser ce tableau dans la mesure où il est déjà opt
 
 Par agrégation on entend le procédé qui consiste à réduire un ensemble d'observations à une valeur unique, typiquement un indicateur de tendance centrale ou l'effectif total, selon différentes variables de classification. Par exemple, dans cette enquête socio-économique, on pourrait vouloir calculer le revenu médian par "lander" (=state=) selon le sexe et la classe d'âge. Voici une manière de procéder avec la commande [[stata:collapse][collapse]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 preserve
 collapse (p50) income, by(sex age4)
 list
@@ -505,7 +504,7 @@ list
 
 Pour revenir au tableau d'origine, on utilisera [[stata:restore][restore]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 restore
 list sex age4 income in 1/5
 #+END_SRC
@@ -526,45 +525,45 @@ La commande [[stata:contract][contract]] permet de construire un tableau de donn
 
 Comme discuté précédemment, le préfixe [[stata:by][by]] permet de répéter une même opération selon les valeurs prises par une ou plusieurs variables, de sorte que l'instruction suivante permet de construire très rapidement des résumés descriptifs : (c'est même en réalité la manière la plus rapide de calculer des statistiques simples)
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 bysort sex: summarize income
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph twoway histogram lincome, by(sex) bfcolor(gs3) blcolor(none)
-graph export "fig-01-histogram-lincome-sex.svg", replace
+graph export "fig-01-histogram-lincome-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
 #+NAME:      fig:02-bar-lincome-sex
 #+LABEL:     fig:02-bar-lincome-sex
-#+ATTR_HTML: :width 640px
-[[./fig-01-histogram-lincome-sex.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-01-histogram-lincome-sex.png]]
 
 Cependant, le format de sortie ne se prête pas vraiment à une mise en forme avancée dans un rapport. On préférera donc pour l'exportation utiliser [[stata:tabulate][tabulate]] avec l'option =summarize= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate egp3, summarize(income)
 #+END_SRC
 
 Un diagramme en points \cite{cleveland-1985-elemen-graph-data}, qui reste préférable à un diagramme en barres, pour le même indicateur de tendance centrale que ci-dessus peut être construit à l'aide de ces instructions :[fn:3]
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph dot lincome, over(sex) over(egp3) ylabel(0(2)12) marker(1, ms(O)) ytitle("Log income")
-graph export "fig-01-bar-lincome-sex.svg", replace
+graph export "fig-01-bar-lincome-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe et la classe socio-économique
 #+NAME:      fig:02-bar-lincome-sex
 #+LABEL:     fig:02-bar-lincome-sex
-#+ATTR_HTML: :width 640px
-[[./fig-01-bar-lincome-sex.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-01-bar-lincome-sex.png]]
 
 ** La commande tabstat
 
 La commande [[stata:tabstat][tabstat]] permet au contraire de spécifier la liste des statistiques d'intérêt via l'option =stats=. La variable de stratification est indiquée dans l'option =by= (il ne peut y en avoir qu'une seule). Pour reproduire le résumé en 5 points de Tukey disponible sous R, on peut formuler la commande de la manière suivante :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabstat lincome, by(sex) stats(min q max)
 #+END_SRC
 
@@ -572,28 +571,28 @@ Le symbole =q= est équivalent à utiliser =p25 p50 p75= pour reporter les trois
 
 En guise de représentation graphique, il existe les diagrammes en forme de boîtes à moustaches que l'on peut conditionner sur une variable de classification comme dans l'exemple suivant :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph box lincome, over(sex)
-graph export "fig-01-box-lincome-sex.svg", replace
+graph export "fig-01-box-lincome-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution du log du revenu annuel (euros) selon le sexe
 #+NAME:      fig:03-box-lincome-sex
 #+LABEL:     fig:03-box-lincome-sex
-#+ATTR_HTML: :width 640px
-[[./fig-01-box-lincome-sex.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-01-box-lincome-sex.png]]
 
 ** La commande table
 
 La commande [[stata:table][table]] est beaucoup plus souple et elle permet non seulement de choisir les statistiques d'intérêt mais également d'utiliser jusqu'à quatre variables de classification. Les statistiques d'intérêt sont indiquées dans l'option =content=. En l'absence de contenu à résumer, [[stata:table][table]] se comporte comme [[stata:tabulate+twoway][tabulate twoway]].
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 table egp3 sex, column
 #+END_SRC
 
 Attention, contrairement à [[stata:tabstat][tabstat]], dans le cas où l'on spécifie l'option =content= le symbole =q= ne se substitue pas à =p25 p50 p75=. Concernant les critères de classification, on distingue les variables définissant les lignes et les colonnes, ainsi qu'une variable "super-colonne" en troisième position, indiquées juste avant le séparateur d'options, et une variable "super-ligne" indiquée dans une option =by=. Qui plus est, la commande [[stata:table][table]] est "byable", ce qui signifie que l'on peut inclure jusqu'à cinq variables de stratification. Voici un exemple de tableau croisant les niveaux de deux variables catégorielles pour chacun desquels on calcule la médiane du revenu. Le formatage des résultats numériques, ici arrondi à l'entier le plus proche, se fait directement via l'option =format= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 #+END_SRC
 
@@ -614,9 +613,3 @@ table egp3 sex if !missing(egp3), content(p50 lincome) format(%5.0f)
 [fn:2] Le fait que le type =byte= ne s'étende pas jusqu'à +127 vient des codes de valeurs manquante simple (=.= = 101) et étendu (=.a= = 102 à =.z= = 127).
 
 [fn:1] Il existe également d'anciens utilitaires, comme [[http://radyakin.org/transfer/use13/use13.htm][use13]], permettant de lire des fichiers version 13 sous Stata 10.
-
-* TODO [2/4]
-- [ ] Section tableaux à compléter
-- [ ] Sections fusion et représentation rectangulaire
-- [X] données manquantes
-- [X] recodage (recode, decode, encode, tostring)

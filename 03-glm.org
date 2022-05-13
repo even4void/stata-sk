@@ -1,9 +1,9 @@
 #+TITLE: Stata : modélisation statistique (1)
 #+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+LINK: stata  https://www.stata.com/help.cgi?
-#+PROPERTY: header-args :session *sta* :results output
-#+OPTIONS: H:3 toc:t tasks:nil
+#+LINK: stata https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :exports both :results output
+#+OPTIONS: H:3 toc:t
 
 Dans ce chapitre, on s'intéressera à la construction de modèles de régression explicatifs ou prédictifs. La première partie se concentre sur le modèle linéaire et ses applications. La seconde partie porte sur le modèle linéaire généralisé. Il existe un très bon ouvrage traitant du modèle linéaire généralisé, à présent dans sa quatrième édition et publié chez Stata Press : [[https://www.stata.com/bookstore/generalized-linear-models-and-extensions/][Generalized Linear Models and Extensions]] de Hardin & Hilbe. Concernant la modélisation statistique en général, les ouvrages de Vittinghoff et coll. \cite{vittinghoff-2005-regres-method-biost} et Dupont \cite{dupont-2009-statis-model} couvrent l'essentiel des notions présentées. Pour aller plus loin, le livre de \cite{harrell-2015-regres-model-strat} demeure une référence en ce qui concerne les techniques biostatistiques modernes appliquées dans un contexte médical. Bien que reposant sur le logiciel R, la plupart des techniques discutées dans cet ouvrage sont disponibles sous Stata.
 
@@ -17,49 +17,48 @@ Dans un premier temps, procédons à quelques rappels concernant la régression 
 
 Les données d'illustration peuvent être chargées directement depuis internet à l'aide de la commande [[stata:webuse][webuse]]. Il s'agit d'une enquête épidémiologique rétrospective dans laquelle on s'intéresse aux facteurs de risque d'un bébé ayant un poids inférieur à la norme, selon les normes américaines des années 90. Ces données sont extensivement analysées dans l'ouvrage de Hosmer & Lemeshow \cite{hosmer-2000-applied-logis-regres}. Au total, le tableau de données contient 11 variables, la variable réponse étant le poids des bébés (=bwt=) :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 webuse lbw
 describe, simple
 #+END_SRC
 
 La relation entre le poids des bébés (en grammes) et le poids des mères (initialement en livres, converti en kilogrammes) est représentée dans la figure suivante sous la forme d'un simple diagramme de dispersion. Pour faciliter la lecture, le poids des mères est converti en kilogrammes, sans modifier le mode de représentation de la variable :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 replace lwt = lwt / 2.204623, nopromote
 #+END_SRC
 
 Ensuite, on utilise la commande [[stata:scatter][scatter]] pour construire le diagramme de dispersion :
 
-#+BEGIN_SRC jupyter-stata :exports code
-set scheme plotplain
+#+BEGIN_SRC stata :exports code
 graph twoway scatter bwt lwt
-graph export "fig-03-scatter-bwt-lwt.svg", replace
+graph export "fig-03-scatter-bwt-lwt.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre le poids des bébés et le poids des mères
 #+NAME:      fig:03-scatter-bwt-lwt
 #+LABEL:     fig:03-scatter-bwt-lwt
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-bwt-lwt.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-bwt-lwt.png]]
 
 Il est tout à fait possible et largement recommendé de superposer une courbe loess \cite{cleveland-1979-robus-local} sur le diagramme de dispersion précédent afin d'évaluer visuellement les écarts à la linéarité concernant la relation entre ces deux variables. Une courbe "loess", ou lowess (/locally weighted scatterplot smoothing/), fait partie de la famille des régressions polynomiales "locales", c'est-à-dire des modèles non-paramétriques de régression tenant compte du voisinage des observations, un peu à l'image des techniques telles que les $k$ plus proches voisins dans une tâche de classification (car l'estimation est pondérée) ou les moyennes mobiles en séries chronologiques (car on définit une fenêtre de lissage que l'on déplace sur l'axe des $x$). Le poids de chaque observation est déterminé par sa distance par rapport au point sur lequel se centre la régression, et généralement la fonction de pondération utilisée est de type tri-cubique comme proposée par \cite{cleveland-1979-robus-local}, $(1 - (\text{dist}/\text{maxdist})^3)^3)$, ce qui revient à donner un poids maximal à l'observation centrale, les observations les plus distantes plus de cette dernière contribuant le moins à la régression polynomiale. Stata autorise n'importe quelle combinaison des options =mean= (utiliser la moyenne des observations, comme dans une moyenne mobile, au lieu des valeurs prédites par la régression) et =noweight= (l'utilisation d'une fonction de pondération tri-cubique ou non). À noter qu'il s'agit d'une approche quelque peu intensive sur le plan des calculs : pour $n$ observations, $n$ régressions sont réalisées.
 
 La commande [[stata:lowess][lowess]] peut être combinée à [[stata:scatter][scatter]], en utilisant la commande [[stata:twoway][twoway]] et en regroupant les différentes instructions graphiques à l'aide de l'opérateur =||= ou de paires de parenthèses :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph twoway scatter bwt lwt || lowess bwt lwt, legend(off)
-graph export "fig-03-lowess-bwt-lwt.svg", replace
+graph export "fig-03-lowess-bwt-lwt.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre le poids des bébés et le poids des mères (courbe loess)
 #+NAME:      fig:03-lowess-bwt-lwt
 #+LABEL:     fig:03-lowess-bwt-lwt
-#+ATTR_HTML: :width 640px
-[[./fig-03-lowess-bwt-lwt.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-lowess-bwt-lwt.png]]
 
 La corrélation entre ces deux variables s'obtient grâce à [[stata:correlate][correlate]]. Notons que cette commande fonctionne avec deux variables ou une liste de variables de sorte qu'elle pourra également être utilisée pour construire une matrice de corrélation :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 summarize bwt lwt
 correlate bwt lwt
 #+END_SRC
@@ -81,20 +80,20 @@ Sous $H_0$, le rapport entre l'estimé de la pente ($\widehat\beta_1$, de varian
 
 Les paramètres d'un tel modèle de régression, $\widehat\beta_0$ et $\widehat\beta_1$, peuvent être estimés grâce à la commande [[stata:regress][regress]], en indiquant la variable à prédire et la ou les variables explicatives. Pour un modèle de régression linéaire simple, on se retrouve donc avec l'expression la plus simple qui soit :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt lwt
 #+END_SRC
 
 Les résultats fournis par [[stata:regress][regress]] se composent de deux tableaux : le tableau d'analyse de variance du modèle de régression, qui peut être supprimé via l'option =noheader=, et le tableau des coefficients de régression. La ligne =_cons= désigne le terme d'ordonnée à l'origine estimé à l'aide de $\widehat\beta_0$ et que l'on notera $b_0$. Ici, $b_0=2373.5$. Cette valeur reste peu interprétable puisqu'elle représente le poids attendu pour un bébé lorsque le poids de la mère est de 0 kg. La pente ($b1=9.8$) indique de combien varie =bwt= lorsque =lwt= varie d'une unité, c'est-à-dire d'un kilogramme. Le résultat du test de Student associé à =lwt= ($\widehat\beta_1$) peut se retrouver manuellement une fois que l'on a extrait les valeurs d'intérêt :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 local tstat = _b[lwt] / _se[lwt]
 display "t = " %4.2f `tstat' " p = " %4.3f 2*ttail(187, `tstat')
 #+END_SRC
 
 L'instruction =_b[lwt]= est une variable dite variable "système" stockées en mémoire et mise à jour après cahque commande d'estimation par Stata. Les variables =_n= et =_rc= sont d'autres exemples de telles variables système ([[https://www.stata.com/manuals/u13.pdf#u13.4][(U) 13.4]]). Il est toutefois possible de sauvegarder ces résultats d'estimations à l'aide de la commande [[stata:estimates][estimates]] ou en stockant la matrice virtuelle =e(b)= dans une macro locale, mais dans ce cas on ne plus indexer les valeurs par le nom des variables :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 matrix b = e(b)
 display b[1,1]
 #+END_SRC
@@ -103,7 +102,7 @@ display b[1,1]
 
 La commande [[stata:predict][predict]] permet non seulement de calculer les valeurs ajustées du modèle mais également les résidus du modèle ($e_i = \tilde y_i - y_i$) ainsi que d'autres statistiques utiles pour diagnostiquer la qualité d'ajustement du modèle de régression.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 predict double yhat
 predict double rs, rstudent
 summarize rs
@@ -111,43 +110,43 @@ summarize rs
 
 Dans le cas ci-dessus, ce sont les [[https://onlinecourses.science.psu.edu/stat462/node/247/][résidus studentisés]], $r_i = e_i / (s_{(i)}\sqrt{1-h_i})$, qui ont été calculés. D'autres options sont également disponibles mais ce type de résidus facilite à la fois l'interprétation et la détection de valeurs extrêmes (voir également l'aide en ligne, =help regress postestimation=). Par exemple, voici un diagramme de quantiles pour les résidus simples :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 predict double r, resid
 qnorm r
-graph export "fig-03-qnorm-r.svg", replace
+graph export "fig-03-qnorm-r.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution des résidus simples
 #+NAME:      fig:03-qnorm-r
 #+LABEL:     fig:03-qnorm-r
-#+ATTR_HTML: :width 640px
-[[./fig-03-qnorm-r.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-qnorm-r.png]]
 
 Un histogramme ou une courbe de densité permet d'examiner rapidement la forme de la distribution des résidus. Voici un exemple de courbe de densité construite avec [[stata:kdensity][kdensity]], à laquelle on ajoute une courbe de densité normale à l'aide de l'option =normal= :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 kdensity rs, normal normopts(lpat(--))
-graph export "fig-03-kdensity-rs.svg", replace
+graph export "fig-03-kdensity-rs.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution des résidus studentisés
 #+NAME:      fig:03-kdensity-rs
 #+LABEL:     fig:03-kdensity-rs
-#+ATTR_HTML: :width 640px
-[[./fig-03-kdensity-rs.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-kdensity-rs.png]]
 
 Le graphique suivant est plus informatif car il renseigne à la fois sur la distribution des résidus et la corrélation entre les valeurs prédites par le modèle et ces derniers, qui, selon l'hypothèse du modèle, doit être nulle. Ici, on utilise les valeurs de post-estimation calculées plus haut, mais il serait tout à fait possible d'utiliser directement la commande de post-estimation [[stata:rvfplot][rvfplot]] (ou [[stata:rvpplot][rvpplot]], qui fournira la même information dans le cas d'une régression avec un seul prédicteur) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph twoway scatter rs yhat, yline(0)
-graph export "fig-03-scatter-rs-yhat.svg", replace
+graph export "fig-03-scatter-rs-yhat.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre valeurs ajustées et résidus
 #+NAME:      fig:03-scatter-rs-yhat
 #+LABEL:     fig:03-scatter-rs-yhat
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-rs-yhat.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-rs-yhat.png]]
 
 ** Cas de la régression sur une variable catégorielle
 
@@ -155,56 +154,56 @@ On a vu dans le chapitre sur la [[./01-data.html][gestion des données]] comment
 
 Considérons la variable =smoke= qui indique si la mère fumait pendant le premier trimestre de sa grossesse :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabulate smoke, nolabel
 tabstat bwt, by(smoke) stat(mean sd n)
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph box bwt, over(smoke)
-graph export "fig-03-box-bwt-smoke.svg", replace
+graph export "fig-03-box-bwt-smoke.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et statut fumeur
 #+NAME:      fig:03-box-bwt-smoke
 #+LABEL:     fig:03-box-bwt-smoke
-#+ATTR_HTML: :width 640px
-[[./fig-03-box-bwt-smoke.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-box-bwt-smoke.png]]
 
 Le modèle de régression suivant considère la variable =smoke= comme une variable numérique et le coefficient de régression pour cette variable représente la variation de poids lorsque =smoke= varie d'une unité (de 0 à 1) :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt smoke
 #+END_SRC
 
 En indiquant à Stata que la variable =smoke= doit être traitée comme une variable catégorielle et de générer l'ensemble de variables indicatrices correspondant à l'aide du préfixe =i.=, on obtiendra strictement le même résultat du fait du codage initial en 0/1 où une variation d'une unité correspond au passage de la classe "non fumeur" à la classe "fumeur" :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt i.smoke
 #+END_SRC
 
 Considérons à présent la variable =race= qui a trois niveaux. Il est tout à fait possible de générer l'ensemble des indicatrices associées à cette variable à l'aide de [[stata:tabulate][tabulate]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly tabulate race, gen(irace)
 list race irace* in 1/5
 #+END_SRC
 
 Ensuite, il suffira d'inclure deux indicatrices parmi les trois dans le modèle de régression, par exemple =regress bwt irace2 irace3=. L'indicatruice exclue servira de catégorie de référence. Mais comme on l'a vu plus haut, l'opérateur =i.= permet de générer automatiquement un ensemble d'indicatrices pour n'importe quelle variable catégorielle :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt i.race
 #+END_SRC
 
 Par défaut, le premier niveau de la variable catégorielle (ici, =white=) sert de niveau de référence, mais il est tout à fait possible de modifier ce comportement en indiquant la catégorie de référence. En utilisant le préfixe =ib3=, par exemple, on indique à Stata que le troisième niveau de =race= servira de catégorie de référence :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt ib3.race
 #+END_SRC
 
 On retrouvera bien les différences de moyennes par simple estimation de contrastes grâce à [[stata:contrast][contrast]] ou [[stata:margins][margins]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 contrast r.race, nowald effects
 #+END_SRC
 
@@ -212,28 +211,28 @@ contrast r.race, nowald effects
 
 La différence de moyennes utilisée pour former la statistique de test de Student et qui est rappelée dans la sortie de [[stata:ttest][ttest]] ci-dessous correspond strictement à la pente de la droite de régression estimée dans la section précédente :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 ttest bwt, by(smoke)
 #+END_SRC
 
 On peut d'ailleurs visualiser très facilement ce différentiel de moyennes à l'aide d'un simple diagramme de dispersion en considérant la variable binaire sur l'axe des abscisses. Plutôt que d'utiliser [[stata:scatter][scatter]] et de redéfinir l'axe des x, il est plus simple d'utiliser un diagramme un point tel que proposé par la commande externe =stripplot= (à installer au préalable, =ssc install stripplot=) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 stripplot bwt, over(smoke) vertical jitter(1 0) addplot(lfit bwt smoke)
-graph export "fig-03-stripplot-bwt-smoke.svg", replace
+graph export "fig-03-stripplot-bwt-smoke.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et statut fumeur
 #+NAME:      fig:03-stripplot-bwt-smoke
 #+LABEL:     fig:03-stripplot-bwt-smoke
-#+ATTR_HTML: :width 640px
-[[./fig-03-stripplot-bwt-smoke.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-stripplot-bwt-smoke.png]]
 
 Une manière de vérifier graphiquement l'hypothèse d'égalité des variances, nécessaire dans le test ci-dessus afin de recouvrer les résultats du test du coefficient de régression, consisterait à comparer les fonctions de répartition empirique des deux groupes comme suggéré sur le [[https://www.statalist.org/forums/forum/general-stata-discussion/general/1322693-how-to-visualize-independent-two-sample-t-tests][forum Stata]].
 
 Dans le cas d'une variable catégorielle à plus de deux niveaux telle que =race=, il est toujours possible de former l'ensemble des tests de Student pour la comparaison des différentes paires de moyennes à l'aide de [[stata:pwmean][pwmean]] comme illustré ci-dessous :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 pwmean bwt, over(race) effects
 #+END_SRC
 
@@ -241,7 +240,7 @@ L'option =mcompare()= permet d'adapter le type de statistique de test (Tukey, Du
 
 Voici une autre illustration, cette fois-ci avec les données d'un essai clinique randomisé visant à évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère \cite{bernard-1997-effec-ibupr}. Les données, disponibles dans le fichier =.sepsis.dta=, sont largement exploitées dans l'ouvrage de William Dupont \cite{dupont-2009-statis-model}. Au total, le tableau de données est composé 22 variables dont 16 variables représentant une mesure de la température entre $T_0$ et $T_0 + 15 \times 2$ h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE).
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 use "data/sepsis.dta", replace
 describe, simple
 table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
@@ -249,29 +248,29 @@ table treat, content(mean temp0 mean temp1 mean temp6) format(%5.1f)
 
 Voici comment générer un aperçu des données individuelles longitudinale, en se limitant à la période 0-6 heures :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 keep id treat temp0-temp6
 reshape long temp, i(id) j(hour)
 replace temp = (temp-32) / 1.8
 graph twoway (scatter temp hour, ms(none) lcol(gs15) connect(l)) (scatter temp hour if hour < 2, ms(none) connect(l)), by(treat, legend(off)) xtitle(Time unit (x2 hours)) ytitle (Temperature (°C))
-graph export "fig-03-scatter-temp-hour.svg", replace
+graph export "fig-03-scatter-temp-hour.eps", replace
 #+END_SRC
 
 #+CAPTION:   Évolution de la température après la prise en charge dans les deux groupes de patients
 #+NAME:      fig:03-scatter-temp-hour
 #+LABEL:     fig:03-scatter-temp-hour
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-temp-hour.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-temp-hour.png]]
 
 Bien que la technique appropriée pour modéliser l'évolution de la température entre $T_0$ et $T_1$ entre les deux groupes soit une analyse de covariance, voici en attendant les questions auxquelles il est possible de répondre à l'aide de simples tests de Student. Premièrement, les deux groupes sont-ils comparables à $T_0$ ($H_0$ : =temp0(ibuprofène) = temp0(placebo)=) ? Voici l'instruction Stata correspondante :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 ttest temp if hour == 0, by(treat)
 #+END_SRC
 
 Deuxièmement, les deux groupes sont-ils comparables à $T_1$ en terme d’évolution $(T_0-T_1)$ ($H_0$ : =temp0−temp1(ibuprofène) = temp0−temp1(placebo)=) ?
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly reshape wide
 gen difftemp = temp0 - temp1
 ttest difftemp, by(treat)
@@ -279,20 +278,20 @@ ttest difftemp, by(treat)
 
 Enfin, troisièment, on pourrait se demander s'il y a une évolution significative entre $T_0$ et $T_1$ pour le groupe traité : il s'agit cette fois d'un test t pour données appariées. Voici le code correspondant :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 ttest temp0 == temp1 if treat == 1
 #+END_SRC
 
 Par une approche de régression simple, on obtiendrait essentiellement des réponses similaires. Voici déjà une commande permettant d'estimer les paramètres du modèle dans les deux groupes :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly reshape long
 bysort treat: regress temp hour, noheader
 #+END_SRC
 
 À partir de là, on souhaite comparer les coefficients de régression entre les deux groupes. Pour cela, il y a deux approches possibles. D'un côté il est possible de reconnaître qu'il s'agit essentiellement d'un test de l'interaction entre les deux variables =hour= et =treat=, et c'est sans doute l'approche la plus simple de la question. Dans ce cas, il suffit de générer le terme d'interaction et de tester ses composantes directement :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly tabulate treat, gen(treat)
 generate treat1hour = treat1*hour
 generate treat2hour = treat2*hour
@@ -302,7 +301,7 @@ test treat1hour treat2hour
 
 Le test ci-dessus est un test simultané (2 degrés de liberté) pour la nullité des termes d'interaction, tandis que le test ci-dessous permet d'évaluer l'égalité de ces deux termes :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 test treat1hour = treat2hour
 #+END_SRC
 
@@ -310,32 +309,32 @@ test treat1hour = treat2hour
 
 Il existe plusieurs approches pour traiter le cas d'une relation non linéaire entre la variable réponse et un prédicteur continu. Revenons aux données sur les poids de naissance pour illustrer avec l'âge de la mère quelques-unes des approches possibles :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 clear all
 webuse lbw
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 scatter bwt age || qfitci bwt age, legend(off)
-graph export "fig-03-scatter-bwt-age.svg", replace
+graph export "fig-03-scatter-bwt-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et âge de la mère
 #+NAME:      fig:03-scatter-bwt-age
 #+LABEL:     fig:03-scatter-bwt-age
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-bwt-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-bwt-age.png]]
 
 L'estimation des paramètres du modèle de régression ne pose pas de difficulté lorsque l'on suppose une simple relation linéaire incluant l'âge et le carré de l'âge :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 gen agesq = age^2
 regress bwt age agesq
 #+END_SRC
 
 Le terme quadratique améliore t-il la qualité d'ajustement d'un tel modèle ? Ici, on voit que le $R^2$ ajusté est de 3 %, ce qui ne change pas vraiment des résultats observés dans le cas d'une régression simple. On peut le vérifier également au niveau des indices AIC ou BIC :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly regress bwt age agesq
 estimates store m1
 quietly regress bwt age
@@ -347,20 +346,20 @@ Une autre approche repose sur l'utilisation de polynômes fractionnaires, qui on
 
 Stata 13 dispose de la commande [[stata:fracpoly][fracpoly]] mais il est recommendé d'utiliser les commandes [[stata:fp][fp]] (cas univarié) et [[stata:mfp][mfp]] (cas multivarié) qui permettent de construire automatiquement les termes d'un ou plusieurs polynômes fractionnaires pour une variable numérique donnée. Voici un exemple d'application sur la variable =age= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 fp <age> : regress bwt <age>
 #+END_SRC
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 fp plot, residuals(none)
-graph export "fig-03-fpplot-bwt-age.svg", replace
+graph export "fig-03-fpplot-bwt-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Utilisation de polynômes fractionnaires pour la relation entre poids des bébés et âge de la mère
 #+NAME:      fig:03-fpplot-bwt-age
 #+LABEL:     fig:03-fpplot-bwt-age
-#+ATTR_HTML: :width 640px
-[[./fig-03-fpplot-bwt-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-fpplot-bwt-age.png]]
 
 ** Approche robuste
 
@@ -368,20 +367,20 @@ graph export "fig-03-fpplot-bwt-age.svg", replace
 
 Plutôt que de minimiser les écarts quadratiques entre les valeurs prédites et les valeurs observées, il est tout à fait possible d'utiliser un autre type d'estimateur. Considérons la relation entre le poids des bébés et le poids des mères dont l'ethnicité est =black=. La commande suivante permet d'afficher un simple diagramme de dispersion ainsi que la droite de régression associée :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 twoway (scatter bwt lwt) (lfit bwt lwt) if race == 3
-graph export "fig-03-scatter-bwt-lwt-race3.svg", replace
+graph export "fig-03-scatter-bwt-lwt-race3.eps", replace
 #+END_SRC
 
 #+CAPTION:   Relation entre poids des bébés et taille de la mère
 #+NAME:      fig:03-scatter-bwt-lwt-race3
 #+LABEL:     fig:03-scatter-bwt-lwt-race3
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-bwt-lwt-race3.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-bwt-lwt-race3.png]]
 
 Les valeurs ajustées du modèle de régression peuvent être obtenues à l'aide de [[stata:predict][predict]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 regress bwt lwt if race == 3
 predict yhols
 #+END_SRC
@@ -393,23 +392,23 @@ La syntaxe est identique à celle de [[stata:regress][regress]] mais il faut fau
 
 Dans le cas présent, on utilisera l'instruction suivante :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 quietly robreg m bwt lwt if race == 3
 predict yhm
 #+END_SRC
 
 On peut superposer les prédictions de ces deux modèles sur le diagramme de dispersion précédent comme illustré ci-dessous :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 twoway (scatter bwt lwt if race == 3) (line yhols yhm lwt, lwidth(*2 *2)), legend(order(2 "OLS" 3 "Huber"))
-graph export "fig-03-scatter-bwt-lwt-race3-2.svg", replace
+graph export "fig-03-scatter-bwt-lwt-race3-2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Estimation MCO versus M-estimateur
 #+NAME:      fig:03-scatter-bwt-lwt-race3-2
 #+LABEL:     fig:03-scatter-bwt-lwt-race3-2
-#+ATTR_HTML: :width 640px
-[[./fig-03-scatter-bwt-lwt-race3-2.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-03-scatter-bwt-lwt-race3-2.png]]
 
 * La régression linéaire multiple
 
@@ -428,5 +427,3 @@ graph export "fig-03-scatter-bwt-lwt-race3-2.svg", replace
 * Modèle linéaire et applications
 
 #+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource
-
-* Footnotes

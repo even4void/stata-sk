@@ -1,9 +1,9 @@
 #+TITLE: Stata : analyse de la variance
 #+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+LINK: stata  https://www.stata.com/help.cgi?
-#+PROPERTY: header-args :session *sta* :results output
-#+OPTIONS: H:3 toc:t tasks:nil
+#+LINK: stata https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :exports both :results output
+#+OPTIONS: H:3 toc:t
 
 L'analyse de variance (ANOVA), souvent retrouvée dans l'exploitation d'un plan d'expérience, peut être dérivée dans la plupart des cas à partir des modèles de régression vus au [[file:03-glm.html][chapitre 3]] (et plus tard, aux chapitres 9 et 10). Toutefois, une présentation de la décomposition des sources de variance et du calcul des sommes de carré associées, indépendante de l'approche de régression linéaire, est proposée dans ce chapitre, d'autant que Stata dispose de commandes spécifiques pour les modèles d'ANOVA, en particulier [[stata:oneway][oneway]] et [[stata:anova][anova]].
 
@@ -25,45 +25,47 @@ Les $\tau_i$ reflètent ainsi les différentes entre les moyennes des traitement
 
 Dans l'[[http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/index.html][exemple suivant]], tiré de \cite{dupont-2009-statis-model}, on s'intéresse à la relation entre l'âge des participants à l'étude au moment du diagnostique et un polymorphisme de séquence. Les données sont disponibles dans le fichier =polymorphism.dta= :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 use data/polymorphism
 list in 1/5
 #+END_SRC
 
 Un résumé descriptif des données de groupe (ici défini par le type de polymorphisme) peut être obtenu très rapidement à l'aide de [[stata:tabstat][tabstat]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 tabstat age, by(genotype) stat(mean sd n)
 #+END_SRC
 
 Un résumé graphique de la distribution conditionnelle de l'âge dans les trois groupes s'obtient tout aussi simplement à l'aide de [[stata:graph box][graph box]] :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 set scheme plotplain
 graph box age, over(genotype)
-graph export "fig-04-boxplot-age-genotype.svg", replace
+graph export "fig-04-boxplot-age-genotype.eps", replace
 #+END_SRC
 
 #+CAPTION:   Histogrammes pour l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-boxplot-age-genotype
 #+LABEL:     fig:04-boxplot-age-genotype
-[[./fig-04-boxplot-age-genotype.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-04-boxplot-age-genotype.png]]
 
 Il est également possible d'afficher ces distributions sous forme d'histogrammes d'effectifs ou de fréquences, par exemple :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 histogram age, by(genotype, col(3)) freq
-graph export "fig-04-hist-age-genotype.svg", replace
+graph export "fig-04-hist-age-genotype.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge de diagnostic en fonction du polymorphisme
 #+NAME:      fig:04-hist-age-genotype
 #+LABEL:     fig:04-hist-age-genotype
-[[./fig-04-hist-age-genotype.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-04-hist-age-genotype.png]]
 
 Le tableau d'ANOVA peut être constuit à l'aide de [[stata:oneway][oneway]] dans le cas où il n'y a qu'une seule variable explicative. L'option =tabulate= fournit exactement le même résumé numérique que la commande [[stata:tabstat][tabstat]] ci-dessus, tandis que l'option =bonferonni= ajoute la comparaison de l'ensemble des paires de moyennes avec une correction de Bonferroni pour les tests multiples. Si l'on ne souhaite que ces derniers, il suffit d'ajouter l'option =noanova=, mais en règle générale il est préférable de réaliser le test d'ensemble avant d'examiner les tests spécifiques, sauf si l'on a une hypothèse de recherche très particulière.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 oneway age genotype
 #+END_SRC
 
@@ -71,37 +73,39 @@ oneway age genotype
 
 Il est généralement recommendé de vérifier les hypothèses du modèle, en particulier celle portant sur l'égalité des variances parentes, de manière graphique. Notons que [[stata:oneway][oneway]] propose d'office un test formel d'égalité des variances (test de Bartlett). Le test de Levenne est disponible via la commande [[stata:robvar][robvar]] (statistique =W50=) :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 robvar age, by(genotype)
 #+END_SRC
 
 Concernant la normalité des distributions (parentes), à partir de l'échantillon il est toujours possible de tracer la fonction de répartition des observations, un histogramme ou un diagramme de type boîte à moustaches (cf. section suivante). La commande [[stata:swilk][swilk]] fournit le test de Shapiro-Wilks, mais comme les méthodes graphiques restent à privilégier, voici une façon de vérifier la normalité des résidus du modèle (dans le cas de l'ANOVA à un facteur, cela ne change pas grand-chose par rapport au fait de travailler sur les observations directement, mais dans le cas à plus d'un facteur en interaction c'est la méthode recommendée) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 quietly anova age genotype
 predict r, resid
 qnorm r
-graph export "fig-04-qnorm-age-genotype-resid.svg", replace
+graph export "fig-04-qnorm-age-genotype-resid.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution des résidus du modèle d'ANOVA
 #+NAME:      fig-04-qnorm-age-genotype-resid
 #+LABEL:     fig-04-qnorm-age-genotype-resid
-[[./fig-04-qnorm-age-genotype-resid.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-04-qnorm-age-genotype-resid.png]]
 
 ** Commandes graphiques
 
 Stata n'offre pas vraiment de commandes graphiques de post-estimation à l'exception de celles applicables au cas du modèle linéaire, telles que les graphiques de résidus en fonction des valeurs prédites ou observées. Il existe toutefois de nombreux packages disponibles sur le site SSC, en particulier la commande =anovaplot= (une approche manuelle pour construire un graphique d'interaction est présentée dans la section suivante) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 anovaplot
-graph export "fig-04-anovaplot-age-genotype.svg", replace
+graph export "fig-04-anovaplot-age-genotype.eps", replace
 #+END_SRC
 
 #+CAPTION:   Valeurs prédites par le modèle d'ANOVA
 #+NAME:      fig-04-anovaplot-age-genotype
 #+LABEL:     fig-04-anovaplot-age-genotype
-[[./fig-04-anovaplot-age-genotype.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-04-anovaplot-age-genotype.png]]
 
 Une référence intéressante concernant les approches graphiques pour le diagnostique des modèles de régression, au sens large, est l'article de \cite{cox-2004-speakin-stata}.
 
@@ -113,13 +117,13 @@ Il y a deux manières de procéder pour réaliser des comparaisons de paires de 
 
 Voici le résultat des tests multiples à partir de [[stata:oneway][oneway]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 oneway age genotype, bonferroni noanova
 #+END_SRC
 
 On arriverait naturellement aux mêmes conclusions en construisant manuellement les tests de Student correspondants, moyennant la prise en compte de la bonne somme de carrés (variance "poolée") :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly ttest age if genotype != 1, by(genotype)
 display r(p)*3
 #+END_SRC
@@ -131,7 +135,7 @@ display r(p)*3
 The regress command is used to fit the underlying regression model corresponding to an ANOVA model fit using the anova command.  Type regress after anova to see the coefficients, standard errors, etc., of the regression model for the last run of anova.
 #+END_QUOTE
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 quietly anova age genotype
 regress
 #+END_SRC
@@ -141,7 +145,7 @@ regress
 
 Plusieurs généralisations du test de Welch dans le cas où les variances ne sont pas égales ont été proposées \cite{welch-1951-compar-sever}. Sous Stata, les procédures =wtest= et =fstar= peuvent être téléchargées. Voici un exemple d'application avec =wtest,= dont les auteurs ont montré que cette statistique de test convient dans le cas où les échantillons sont de même taille (ce n'est pas vraiment le cas ici) mais de variance différente \cite{wilcox-1986-new-monte} :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 wtest age genotype
 #+END_SRC
 
@@ -149,13 +153,13 @@ wtest age genotype
 
 L'ANOVA de Kruskal-Wallis, qui généralise la commande [[stata:ranksum][ranksum]] au cas à plus de deux échantillons, est disponible via la commande [[stata:kwallis][kwallis]] :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 kwallis age, by(genotype)
 #+END_SRC
 
 Cette commande ne dispose pas d'option. On peut retrouvera simplement les sommes des rangs (voire les moyennes) utilisées dans ce test statistique à l'aide des instructions suivantes :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 egen rr = rank(age)
 bysort genotype : egen rs = sum(rr)
 tabdisp genotype, cellvar(rs) format(%3.1f)
@@ -163,7 +167,7 @@ tabdisp genotype, cellvar(rs) format(%3.1f)
 
 Il est également possible de coupler cette instruction avec une série de tests post-hoc de Mann-Whitney, comme illustré ci-dessous :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 foreach k of numlist 1/3 {
   quietly ranksum age if genotype != `k', by(genotype)
   display r(z), "(p=" 2*(1-normal(r(z))) ")"
@@ -171,30 +175,31 @@ foreach k of numlist 1/3 {
 #+END_SRC
 
 * Analyse de variance à plusieurs facteurs
+
 ** Utilisation de la commande anova
 
 La commande [[stata:oneway][oneway]] est limité au cas à un facteur explicatif. La commande [[stata:anova][anova]] est plus générale et couvre : les plans factoriels et emboîtés, les plans équilibrés ou non (cf. calcul des sommes de carrés), les mesures répétées, l’analyse de covariance. Dans le cas à un facteur à effet fixe, on retrouvera évidemment les mêmes résultats que plus haut :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 anova age genotype
 #+END_SRC
 
 Les comparaisons par paires de moyennes s’obtiennent à l’aide de [[stata:pwcompare][pwcompare]], commande plus générale que [[stata:pwmean][pwmean]]. Les options de correction (=mcompare()=) incluent en plus : =tukey=, =snk=, =duncan= et =dunnett=.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 pwcompare genotype, cformat(%3.2f)
 #+END_SRC
 
 Voici un exemple de plan d'expérience dans lequel on s'intéresse à la fabrication d'une batterie capable de fonctionner dans des conditions extrêmes de température \cite{montgomery-2001-desig-analy-exper}. Cette étude comprend deux facteurs expérimentaux ayant trois niveaux chacun : la température (°F) et un paramètre lié au design de la batterie elle-même. Il s'agit donc d'un plan factoriel $3^2$. Les données sont disponibles dans le fichier =battery.txt=.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 import delimited "data/battery.txt", delimiter("", collapse) varnames(1) clear
 list in 1/3
 #+END_SRC
 
 Voici les résultats pour le modèle avec interaction :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 anova life material##temperature
 #+END_SRC
 
@@ -227,7 +232,7 @@ Sous forme symbolique, et on retrouve la formule passée en arguments de [[stata
 
 Voici le tableau résumant les moyennes pour chaque traitement, ainsi que les écart-types et effectifs associés. On pourra vérifier que le plan est parfaitement équilibré :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 table material temperature, contents(mean life sd life n life) format(%4.1f)
 #+END_SRC
 
@@ -245,28 +250,29 @@ restore
 
 Il existe également les commandes [[stata:rcap][rcap]] et [[stata:serrbar][serrbar]] pour gérer les barres d'erreur. Toutefois la commande [[stata:marginplot][marginplot]] est beaucoup plus souple d'utilisation et elle s'interface directement avec les modèles statistiques les plus courants. Voici une exemple de son utilisation avec le modèle précédent :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 quietly margins temperature#material
 marginsplot, name(p)
-graph export "fig-04-margins-life-battery.svg", replace name(p)
+graph export "fig-04-margins-life-battery.eps", replace name(p)
 #+END_SRC
 
 #+CAPTION:   Graphique d'interaction avec la commande marginsplot
 #+NAME:      fig:04-margins-life-battery
 #+LABEL:     fig:04-margins-life-battery
-[[./fig-04-margins-life-battery.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-04-margins-life-battery.png]]
 
 ** Définition et analyse de contrastes
 
 Voyons ce que l'on peut réaliser en termes de tests de contrastes à l'aide de [[stata:pwcompare][pwcompare]]. Dans un premier temps, la comparaison de l'ensemble des paires de moyennes peut être réalisée en décomposant le terme d'interaction, et en utilisant la méthode de Tukey comme correction pour les tests multiples :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 pwcompare material#temperature, mcompare(tukey)
 #+END_SRC
 
 Le test d'un contraste spécifique peut être réalisé tout aussi simplement, en indiquant le niveau du ou des facteurs qui nous intéressent, ainsi que les degrés de liberté associés :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 pwcompare i2.material#i3.temperature, mcompare(tukey) df(34)
 #+END_SRC
 
@@ -317,7 +323,7 @@ Voici un exemple discuté par Montgomery, chapitre 4 \cite{montgomery-2001-desig
 
 Si l'on considère qu'il y a $a$ traitements et $b$ blocs, et que chaque bloc consiste en $k$ traitements, avec $r$ répliques au total dans le plan, alors on a $N = ar = bk$ observations, et le nombre de fois où chaque paire de traitement apparaît dans le même bloc vaut $\lambda = \frac{r(k-1)}{a-1}$, $\lambda\in \{0,1,2,\dots\}$. Si $a = b$, le plan est dit symétrique. [fn:1]
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 use data/tab-4-21, clear
 #+END_SRC
 
@@ -326,14 +332,3 @@ use data/tab-4-21, clear
 * Footnotes
 
 [fn:1] Comme $\lambda$ est forcément un entier, cela limite l'espace des solutions pour certains plans. Par exemple, les contraintes $r=4$, $t=4$, $b=8$ et $k=2$ ne sont pas admissibles dans un simple plan en blocs aléatoires, mais restent valides dans le cas un plan en blocs incomplets équilibrés.
-
-* TODO [2/6]
-- [ ] margins pour les contrastes
-- [X] marginsplot pour les graphiques d'interaction
-- [ ] exemple "battery life" de dae-biostats : ajouter tabstat  & co.
-- [X] anova à un facteur non paramétrique
-- [ ] anova à deux facteurs non paramétrique
-- [ ] méthode des blocs
-- [-] écriture formelle des modèles à 1 et 2 facteurs
-- [ ] plan en carré latin
-- [ ] [[https://stats.idre.ucla.edu/stata/faq/how-can-i-test-for-nonadditivity-in-a-randomized-block-anova-in-stata/][non additivity]]

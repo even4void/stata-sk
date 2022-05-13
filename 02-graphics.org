@@ -1,9 +1,9 @@
 #+TITLE: Stata : fonctionnalités graphiques
 #+EMAIL: chl@aliquote.org
 #+LANGUAGE: fr
-#+LINK: stata  https://www.stata.com/help.cgi?
-#+PROPERTY: header-args :session *sta* :results output
-#+OPTIONS: H:3 toc:t tasks:nil
+#+LINK: stata https://www.stata.com/help.cgi?
+#+PROPERTY: header-args :session *sta* :exports both :results output
+#+OPTIONS: H:3 toc:t
 
 Stata dispose d’un excellent système graphique avec de nombreuses options de personnalisation. La référence reste l’ouvrage de \cite{mitchell-2004-visual-guide}, actuellement dans sa 3e édition. D'autres ouvrages sont disponibles, comme par exemple celui de Nick Cox \cite{cox-2014-speak-stata-graph}. Mais il est également recommendé de consulter le [[http://www.stata.com/support/faqs/graphics/gph/stata-graphs/][site de support]] de Stata qui offre un panorama des différents types de graphique avec un accès interactif à chacun des cas de figure.
 
@@ -13,7 +13,7 @@ Les commandes graphiques peuvent être utilisées pour décrire des données
 
 Les données qui serviront de base à la plupart des illustrations de ce chapitre portent sur une enquête socio-économique allemande réalisée en 2009 et décrite dans l'ouvrage de Kohler & Kreuter \cite{kohler-2012-data-analy}. Les variables d'intérêt sont les suivantes : =ybirth= (année de naissance), =hhnr2009= (foyer résidentiel), =sex= (sexe), =mar= (statut marital), =edu= (niveau d’éducation), =yedu= (nombre d’années de formation), =voc= (niveau secondaire ou université), =emp= (type d’emploi), =egp= (catégorie socio-professionnelle), =income= (revenus, en €), =size= (taille du logement), =hhsize= (nombre de personnes dans habitation).
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 set scheme plotplain
 // translator set gph.svg fontface "Droid Sans"
 use data/gsoep09
@@ -23,7 +23,7 @@ describe, simple
 
 Voici un aperçu des données sous forme de listing des premières observations :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 list persnr-sex in 1/5
 #+END_SRC
 
@@ -33,14 +33,14 @@ list persnr-sex in 1/5
 
 Considérons l'âge des répondants qui peut être reconstruit à partir de l'année de naissance (=ybirth=) et de l'année de réalisation de l'enquête (2009) :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate age = 2009 - ybirth
 summarize age
 #+END_SRC
 
 Bien entendu, l'option =details= de [[stata:summarize][summarize]] apporte beaucoup plus d'information concernant la distribution de la variable, notamment du point de vue des fractiles :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 summarize age, detail
 #+END_SRC
 
@@ -48,182 +48,195 @@ Pour se représenter ces chiffres sous forme graphique, il est possible d'affich
 
 Dans un premier temps, examinons la courbe des quantiles produite par la commande [[stata:quantile][quantile]]. Il s'agit de représenter la distribution jointe des valeurs ordonnées de la variable d'intérêt en fonction des quantiles d'une loi uniforme :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 quantile age
-graph export "fig-02-quantile-age.svg", replace
+graph export "fig-02-quantile-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution des fractiles d'âge
 #+NAME:      fig:02-quantile-age
 #+LABEL:     fig:02-quantile-age
-[[./fig-02-quantile-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-quantile-age.png]]
 
 Pour la fonction de répartition, si l'on ne souhaite pas passer par des packages additionnels (p.ex., [[https://ideas.repec.org/c/boc/bocode/s456409.html][cdfplot]]), le plus simple consiste à calculer directement à calculer la fonction de répartition empirique à l'aide de [[stata:cumul][cumul]]. Il s'agit en réalité de la fonction réciproque de celle présentée plus haut. Dans l'exemple ci-après, on affiche cette variable auxiliaire en fonction de l'âge et on surligne le premier et le troisième quartile par des lignes horizontales :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 cumul age, gen(agecum)
 sort agecum
 graph twoway line agecum age, ytitle(F(x)) yline(.25 .75, lwidth(thin))
-graph export "fig-02-cumul-age.svg", replace
+graph export "fig-02-cumul-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Fonction de répartition empirique de l'âge
 #+NAME:      fig:02-cumul-age
 #+LABEL:     fig:02-cumul-age
-[[./fig-02-cumul-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-cumul-age.png]]
 
 Un graphique tout aussi intéressant consiste à afficher les fractiles d'une variable en fonction des fractiles d'une loi normale, ce que l'on appelle communément un diagramme de type quantile-quantile. L'examen de la forme de la courbe permet d'évaluer rapidement si les données sont compatibles avec l'hypothèse selon laquelle elles se distribuent "à peu près normalement".
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 qnorm age, grid
-graph export "fig-02-qnorm-age.svg", replace
+graph export "fig-02-qnorm-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Diagramme quantile-quantile pour l'âge
 #+NAME:      fig:02-qnorm-age
 #+LABEL:     fig:02-qnorm-age
-[[./fig-02-qnorm-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-qnorm-age.png]]
 
 ** Histogrammes et courbes de densité
 
 Pour construire un histogramme de cette même variable (=age=), on utilisera la commande [[stata:histogram][histogram]], en précisant l'option =freq= si l'on souhaite afficher les effectifs ("fréquences" en anglais) plutôt que la densité :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 histogram age, xtitle("Age des participants")
-graph export "fig-02-histogram-age.svg", replace
+graph export "fig-02-histogram-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants
 #+NAME:      fig:02-histogram-age
 #+LABEL:     fig:02-histogram-age
-[[./fig-02-histogram-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-histogram-age.png]]
 
 Notons que cette commande dispose de l'option =by()= des commandes [[stata:twoway][twoway]] de sorte qu'il est assez simple de tracer des histogrammes conditionnés sur les valeurs prise par une autre variable, comme illustré ci-après.
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 label variable age "Age des participants"
 histogram age, bin(15) by(sex)
-graph export "fig-02-histogram-age-sex.svg", replace
+graph export "fig-02-histogram-age-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-histogram-age-sex
 #+LABEL:     fig:02-histogram-age-sex
-[[./fig-02-histogram-age-sex.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-histogram-age-sex.png]]
 
 # FIXME Une courbe de densité empirique
 
 Rappelons que la fonction de densité, $f_X$, et la fonction de répartition, $F_X(x)$, discutée plus haut sont liées par une relation simple. Dans le cas continu, $F_X(x) = \int_{-\infty}^x f_X(t)\, \mathrm{d}t$.
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 kdensity age, normal bw(5) lwidth(0.8)
-graph export "fig-02-kdensity-age.svg", replace
+graph export "fig-02-kdensity-age.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants
 #+NAME:      fig:02-kdensity-age
 #+LABEL:     fig:02-kdensity-age
-[[./fig-02-kdensity-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-kdensity-age.png]]
 
 Notons qu'une alternative aux histogrammes consiste à utiliser un diagramme en points à l'aide de [[stata:dotplot][dotplot]]. Dans ce cas, chaque point représente une observation (idéal pour les petits échantillons), mais cette commande se prête mieux aux cas où l'on souhaite 2 ou plusieurs distributions, grâce à son option =over()=. Voici une illustration, avec un petit échantillon aléatoire de la base de données, la commande =gsample= devant être installée au préalable :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 preserve
 gsample 5, percent strata(sex)
 dotplot age, over(sex) center median
-graph export "fig-02-dotplot-age.svg", replace
+graph export "fig-02-dotplot-age.eps", replace
 restore
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge selon le sexe
 #+NAME:      fig:02-dotplot-age
 #+LABEL:     fig:02-dotplot-age
-[[./fig-02-dotplot-age.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-dotplot-age.png]]
 
 ** Diagrammes en barres et en points
 
 Bien qu'il existe une commande graphique pour tracer des diagrammes en barres, [[stata:graph bar][graph bar]], celle-ci s'utilise généralement à partir de données agrégées (voir l'option =yvars= avec =(stat)=). On utilise donc la même commande qu'à la section précédente, [[stata:histogram][histogram]], en spécifiant l'option =discrete=, comme illustré ci-dessous :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 histogram edu, discrete freq addlabels
-graph export "fig-02-histogram-edu.svg", replace
+graph export "fig-02-histogram-edu.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-histogram-edu
 #+LABEL:     fig:02-histogram-edu
-[[./fig-02-histogram-edu.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-histogram-edu.png]]
 
 Comme on peut le voir, la figure [[fig:02-histogram-edu]] est loin d'être parfaite. En particulier, les libellés de l'axe des abscisses sont peu lisibles (à moins d'ajouter une légende indiquant la correspondance entre les codes numériques et les étiquettes des niveaux de la variable =edu=), et les barres verticales sont juxtaposées de sorte qu'avec l'axe numérique il est facile de prendre ce diagramme pour un histogramme pour données continues. Voici une version qui corrige ces deux aspects, notamment grâce à l'usage de =gap()= et une spécification plus poussée des étiquettes de l'axe des x :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 histogram edu, discrete freq addlabels gap(10) xla(1/5, valuelabel noticks ang(45))
-graph export "fig-02-histogram-edu-v2.svg", replace
+graph export "fig-02-histogram-edu-v2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-histogram-edu-v2
 #+LABEL:     fig:02-histogram-edu-v2
-[[./fig-02-histogram-edu-v2.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-histogram-edu-v2.png]]
 
 Pour réaliser un tel diagramme en utilisant [[stata:graph bar][graph bar]], il est nécessaire de travailler avec une variable auxiliaire dans laquelle on accumule les effectifs conditionnels.
 
-#+BEGIN_SRC jupyter-stata :results no :exports code
+#+BEGIN_SRC stata :results no :exports code
 graph bar (count) persnr, over(edu) asyvars percent showyvars bargap(10) ytitle("Proportion") legend(off)
 #+END_SRC
 
 Les diagrammes en points, encore appelé "dotplot" ou "dotchart" de Cleveland \cite{cleveland-1985-elemen-graph-data}, suivent le même principe que les diagrammes en barres. La commande [[stata:graph dot][graph dot]] peut être utilisée en lieu et place de [[stata:graph bar][graph bar]] ci-dessus, mais il est également possible et recommendé d'installer le package [[https://ideas.repec.org/c/boc/bocode/s431501.html][catplot]]. Celui-ci permet de représenter la distribution simple ou jointe de variables catégorielles, entre autres (voir la description disponible sur la page [[https://stats.idre.ucla.edu/stata/faq/graph/njc-stata-plots/][NJC Stata Plots]]) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 catplot edu
-graph export "fig-02-catplot-edu.svg", replace
+graph export "fig-02-catplot-edu.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution d'effectifs selon les niveaux d'éducation
 #+NAME:      fig:02-catplot-edu
 #+LABEL:     fig:02-catplot-edu
-[[./fig-02-catplot-edu.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-catplot-edu.png]]
 
 Et voici dans le cas où l'on croise deux variables, grâce à l'option =by()= (il est également possible d'indiquer deux variables après le nom de la commande) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 catplot edu, by(sex) percent
-graph export "fig-02-catplot-edu-v2.svg", replace
+graph export "fig-02-catplot-edu-v2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution selon les niveaux d'éducation et le sexe (%)
 #+NAME:      fig:02-catplot-edu-v2
 #+LABEL:     fig:02-catplot-edu-v2
-[[./fig-02-catplot-edu-v2.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-catplot-edu-v2.png]]
 
 ** Diagramme de dispersion
 
 Un diagramme de dispersion permet de représenter sous forme d'un nuage de points la covariation entre deux séries numériques.
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 generate lincome = log(income) if income > 0
 scatter lincome age, ms(oh)
-graph export "fig-02-scatter-age-income.svg", replace
+graph export "fig-02-scatter-age-income.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution jointe du revenu (log) et de l'âge
 #+NAME:      fig:02-scatter-age-income
 #+LABEL:     fig:02-scatter-age-income
-[[./fig-02-scatter-age-income.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-scatter-age-income.png]]
 
 À partir de Stata 15, les commandes graphiques supportent la transparence pour l'affichage des symboles, ce qui se révèle plutôt pratique lorsque le nombre de points est grand et que le risque de chevauchement de ces derniers est critique. Le cas échéant il est possible de modifier le type de symbole qui est utilisé. Les symboles graphiques (=graph query symbolstyle=) sont généralement désignés par leur synonymes lettrés : =O= (cercle), =D= (losange), =T= (triangle), =S= (carré), leur variantes de petite taille (les mêmes lettres mais en minuscules), suffixé éventuellement de la lettre =h= ("hollow") pour indiquer que le symbole est rempli avec la couleur par défaut. Il est également possible d'ajouter un décalage aléatoire dans les deux directions pour traiter ce dernier cas de figure.
 
 Une courbe "loess" \cite{cleveland-1979-robus-local} peut être superposée sur le diagramme de dispersion afin d'aider à visualiser la tendance globale de covariation entre les deux séries de mesure ainsi que les déviations locales à la linéarité (qui reste une des hypothèses fondamentales du modèle de régression linéaire, par exemple). Le [[./03-glm.html][chapitre 3]] explique plus en détails la construction de ce type de courbe de [[https://en.wikipedia.org/wiki/Local_regression][régression locale]]. Pour ce faire, il suffit de combiner la commande précédente avec l'instruction [[stata:lowess][lowess]] :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 twoway (scatter lincome age, ms(oh)) (lowess lincome age, lwidth(medthick))
-graph export "fig-02-loess-age-income.svg", replace
+graph export "fig-02-loess-age-income.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution jointe du revenu (log) et de l'âge
 #+NAME:      fig:02-loess-age-income
 #+LABEL:     fig:02-loess-age-income
-[[./fig-02-loess-age-income.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-loess-age-income.png]]
 
 Notons qu'il n'est pas forcément nécessaire de combiner les deux commandes graphiques dans la mesure où [[stata:lowess][lowess]] permet également d'afficher le diagramme de dispersion. Un paramètre qu'il est souvent bon d'explorer est la largeur de la fenêtre de lissage, =bwidth=, qui par défaut vaut 0.8 ce qui consiste à utiliser 80 % de l'échantillon pour calculer une valeur lissée pour chaque observation. En conséquence, plus la valeur de =bwidth= est élevée plus le degré de lissage est important. En voici une illustration sur 100 observations choisies aléatoirement dans l'échantillon :
 
@@ -246,6 +259,7 @@ restore
 #+CAPTION:   Influence du paramètre de lissage
 #+NAME:      fig:02-loess-age-dvisits
 #+LABEL:     fig:02-loess-age-dvisits
+#+ATTR_HTML: :width 800px
 [[./fig-02-loess-age-dvisits.gif]]
 
 ** Séries chronologiques
@@ -262,32 +276,34 @@ On entend par représentation graphique conditionnelle
 
 Voici un exemple d'une courbe de densité de l'âge calculée séparément chez les hommes et chez les femmes dans cet échantillon :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph twoway kdensity age, by(sex)
-graph export "fig-02-kdensity-age-sex.svg", replace
+graph export "fig-02-kdensity-age-sex.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-kdensity-age-sex
 #+LABEL:     fig:02-kdensity-age-sex
-[[./fig-02-kdensity-age-sex.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-kdensity-age-sex.png]]
 
 Il n'est pas possible de superposer les deux courbes à l'aide de =over()= mais l'on peut toujours combiner les deux commandes graphiques grâce à [[stata:twoway][twoway]]. Dans ce cas, il ne faudra pas oublier de préciser dans une légende à quel niveau de =sex= les deux courbes correspondent :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph twoway (kdensity age if sex == 1, bw(5)) (kdensity age if sex == 2, bw(5)), xtitle("Age") ytitle("Density") legend(label(1 "Male") label(2 "Female"))
-graph export "fig-02-kdensity-age-sex-v2.svg", replace
+graph export "fig-02-kdensity-age-sex-v2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon le sexe
 #+NAME:      fig:02-kdensity-age-sex-v2
 #+LABEL:     fig:02-kdensity-age-sex-v2
-[[./fig-02-kdensity-age-sex-v2.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-kdensity-age-sex-v2.png]]
 
 
 Les représentations graphiques sous forme de "boîtes à moustaches" constituent un bon exemple d'application des graphiques conditionnels dans la mesure où l'aspect compact de ce résumé numérique mis en forme visuellement permet de juxtaposer de nombreuses distributions. Considérons la variable =egp= qui représente la classe socio-économique des répondants, recodée en 3 classes après exclusion des personnes sans revenu ou inactives :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 recode egp (1/2=1) (3/5=2) (8/9=3) (15/18=.), gen(egp3)
 label define egp3 1 "Service class 1/2" 2 "Non-manuals & self-employed" 3 "Manuals"
 label values egp3 egp3
@@ -296,26 +312,28 @@ tabstat age, by(egp3) stat(min q max)
 
 Voici la même représentation des quartiles de la distribution de =age=, mais sous forme graphique cette fois :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 graph box age, over(egp3) ytitle("Age")
-graph export "fig-02-box-age-egp.svg", replace
+graph export "fig-02-box-age-egp.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
 #+NAME:      fig:02-box-age-egp
 #+LABEL:     fig:02-box-age-egp
-[[./fig-02-box-age-egp.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-box-age-egp.png]]
 
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 dotplot age, over(egp3) xtitle("") ytitle("Age") ms(S)
-graph export "fig-02-dotplot-age-egp.svg", replace
+graph export "fig-02-dotplot-age-egp.eps", replace
 #+END_SRC
 
 #+CAPTION:   Distribution de l'âge des répondants selon la classe socio-économique
 #+NAME:      fig:02-dotplot-age-egp
 #+LABEL:     fig:02-dotplot-age-egp
-[[./fig-02-dotplot-age-egp.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-dotplot-age-egp.png]]
 
 Le package [[https://ideas.repec.org/c/boc/bocode/s433401.html][stripplot]] peut également être utilisé afin de représenter les distributions conditionnelles sous forme de diagrammes en points, à l'image de [[stata:dotplot][dotplot]]. On utiliserait, par exemple, =stripplot age, over(egp3)=.
 
@@ -323,26 +341,27 @@ Le package [[https://ideas.repec.org/c/boc/bocode/s433401.html][stripplot]] peut
 
 Il n'est parfois pas toujours possible de reposer sur les options =by()= ou =over()= afin de combiner des sous-graphiques comme on le souhaiterait. La commande [[stata:graph combine][graph combine]] permet d'assembler n'importe quel graphique sauvegardé en mémoire ou sur le disque (en format =gph=). Voici un exemple d'utilisation avec une série chronologique disponible sur internet. Il s'agit d'un ensemble de 144 observations sur le volume mensuel de passagers sur les vols internationaux.
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 webuse air2, clear
 list in 1/5
 #+END_SRC
 
 L'évolution du nombre de passagers au cours du temps est relativement simple à visualiser à l'aide de [[stata:scatter][scatter]] :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 scatter air time, m(o) c(l)
-graph export "fig-02-scatter-air-time.svg", replace
+graph export "fig-02-scatter-air-time.eps", replace
 #+END_SRC
 
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time
 #+LABEL:     fig:02-scatter-air-time
-[[./fig-02-scatter-air-time.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-scatter-air-time.png]]
 
 Supposons que l'on souhaite afficher la même évolution du volume de passagers entre 1949 et 1961 mais, cette fois-ci, conditionnellement au mois de l'année. Pour cela, il est nécessaire de créer deux nouvelles variables :
 
-#+BEGIN_SRC jupyter-stata :exports both
+#+BEGIN_SRC stata
 generate y = floor(time)
 generate m = mod(t, 12)
 replace m = 12 if m == 0
@@ -352,32 +371,34 @@ label values m m
 
 Et voici ce que donnerait une telle représentation graphique en utilisant [[stata:scatter][scatter]]. Notons que l'on pourrait grandement simplifier cette commande en utilisant les commandes graphiques spécifiques des données de panel ou des séries chronologiques ([[stata:tsline][tsline]]) :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 scatter air y, by(m, note("")) c(l) m(none) xtitle("")
-graph export "fig-02-scatter-air-time-v2.svg", replace
+graph export "fig-02-scatter-air-time-v2.eps", replace
 #+END_SRC
 
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time-v2
 #+LABEL:     fig:02-scatter-air-time-v2
-[[./fig-02-scatter-air-time-v2.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-scatter-air-time-v2.png]]
 
 À présent, on souhaiterait afficher dans chaque sous-graphique la distribution des autres mois, afin de servir de référence. Or il n'est pas possible d'utiliser d'option =over()= dans ce cas-là. En revanche, on peut générer les 12 graphiques et les assembler à l'aide de [[stata:graph combine][graph combine]]. Dans un premier temps, il est nécessaire de séparer les différents sous-groupes de données :
 
-#+BEGIN_SRC jupyter-stata :exports code
+#+BEGIN_SRC stata :exports code
 quietly separate air, by(m) gen(mm)
 forvalues j = 1/12 {
   scatter mm* y, recast(line) lc(gs12 ...) lp(solid ...) xla(1949(2)1960) legend(off) title(mmonth) || line air y if m == `j', lp(solid) lw(medthick) xtitle("") title("`: label m `j''") name(p`j')
 }
 graph combine p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12, rows(3) cols(4)
-graph export "fig-02-scatter-air-time-v3.svg", replace
+graph export "fig-02-scatter-air-time-v3.eps", replace
 graph drop _all
 #+END_SRC
 
 #+CAPTION:   Évolution du nombre mensuel de passagers entre 1949 et 1961
 #+NAME:      fig:02-scatter-air-time-v3
 #+LABEL:     fig:02-scatter-air-time-v3
-[[./fig-02-scatter-air-time-v3.svg]]
+#+ATTR_HTML: :width 800px
+[[./fig-02-scatter-air-time-v3.png]]
 
 
 * Mata
@@ -390,5 +411,3 @@ heatplot mata(A)
 * Commandes de post-estimation
 
 #+BIBLIOGRAPHY: references ieeetr limit:t option:-nobibsource
-
-* Footnotes
