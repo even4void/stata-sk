@@ -1,0 +1,14 @@
+#+TITLE: Stata
+#+AUTHOR: chl
+#+DATE: May 2022
+#+LANGUAGE: fr
+
+# TODO: fix Latex header/footer, image path, verbatim display width
+
+#+INCLUDE: "00-intro.org" :minlevel 1
+#+INCLUDE: "01-data.org" :minlevel 1
+#+INCLUDE: "02-graphics.org" :minlevel 1
+#+INCLUDE: "03-glm.org" :minlevel 1
+#+INCLUDE: "04-anova.org" :minlevel 1
+#+INCLUDE: "05-programming.org" :minlevel 1
+

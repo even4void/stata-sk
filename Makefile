@@ -16,7 +16,7 @@ $(OUT_DIR)/%.html: %.html
 	mv $< $(OUT_DIR)
 
 clean:
-	rm -rf bib2html* references.html
+	rm -rf bib2html* *.bbl *.synctex.gz *-blx.bib main.tex references.html
 
 veryclean:
 	rm dist/*.html dist/fig-*.svg dist/fig-*.eps .ob-jupyter/* bib2html*
