@@ -9,13 +9,14 @@ dist: $(OUT_DIR) $(HTMLFILES)
 
 %.html: %.org
 	emacs --batch -l setup.el $< -f org-html-export-to-html --kill
+	./gen-png.sh
+	mv *.eps $(OUT_DIR)
 
 $(OUT_DIR)/%.html: %.html
 	mv $< $(OUT_DIR)
-	mv *.svg $(OUT_DIR)
 
 clean:
-	rm -rf .ob-jupyter/ bib2html* references.html
+	rm -rf bib2html* references.html
 
 veryclean:
-	rm dist/*.html dist/fig-*.svg .ob-jupyter/* bib2html*
+	rm dist/*.html dist/fig-*.svg dist/fig-*.eps .ob-jupyter/* bib2html*
