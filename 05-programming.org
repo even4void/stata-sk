@@ -64,7 +64,7 @@ estimates table m*
 ** Variables catégorielles
 
 #+BEGIN_SRC stata
-levelsof country, local(lvls)
+levelsof race, local(lvls)
 local items =  `r(r)'
 #+END_SRC
 
@@ -75,9 +75,8 @@ Consulter également les valeurs retournées par =return list=.
 #+BEGIN_SRC stata
 local date: display %tdd_m_yy date(c(current_date), "DMY")
 display "`date'"
-summ date
-local date: display %tdd_m_yy `r(max)'
-display "`date'"
+// local date: display %tdd_m_yy `r(max)'
+// display "`date'"
 local date2 = subinstr(trim("`date'"), " ", "_", .)
 display "`date2'"
 #+END_SRC
@@ -85,8 +84,8 @@ display "`date2'"
 Voir aussi
 
 #+BEGIN_SRC stata
-local date = string(date(c(current_date), "DMY"), "%tdd!_m!_Y")
-local date = string(date(c(current_date), "DMY"), "%tdCCYYNNDD")
+// local date = string(date(c(current_date), "DMY"), "%tdd!_m!_Y")
+// local date = string(date(c(current_date), "DMY"), "%tdCCYYNNDD")
 local date = string(date(c(current_date), "DMY"), "%tdCYND")
 display "`date'"
 #+END_SRC
@@ -163,12 +162,12 @@ list w* in 1/5
 
 Dans la même veine, on peut imaginer : le recodage en masse des niveaux d’une liste de variable ([[stata:recode][recode]]), la gestion des données manquantes ([[stata:mvdecode][mvdecode]]), etc. Un autre exemple consiste à [[http://www.stata.com/support/faqs/data-management/using-while-loops/][générer des graphiques avec des instructions non "byable"]], l'annotation d'une [[http://www.stata.com/statalist/archive/2010-06/msg01581.html][liste de variables]], ou enfin le nommage automatique de graphiques :
 
-#+BEGIN_SRC stata
+#+BEGIN_EXAMPLE
 foreach x of varlist var1-var5 {
   local v : var label `x'
   twoway line yvar xvar, title("`v'")
 }
-#+END_SRC
+#+END_EXAMPLE
 
 ** Structures de contrôle
 
@@ -176,7 +175,7 @@ Les structures de branchement conditionnels telles qu'une instruction if/else pe
 
 Attention à [[https://www.stata.com/support/faqs/data-management/multiple-operations/][ne pas confondre]] le qualificateur [[stata:if][if]] avec l'instruction de test Stata ou Mata correspondante. L'expression =sum foreign if price > 10000= ne fournira pas le même résultat que :
 
-#+BEGIN_SRC stata
+#+BEGIN_SRC stata :exports code
 if price > 10000 {
   sum foreign
 }
@@ -185,7 +184,7 @@ if price > 10000 {
 Usage de [[stata:cond][cond]] \cite{kantor-2005-depen}
 
 #+BEGIN_SRC stata
-sysuse auto
+sysuse auto, clear
 gen v1 = mpg > 20
 gen v2 = !inrange(mpg, 0, 20)
 gen v3 = cond(mpg > 20, 1, 0)
